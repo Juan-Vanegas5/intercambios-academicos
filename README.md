@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🎓 Aplicación de Gestión de Intercambios Académicos
 
 Plataforma web centralizada para la gestión de intercambios académicos desarrollada por estudiantes de la **Universidad Piloto de Colombia** - Programa de Desarrollo Web.
@@ -130,3 +131,6 @@ psql -U postgres -f database/seed.sql
 ## 📄 Licencia
 
 Proyecto académico — Universidad Piloto de Colombia, 2026.
+=======
+# Gestion-de-intercambios-academicos
+>>>>>>> 2c6c576c4c0514eded071ce98cd3a56ed61c66c8

@@ -1,0 +1,102 @@
+# ========================
+# Java / Backend
+# ========================
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+target/
+build/
+out/
+*.iml
+.idea/
+*.eclipse
+.classpath
+.project
+.settings/
+hs_err_pid*
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Spring Boot
+application-local.properties
+application-local.yml
+
+# ========================
+# Base de Datos
+# ========================
+*.sql.bak
+*.dump
+.env
+database/local/
+
+# ========================
+# Frontend
+# ========================
+node_modules/
+dist/
+.cache/
+
+# ========================
+# Sistema Operativo
+# ========================
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+
+# ========================
+# Editores
+# ========================
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA
+*.iws
+*.ipr
+
+# Eclipse
+*.swp
+*.swo
+
+# ========================
+# Variables de entorno
+# ========================
+.env
+.env.local
+.env.development
+.env.production
+*.env
+
+# ========================
+# Logs
+# ========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

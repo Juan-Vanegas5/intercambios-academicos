@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mis Postulaciones - Intercambios UPC</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <nav>
+    <a href="index.html" class="nav-logo">🎓 Intercambios UPC</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Convocatorias</a></li>
+      <li><a href="postulacion.html">Postularme</a></li>
+      <li><a href="seguimiento.html" class="activo">Mis Postulaciones</a></li>
+      <li><a href="login.html">Cerrar Sesión</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="page-header">
+      <h1>Mis Postulaciones</h1>
+      <p>Aquí puedes ver el estado de cada una de tus postulaciones</p>
+    </div>
+
+    <!-- Notificación activa -->
+    <div class="alerta alerta-info mb-3">
+      🔔 Tienes <strong>1 postulación en revisión</strong>. Te notificaremos por correo cuando haya cambios.
+    </div>
+
+    <!-- Tabla de postulaciones -->
+    <div class="card">
+      <div class="tabla-container">
+        <table id="tabla-postulaciones">
+          <thead>
+            <tr>
+              <th>Convocatoria</th>
+              <th>Universidad</th>
+              <th>País</th>
+              <th>Fecha postulación</th>
+              <th>Estado</th>
+              <th>Comentario</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-tabla">
+            <!-- Se genera con JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Detalle de estado -->
+    <div style="margin-top:2rem;">
+      <h2 style="color:#1a3a6b; font-size:1.1rem; margin-bottom:1rem;">¿Qué significa cada estado?</h2>
+      <div class="cards-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+        <div class="card text-center">
+          <span class="badge badge-amarillo mb-1" style="font-size:0.95rem;">En revisión</span>
+          <p style="font-size:0.85rem; color:#6b7280; margin-top:0.5rem;">
+            Tu postulación fue recibida y está siendo evaluada por el equipo de intercambios.
+          </p>
+        </div>
+        <div class="card text-center">
+          <span class="badge badge-verde mb-1" style="font-size:0.95rem;">Aprobada</span>
+          <p style="font-size:0.85rem; color:#6b7280; margin-top:0.5rem;">
+            ¡Felicitaciones! Fuiste seleccionado. Revisa tu correo para los siguientes pasos.
+          </p>
+        </div>
+        <div class="card text-center">
+          <span class="badge badge-rojo mb-1" style="font-size:0.95rem;">Rechazada</span>
+          <p style="font-size:0.85rem; color:#6b7280; margin-top:0.5rem;">
+            Tu postulación no fue aprobada esta vez. Puedes aplicar a otras convocatorias.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div style="margin-top:1.5rem; display:flex; gap:1rem;">
+      <a href="index.html" class="btn btn-primario">Ver más convocatorias</a>
+      <a href="postulacion.html" class="btn btn-secundario">Nueva postulación</a>
+    </div>
+  </main>
+
+  <footer>
+    <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    const cuerpo = document.getElementById('cuerpo-tabla');
+
+    if (miPostulacion.length === 0) {
+      cuerpo.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align:center; color:#6b7280; padding:2rem;">
+            No tienes postulaciones registradas.
+            <a href="postulacion.html" style="color:#2563eb; margin-left:0.5rem;">Postúlate ahora →</a>
+          </td>
+        </tr>
+      `;
+    } else {
+      cuerpo.innerHTML = miPostulacion.map(p => `
+        <tr>
+          <td><strong>${p.convocatoria}</strong></td>
+          <td>${p.universidad}</td>
+          <td>${p.pais}</td>
+          <td>${formatFecha(p.fecha_postulacion)}</td>
+          <td>${getBadge(p.estado)}</td>
+          <td style="color:#6b7280; font-size:0.85rem;">
+            ${p.comentario || '—'}
+          </td>
+        </tr>
+      `).join('');
+    }
+  </script>
+</body>
+</html>

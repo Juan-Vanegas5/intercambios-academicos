@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iniciar Sesión - Intercambios UPC</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <nav>
+    <a href="index.html" class="nav-logo">🎓 Intercambios UPC</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Convocatorias</a></li>
+      <li><a href="login.html" class="activo">Iniciar Sesión</a></li>
+      <li><a href="registro.html">Registrarme</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="form-container">
+      <div class="card">
+
+        <div class="text-center mb-3">
+          <div style="font-size:3rem; margin-bottom:0.5rem;">🎓</div>
+          <h1 style="font-size:1.5rem; color:#1a3a6b; margin-bottom:0.3rem;">Bienvenido de vuelta</h1>
+          <p style="color:#6b7280; font-size:0.9rem;">Ingresa a tu cuenta para gestionar tus postulaciones</p>
+        </div>
+
+        <div class="alerta alerta-info">
+          <strong>Demo:</strong> Usa <code>estudiante@upc.edu.co</code> / <code>1234</code> para estudiante
+          o <code>admin@upc.edu.co</code> / <code>admin</code> para administrador.
+        </div>
+
+        <form id="form-login" onsubmit="iniciarSesion(event)">
+
+          <div class="form-group">
+            <label for="email">Correo institucional</label>
+            <input
+              type="email"
+              id="email"
+              placeholder="ejemplo@upc.edu.co"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="contrasena">Contraseña</label>
+            <input
+              type="password"
+              id="contrasena"
+              placeholder="Tu contraseña"
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primario btn-bloque btn-submit">
+            Iniciar sesión
+          </button>
+        </form>
+
+        <div class="form-pie mt-2">
+          ¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    // Usuarios de prueba (en producción esto lo valida el backend)
+    const usuarios = [
+      { email: 'estudiante@upc.edu.co', contrasena: '1234', rol: 'estudiante' },
+      { email: 'admin@upc.edu.co',      contrasena: 'admin', rol: 'administrador' }
+    ];
+
+    function iniciarSesion(e) {
+      e.preventDefault();
+      const email     = document.getElementById('email').value.trim();
+      const contrasena = document.getElementById('contrasena').value;
+
+      const usuario = usuarios.find(u => u.email === email && u.contrasena === contrasena);
+
+      if (!usuario) {
+        // Mostrar error
+        let alerta = document.getElementById('alerta-error');
+        if (!alerta) {
+          alerta = document.createElement('div');
+          alerta.id = 'alerta-error';
+          alerta.className = 'alerta alerta-error';
+          document.getElementById('form-login').prepend(alerta);
+        }
+        alerta.textContent = 'Correo o contraseña incorrectos. Intenta de nuevo.';
+        return;
+      }
+
+      // Guardar sesión en localStorage (simulación)
+      localStorage.setItem('usuario', JSON.stringify({ email: usuario.email, rol: usuario.rol }));
+
+      alert(`¡Bienvenido! Ingresaste como ${usuario.rol}.`);
+
+      if (usuario.rol === 'administrador') {
+        window.location.href = 'admin/panel.html';
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
+  </script>
+</body>
+</html>

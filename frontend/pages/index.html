@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intercambios Académicos - Inicio</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <nav>
+    <a href="index.html" class="nav-logo">🎓 Intercambios UPC</a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="activo">Convocatorias</a></li>
+      <li><a href="postulacion.html">Postularme</a></li>
+      <li><a href="seguimiento.html">Mis Postulaciones</a></li>
+      <li><a href="login.html">Iniciar Sesión</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Oportunidades de Intercambio Académico</h1>
+    <p>Descubre universidades aliadas alrededor del mundo y postúlate a un programa de intercambio</p>
+    <a href="registro.html" class="btn btn-primario">Registrarme</a>
+  </div>
+
+  <!-- CONTENIDO -->
+  <main>
+    <div class="page-header flex-between">
+      <div>
+        <h1>Convocatorias Disponibles</h1>
+        <p>Programas abiertos para postulación este semestre</p>
+      </div>
+      <!-- Filtro por estado -->
+      <div>
+        <select id="filtro-estado" onchange="filtrarConvocatorias()" style="padding:0.5rem 1rem; border-radius:7px; border:1.5px solid #d1d5db; font-size:0.9rem;">
+          <option value="todas">Todas</option>
+          <option value="activa">Activas</option>
+          <option value="proximamente">Próximamente</option>
+          <option value="cerrada">Cerradas</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Tarjetas de convocatorias -->
+    <div class="cards-grid" id="lista-convocatorias">
+      <!-- Se genera con JavaScript -->
+    </div>
+  </main>
+
+  <footer>
+    <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    function renderConvocatorias(lista) {
+      const contenedor = document.getElementById('lista-convocatorias');
+      if (lista.length === 0) {
+        contenedor.innerHTML = '<p class="text-center" style="grid-column:1/-1; color:#6b7280;">No hay convocatorias para mostrar.</p>';
+        return;
+      }
+      contenedor.innerHTML = lista.map(c => `
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>${c.titulo}</h2>
+              <p class="universidad">🏫 ${c.universidad} &mdash; 🌍 ${c.pais}</p>
+            </div>
+            ${getBadge(c.estado)}
+          </div>
+          <p class="descripcion">${c.descripcion}</p>
+          <div class="info-row">
+            <span>📅 Cierre: ${formatFecha(c.fecha_cierre)}</span>
+            <span>🪑 Cupos: ${c.cupos}</span>
+          </div>
+          <p style="font-size:0.85rem; color:#6b7280; margin-bottom:1rem;">
+            <strong>Requisitos:</strong> ${c.requisitos}
+          </p>
+          ${c.estado === 'activa'
+            ? `<a href="postulacion.html?id=${c.id}" class="btn btn-primario btn-sm">Postularme</a>`
+            : `<button class="btn btn-secundario btn-sm" disabled>No disponible</button>`
+          }
+        </div>
+      `).join('');
+    }
+
+    function filtrarConvocatorias() {
+      const valor = document.getElementById('filtro-estado').value;
+      const filtradas = valor === 'todas'
+        ? convocatorias
+        : convocatorias.filter(c => c.estado === valor);
+      renderConvocatorias(filtradas);
+    }
+
+    // Cargar al inicio
+    renderConvocatorias(convocatorias);
+  </script>
+</body>
+</html>

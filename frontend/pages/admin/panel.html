@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Administrador - Intercambios UPC</title>
+  <link rel="stylesheet" href="../../css/styles.css" />
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <nav>
+    <a href="../../pages/index.html" class="nav-logo">🎓 Intercambios UPC</a>
+    <ul class="nav-links">
+      <li><a href="panel.html" class="activo">Panel Admin</a></li>
+      <li><a href="../index.html">Ver convocatorias</a></li>
+      <li><a href="../login.html">Cerrar Sesión</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="page-header flex-between">
+      <div>
+        <h1>Panel de Administración</h1>
+        <p>Gestiona las postulaciones recibidas y actualiza su estado</p>
+      </div>
+      <span class="badge badge-azul" style="font-size:0.9rem;">Administrador</span>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="cards-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom:2rem;">
+      <div class="card text-center">
+        <div style="font-size:2rem; font-weight:700; color:#2563eb;">6</div>
+        <div style="font-size:0.85rem; color:#6b7280;">Total postulaciones</div>
+      </div>
+      <div class="card text-center">
+        <div style="font-size:2rem; font-weight:700; color:#d97706;">3</div>
+        <div style="font-size:0.85rem; color:#6b7280;">En revisión</div>
+      </div>
+      <div class="card text-center">
+        <div style="font-size:2rem; font-weight:700; color:#16a34a;">2</div>
+        <div style="font-size:0.85rem; color:#6b7280;">Aprobadas</div>
+      </div>
+      <div class="card text-center">
+        <div style="font-size:2rem; font-weight:700; color:#dc2626;">1</div>
+        <div style="font-size:0.85rem; color:#6b7280;">Rechazadas</div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-3" style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+      <strong style="font-size:0.9rem; color:#1a3a6b;">Filtrar por estado:</strong>
+      <button class="btn btn-secundario btn-sm" onclick="filtrar('todas')" id="btn-todas">Todas</button>
+      <button class="btn btn-secundario btn-sm" onclick="filtrar('en_revision')" id="btn-en_revision">En revisión</button>
+      <button class="btn btn-exito btn-sm" onclick="filtrar('aprobada')" id="btn-aprobada">Aprobadas</button>
+      <button class="btn btn-danger btn-sm" onclick="filtrar('rechazada')" id="btn-rechazada">Rechazadas</button>
+    </div>
+
+    <!-- Tabla de postulaciones -->
+    <div class="card">
+      <div class="tabla-container">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Estudiante</th>
+              <th>Programa</th>
+              <th>Convocatoria</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-admin">
+            <!-- Se genera con JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal de comentario (oculto) -->
+    <div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:center; justify-content:center;">
+      <div class="card" style="max-width:440px; width:90%; margin:auto;">
+        <h3 style="color:#1a3a6b; margin-bottom:1rem;">Agregar comentario</h3>
+        <div class="form-group">
+          <label>Comentario para el estudiante</label>
+          <textarea id="comentario-modal" rows="4" placeholder="Ej: Documentos aprobados. Se notificará por correo..."></textarea>
+        </div>
+        <div style="display:flex; gap:1rem;">
+          <button class="btn btn-secundario" onclick="cerrarModal()">Cancelar</button>
+          <button class="btn btn-primario" onclick="guardarComentario()" style="flex:1;">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
+  </footer>
+
+  <script src="../../js/main.js"></script>
+  <script>
+    // Datos de ejemplo de postulaciones recibidas
+    let postulaciones = [
+      { id: 1, estudiante: "María López",      programa: "Ing. Sistemas",   convocatoria: "Univ. de Barcelona",    fecha: "2026-04-08", estado: "aprobada",    comentario: "Todo en orden." },
+      { id: 2, estudiante: "Carlos Ruiz",       programa: "Ing. Civil",      convocatoria: "UNAM México",           fecha: "2026-04-09", estado: "en_revision", comentario: "" },
+      { id: 3, estudiante: "Juan Vanegas",      programa: "Ing. Sistemas",   convocatoria: "Univ. de Barcelona",    fecha: "2026-04-10", estado: "en_revision", comentario: "" },
+      { id: 4, estudiante: "Sofía Martínez",    programa: "Administración",  convocatoria: "UNAM México",           fecha: "2026-04-11", estado: "rechazada",   comentario: "Promedio insuficiente." },
+      { id: 5, estudiante: "Andrés Gómez",      programa: "Arquitectura",    convocatoria: "Univ. de Barcelona",    fecha: "2026-04-12", estado: "aprobada",    comentario: "Excelente perfil." },
+      { id: 6, estudiante: "Laura Hernández",   programa: "Derecho",         convocatoria: "UNAM México",           fecha: "2026-04-13", estado: "en_revision", comentario: "" },
+    ];
+
+    let filaActual = null;
+
+    function renderTabla(lista) {
+      const tbody = document.getElementById('cuerpo-admin');
+      tbody.innerHTML = lista.map(p => `
+        <tr id="fila-${p.id}">
+          <td>${p.id}</td>
+          <td><strong>${p.estudiante}</strong></td>
+          <td>${p.programa}</td>
+          <td>${p.convocatoria}</td>
+          <td>${formatFecha(p.fecha)}</td>
+          <td>${getBadge(p.estado)}</td>
+          <td style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button class="btn btn-exito btn-sm" onclick="cambiarEstado(${p.id}, 'aprobada')">✔ Aprobar</button>
+            <button class="btn btn-danger btn-sm"  onclick="cambiarEstado(${p.id}, 'rechazada')">✘ Rechazar</button>
+            <button class="btn btn-secundario btn-sm" onclick="abrirModal(${p.id})">💬</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filtrar(estado) {
+      const lista = estado === 'todas'
+        ? postulaciones
+        : postulaciones.filter(p => p.estado === estado);
+      renderTabla(lista);
+    }
+
+    function cambiarEstado(id, nuevoEstado) {
+      const p = postulaciones.find(x => x.id === id);
+      if (p) {
+        p.estado = nuevoEstado;
+        filtrar('todas');
+      }
+    }
+
+    function abrirModal(id) {
+      filaActual = id;
+      const p = postulaciones.find(x => x.id === id);
+      document.getElementById('comentario-modal').value = p ? p.comentario : '';
+      document.getElementById('modal').style.display = 'flex';
+    }
+
+    function cerrarModal() {
+      document.getElementById('modal').style.display = 'none';
+      filaActual = null;
+    }
+
+    function guardarComentario() {
+      const texto = document.getElementById('comentario-modal').value;
+      const p = postulaciones.find(x => x.id === filaActual);
+      if (p) p.comentario = texto;
+      cerrarModal();
+      filtrar('todas');
+    }
+
+    // Cargar al inicio
+    renderTabla(postulaciones);
+  </script>
+</body>
+</html>

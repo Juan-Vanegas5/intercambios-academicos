@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registro - Intercambios UPC</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <nav>
+    <a href="index.html" class="nav-logo">🎓 Intercambios UPC</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Convocatorias</a></li>
+      <li><a href="login.html">Iniciar Sesión</a></li>
+      <li><a href="registro.html" class="activo">Registrarme</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="form-container" style="max-width:560px;">
+      <div class="card">
+
+        <div class="text-center mb-3">
+          <div style="font-size:2.5rem; margin-bottom:0.5rem;">📝</div>
+          <h1 style="font-size:1.5rem; color:#1a3a6b; margin-bottom:0.3rem;">Crear cuenta</h1>
+          <p style="color:#6b7280; font-size:0.9rem;">Regístrate para postularte a intercambios académicos</p>
+        </div>
+
+        <form id="form-registro" onsubmit="registrar(event)">
+
+          <div class="form-fila">
+            <div class="form-group">
+              <label for="nombre">Nombre</label>
+              <input type="text" id="nombre" placeholder="Ej: Juan Andrés" required />
+            </div>
+            <div class="form-group">
+              <label for="apellido">Apellido</label>
+              <input type="text" id="apellido" placeholder="Ej: Vanegas" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Correo institucional</label>
+            <input type="email" id="email" placeholder="ejemplo@upc.edu.co" required />
+          </div>
+
+          <div class="form-fila">
+            <div class="form-group">
+              <label for="codigo">Código estudiantil</label>
+              <input type="text" id="codigo" placeholder="Ej: 201923456" required />
+            </div>
+            <div class="form-group">
+              <label for="programa">Programa académico</label>
+              <select id="programa" required>
+                <option value="">Seleccionar...</option>
+                <option>Ingeniería de Sistemas</option>
+                <option>Ingeniería Civil</option>
+                <option>Arquitectura</option>
+                <option>Administración de Empresas</option>
+                <option>Derecho</option>
+                <option>Psicología</option>
+                <option>Medicina</option>
+                <option>Otro</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-fila">
+            <div class="form-group">
+              <label for="contrasena">Contraseña</label>
+              <input type="password" id="contrasena" placeholder="Mínimo 6 caracteres" required minlength="6" />
+            </div>
+            <div class="form-group">
+              <label for="confirmar">Confirmar contraseña</label>
+              <input type="password" id="confirmar" placeholder="Repite tu contraseña" required />
+            </div>
+          </div>
+
+          <div id="alerta-registro"></div>
+
+          <button type="submit" class="btn btn-primario btn-bloque btn-submit">
+            Crear cuenta
+          </button>
+        </form>
+
+        <div class="form-pie mt-2">
+          ¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    function registrar(e) {
+      e.preventDefault();
+      const contrasena = document.getElementById('contrasena').value;
+      const confirmar  = document.getElementById('confirmar').value;
+      const alerta     = document.getElementById('alerta-registro');
+
+      if (contrasena !== confirmar) {
+        alerta.className = 'alerta alerta-error';
+        alerta.textContent = 'Las contraseñas no coinciden.';
+        return;
+      }
+
+      alerta.textContent = '';
+      simularEnvio('¡Cuenta creada con éxito! Ahora puedes iniciar sesión.', 'login.html');
+    }
+  </script>
+</body>
+</html>

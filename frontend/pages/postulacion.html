@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Postulación - Intercambios UPC</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <nav>
+    <a href="index.html" class="nav-logo">🎓 Intercambios UPC</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Convocatorias</a></li>
+      <li><a href="postulacion.html" class="activo">Postularme</a></li>
+      <li><a href="seguimiento.html">Mis Postulaciones</a></li>
+      <li><a href="login.html">Cerrar Sesión</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="page-header">
+      <h1>Formulario de Postulación</h1>
+      <p>Completa la información para aplicar a una convocatoria de intercambio</p>
+    </div>
+
+    <div class="card" style="max-width:680px; margin:0 auto;">
+
+      <!-- Info de la convocatoria seleccionada -->
+      <div id="info-convocatoria" class="alerta alerta-info mb-3" style="display:none;"></div>
+
+      <form id="form-postulacion" onsubmit="enviarPostulacion(event)">
+
+        <!-- Paso 1: Seleccionar convocatoria -->
+        <h3 style="color:#1a3a6b; margin-bottom:1rem; font-size:1rem;">1. Selecciona la convocatoria</h3>
+
+        <div class="form-group">
+          <label for="convocatoria">Convocatoria</label>
+          <select id="convocatoria" required onchange="mostrarInfoConvocatoria()">
+            <option value="">-- Elige una convocatoria activa --</option>
+          </select>
+        </div>
+
+        <hr style="margin: 1.5rem 0; border:none; border-top:1px solid #e5e7eb;" />
+
+        <!-- Paso 2: Datos del estudiante -->
+        <h3 style="color:#1a3a6b; margin-bottom:1rem; font-size:1rem;">2. Tus datos de contacto</h3>
+
+        <div class="form-fila">
+          <div class="form-group">
+            <label for="nombre">Nombre completo</label>
+            <input type="text" id="nombre" placeholder="Ej: Juan Andrés Vanegas" required />
+          </div>
+          <div class="form-group">
+            <label for="codigo">Código estudiantil</label>
+            <input type="text" id="codigo" placeholder="Ej: 201923456" required />
+          </div>
+        </div>
+
+        <div class="form-fila">
+          <div class="form-group">
+            <label for="email">Correo institucional</label>
+            <input type="email" id="email" placeholder="ejemplo@upc.edu.co" required />
+          </div>
+          <div class="form-group">
+            <label for="promedio">Promedio acumulado</label>
+            <input type="number" id="promedio" placeholder="Ej: 3.8" min="0" max="5" step="0.1" required />
+          </div>
+        </div>
+
+        <hr style="margin: 1.5rem 0; border:none; border-top:1px solid #e5e7eb;" />
+
+        <!-- Paso 3: Carta de motivación -->
+        <h3 style="color:#1a3a6b; margin-bottom:1rem; font-size:1rem;">3. Carta de motivación</h3>
+
+        <div class="form-group">
+          <label for="motivacion">¿Por qué quieres participar en este intercambio?</label>
+          <textarea id="motivacion" placeholder="Describe tus motivaciones, metas académicas y por qué eres el candidato ideal..." rows="5" required></textarea>
+        </div>
+
+        <hr style="margin: 1.5rem 0; border:none; border-top:1px solid #e5e7eb;" />
+
+        <!-- Paso 4: Documentos -->
+        <h3 style="color:#1a3a6b; margin-bottom:1rem; font-size:1rem;">4. Documentos requeridos</h3>
+
+        <div class="alerta alerta-info mb-2">
+          Adjunta los documentos en formato PDF. El tamaño máximo por archivo es 5 MB.
+        </div>
+
+        <div class="form-group">
+          <label for="doc-notas">Certificado de notas (PDF)</label>
+          <input type="file" id="doc-notas" accept=".pdf" required />
+        </div>
+
+        <div class="form-group">
+          <label for="doc-paz">Paz y salvo académico (PDF)</label>
+          <input type="file" id="doc-paz" accept=".pdf" required />
+        </div>
+
+        <div class="form-group">
+          <label for="doc-idioma">Certificado de idioma (PDF) — si aplica</label>
+          <input type="file" id="doc-idioma" accept=".pdf" />
+        </div>
+
+        <div id="alerta-envio"></div>
+
+        <div style="display:flex; gap:1rem; margin-top:0.5rem;">
+          <a href="index.html" class="btn btn-secundario">Cancelar</a>
+          <button type="submit" class="btn btn-primario btn-submit" style="flex:1;">
+            Enviar postulación
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    // Poblar el select con las convocatorias activas
+    const select = document.getElementById('convocatoria');
+    convocatorias
+      .filter(c => c.estado === 'activa')
+      .forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = `${c.titulo} — ${c.pais}`;
+        select.appendChild(opt);
+      });
+
+    // Si viene ?id=X en la URL, preseleccionar
+    const params = new URLSearchParams(window.location.search);
+    const idParam = params.get('id');
+    if (idParam) {
+      select.value = idParam;
+      mostrarInfoConvocatoria();
+    }
+
+    function mostrarInfoConvocatoria() {
+      const id = parseInt(select.value);
+      const c = convocatorias.find(x => x.id === id);
+      const div = document.getElementById('info-convocatoria');
+      if (c) {
+        div.style.display = 'block';
+        div.innerHTML = `
+          <strong>${c.titulo}</strong> — ${c.universidad}, ${c.pais}<br/>
+          <small>Cierre de postulaciones: ${formatFecha(c.fecha_cierre)} &bull; Cupos disponibles: ${c.cupos}</small><br/>
+          <small><strong>Requisitos:</strong> ${c.requisitos}</small>
+        `;
+      } else {
+        div.style.display = 'none';
+      }
+    }
+
+    function enviarPostulacion(e) {
+      e.preventDefault();
+      simularEnvio(
+        '¡Postulación enviada con éxito! Puedes hacer seguimiento en "Mis Postulaciones".',
+        'seguimiento.html'
+      );
+    }
+  </script>
+</body>
+</html>

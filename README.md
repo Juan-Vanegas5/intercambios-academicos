@@ -1,5 +1,5 @@
 <<<<<<< HEAD
-# 🎓 Aplicación de Gestión de Intercambios Académicos
+# Aplicación de Gestión de Intercambios Académicos
 
 Plataforma web centralizada para la gestión de intercambios académicos desarrollada por estudiantes de la **Universidad Piloto de Colombia** - Programa de Desarrollo Web.
 

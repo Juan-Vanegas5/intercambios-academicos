@@ -6,7 +6,6 @@ Plataforma web centralizada para la gestión de intercambios académicos desarro
 ---
 
 ##  Equipo de Desarrollo
-
 | Nombre | Rol |
 |---|---|
 | Leonardo Arias | Frontend |

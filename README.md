@@ -5,18 +5,18 @@ Plataforma web centralizada para la gestión de intercambios académicos desarro
 
 ---
 
-## 👥 Equipo de Desarrollo
+##  Equipo de Desarrollo
 
 | Nombre | Rol |
 |---|---|
 | Leonardo Arias | Frontend |
 | Juan Sebastián Sanabria Leiton | Base de Datos (PostgreSQL) |
 | Juan Andrés Vanegas Guzmán | Backend (Java) |
-| Luis Felipe Herrera Quintero | Desarrollo General |
+| Luis Felipe Herrera Quintero | profesor|
 
 ---
 
-## 📋 Descripción
+##  Descripción
 
 Sistema web que permite centralizar y optimizar la gestión de intercambios académicos, facilitando:
 
@@ -28,7 +28,7 @@ Sistema web que permite centralizar y optimizar la gestión de intercambios acad
 
 ---
 
-## 🏗️ Arquitectura
+##  Arquitectura
 
 El sistema se divide en tres capas:
 
@@ -38,7 +38,7 @@ El sistema se divide en tres capas:
 
 ---
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 intercambios-academicos/
@@ -83,7 +83,7 @@ intercambios-academicos/
 
 ---
 
-## 🚀 Cómo clonar y configurar el proyecto
+##  Cómo clonar y configurar el proyecto
 
 ### Requisitos previos
 - [Git](https://git-scm.com/)
@@ -109,7 +109,7 @@ psql -U postgres -f database/seed.sql
 
 ---
 
-## 📅 Cronograma
+## Cronograma
 
 | Semana | Entrega | Responsable |
 |---|---|---|

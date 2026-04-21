@@ -22,7 +22,7 @@ INSERT INTO usuarios (nombre, apellido, email, contrasena, rol, codigo, programa
 ('Sandra',   'Romero',          'sandra.romero@upc.edu.co',   'admin123', 'administrador', NULL,        NULL),
 
 -- Estudiantes (los mismos que aparecen en el panel de admin del frontend)
-('María',    'López',           'estudiante@upc.edu.co',      '1234',     'estudiante', '201901001', 'Ingeniería de Sistemas'),
+('María',    'López',           'maria.lopez@upc.edu.co',     '1234',     'estudiante', '201901001', 'Ingeniería de Sistemas'),
 ('Carlos',   'Ruiz',            'carlos.ruiz@upc.edu.co',     '1234',     'estudiante', '201901002', 'Ingeniería Civil'),
 ('Juan',     'Vanegas',         'juan.vanegas@upc.edu.co',    '1234',     'estudiante', '201901003', 'Ingeniería de Sistemas'),
 ('Sofía',    'Martínez',        'sofia.martinez@upc.edu.co',  '1234',     'estudiante', '201901004', 'Administración de Empresas'),

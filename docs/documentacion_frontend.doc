@@ -1,0 +1,706 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8"/>
+<meta name=ProgId content=Word.Document/>
+<meta name=Generator content="Microsoft Word 15"/>
+<title>Documentación Frontend - Intercambios Académicos</title>
+<style>
+  body {
+    font-family: Calibri, sans-serif;
+    font-size: 11pt;
+    color: #1f2937;
+    margin: 2cm 2.5cm;
+    line-height: 1.6;
+  }
+  h1 {
+    font-size: 20pt;
+    color: #1a3a6b;
+    border-bottom: 2px solid #1a3a6b;
+    padding-bottom: 6pt;
+    margin-top: 18pt;
+    margin-bottom: 10pt;
+  }
+  h2 {
+    font-size: 14pt;
+    color: #2563eb;
+    margin-top: 16pt;
+    margin-bottom: 6pt;
+  }
+  h3 {
+    font-size: 12pt;
+    color: #1a3a6b;
+    margin-top: 12pt;
+    margin-bottom: 4pt;
+  }
+  p {
+    margin-bottom: 8pt;
+    text-align: justify;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10pt 0 14pt 0;
+    font-size: 10pt;
+  }
+  th {
+    background-color: #1a3a6b;
+    color: white;
+    padding: 6pt 10pt;
+    text-align: left;
+    font-weight: bold;
+  }
+  td {
+    padding: 6pt 10pt;
+    border: 1px solid #d1d5db;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td {
+    background-color: #f0f4ff;
+  }
+  .portada {
+    text-align: center;
+    padding: 40pt 0;
+    border-bottom: 2px solid #1a3a6b;
+    margin-bottom: 30pt;
+  }
+  .portada h1 {
+    font-size: 24pt;
+    border: none;
+    margin-bottom: 8pt;
+  }
+  .portada p {
+    font-size: 12pt;
+    color: #6b7280;
+    text-align: center;
+  }
+  .resaltado {
+    background-color: #e8f0fe;
+    border-left: 4px solid #2563eb;
+    padding: 8pt 12pt;
+    margin: 10pt 0;
+    font-size: 10.5pt;
+  }
+  code {
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 9.5pt;
+    background-color: #f3f4f6;
+    padding: 1pt 4pt;
+    border-radius: 3pt;
+    color: #1a3a6b;
+  }
+  ul, ol {
+    margin-left: 18pt;
+    margin-bottom: 8pt;
+  }
+  li {
+    margin-bottom: 4pt;
+  }
+  .separador {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 18pt 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="portada">
+  <h1>Documentación del Frontend</h1>
+  <p>Aplicación de Gestión de Intercambios Académicos</p>
+  <p style="margin-top:16pt;"><strong>Universidad Piloto de Colombia</strong><br/>
+  Programa de Ingeniería de Sistemas — Desarrollo Web</p>
+  <p style="margin-top:12pt;">
+    Autor: Juan Andrés Vanegas Guzmán<br/>
+    Fecha: Abril 2026
+  </p>
+</div>
+
+
+<!-- 1. RESUMEN GENERAL -->
+<h1>1. ¿Qué se hizo?</h1>
+
+<p>Se construyó desde cero la capa de presentación (frontend) de la plataforma de intercambios académicos. Esta capa es la parte visual con la que interactúa el usuario directamente en el navegador.</p>
+
+<p>Se crearon <strong>8 archivos</strong> organizados en la estructura de carpetas que ya estaba definida en el proyecto:</p>
+
+<table>
+  <tr>
+    <th>Archivo</th>
+    <th>Ubicación</th>
+    <th>Función</th>
+  </tr>
+  <tr>
+    <td><code>styles.css</code></td>
+    <td>frontend/css/</td>
+    <td>Estilos visuales compartidos por todas las páginas</td>
+  </tr>
+  <tr>
+    <td><code>main.js</code></td>
+    <td>frontend/js/</td>
+    <td>Funciones JavaScript reutilizables y datos de ejemplo</td>
+  </tr>
+  <tr>
+    <td><code>index.html</code></td>
+    <td>frontend/pages/</td>
+    <td>Página principal: lista de convocatorias disponibles</td>
+  </tr>
+  <tr>
+    <td><code>login.html</code></td>
+    <td>frontend/pages/</td>
+    <td>Formulario de inicio de sesión</td>
+  </tr>
+  <tr>
+    <td><code>registro.html</code></td>
+    <td>frontend/pages/</td>
+    <td>Formulario de registro de nuevos estudiantes</td>
+  </tr>
+  <tr>
+    <td><code>postulacion.html</code></td>
+    <td>frontend/pages/</td>
+    <td>Formulario para aplicar a una convocatoria</td>
+  </tr>
+  <tr>
+    <td><code>seguimiento.html</code></td>
+    <td>frontend/pages/</td>
+    <td>Vista del estudiante para ver el estado de sus postulaciones</td>
+  </tr>
+  <tr>
+    <td><code>panel.html</code></td>
+    <td>frontend/pages/admin/</td>
+    <td>Panel del administrador para gestionar postulaciones</td>
+  </tr>
+</table>
+
+<p>El frontend fue hecho con <strong>HTML5, CSS3 y JavaScript puro</strong>, sin usar ninguna librería externa. Esto lo hace fácil de entender, explicar y modificar.</p>
+
+<hr class="separador"/>
+
+
+<!-- 2. TECNOLOGÍAS -->
+<h1>2. Tecnologías utilizadas y por qué</h1>
+
+<table>
+  <tr>
+    <th>Tecnología</th>
+    <th>¿Para qué se usa?</th>
+    <th>¿Por qué se eligió?</th>
+  </tr>
+  <tr>
+    <td><strong>HTML5</strong></td>
+    <td>Define la estructura y contenido de cada página (formularios, tablas, botones, textos)</td>
+    <td>Es el estándar de la web. Sin HTML no existe ninguna página. Es el lenguaje base que todo navegador entiende.</td>
+  </tr>
+  <tr>
+    <td><strong>CSS3</strong></td>
+    <td>Define la apariencia visual: colores, fuentes, espaciado, tarjetas, botones, tabla</td>
+    <td>Permite separar el diseño del contenido. Se creó un archivo único (styles.css) que aplica a todas las páginas, evitando repetir código.</td>
+  </tr>
+  <tr>
+    <td><strong>JavaScript (Vanilla)</strong></td>
+    <td>Agrega comportamiento dinámico: filtrar convocatorias, validar formularios, simular login, cambiar estados en el panel admin</td>
+    <td>JavaScript es el único lenguaje que los navegadores ejecutan del lado del cliente. Se usó "Vanilla JS" (sin frameworks) para mantenerlo sencillo y comprensible.</td>
+  </tr>
+</table>
+
+<hr class="separador"/>
+
+
+<!-- 3. EXPLICACIÓN ARCHIVO POR ARCHIVO -->
+<h1>3. Explicación de cada archivo</h1>
+
+
+<h2>3.1 styles.css — Los estilos visuales</h2>
+
+<p>Este archivo contiene <strong>todos los estilos de color, tamaño, espaciado y forma</strong> que tienen las páginas. En lugar de escribir el mismo estilo en cada página, se escribe una sola vez aquí y cada página lo importa con esta línea:</p>
+
+<p><code>&lt;link rel="stylesheet" href="../css/styles.css" /&gt;</code></p>
+
+<h3>¿Qué contiene?</h3>
+<ul>
+  <li><strong>Variables de color</strong>: Se definieron los colores del proyecto una sola vez usando variables CSS (<code>--azul-oscuro</code>, <code>--azul-medio</code>, etc.). Si el cliente quiere cambiar el color principal, solo se modifica en un lugar.</li>
+  <li><strong>Navegación (nav)</strong>: La barra azul oscura de la parte superior que aparece en todas las páginas.</li>
+  <li><strong>Tarjetas (card)</strong>: El recuadro blanco con sombra que agrupa información. Se usa para mostrar cada convocatoria, cada formulario, etc.</li>
+  <li><strong>Formularios</strong>: Estilo de los campos de texto, listas desplegables y áreas de texto para que se vean consistentes.</li>
+  <li><strong>Botones (btn)</strong>: Se crearon clases de botones reutilizables: primario (azul), secundario (blanco), de éxito (verde), de peligro (rojo).</li>
+  <li><strong>Tabla</strong>: Estilos para las tablas del panel de seguimiento y del administrador.</li>
+  <li><strong>Badges</strong>: Los pequeños indicadores de estado: verde para "Aprobada", amarillo para "En revisión", rojo para "Rechazada".</li>
+  <li><strong>Hero</strong>: El banner degradado azul que aparece en la página principal.</li>
+</ul>
+
+<div class="resaltado">
+  <strong>¿Por qué un solo CSS?</strong> Porque si el día de mañana se quiere cambiar el color de los botones, se hace en un único lugar y cambia en toda la aplicación. Si cada página tuviera sus propios estilos, habría que editar 6 archivos distintos.
+</div>
+
+
+<h2>3.2 main.js — Las funciones compartidas</h2>
+
+<p>Este archivo JavaScript contiene funciones y datos que <strong>todas las páginas necesitan</strong>. Cada página lo importa al final con:</p>
+
+<p><code>&lt;script src="../js/main.js"&gt;&lt;/script&gt;</code></p>
+
+<h3>¿Qué contiene?</h3>
+<ul>
+  <li><strong>Datos de convocatorias</strong>: Un arreglo con 4 convocatorias de ejemplo (Barcelona, UNAM, São Paulo, Monterrey) con todos sus campos: título, universidad, país, descripción, requisitos, fechas, cupos y estado. Estos datos simulan lo que en producción vendría de la base de datos PostgreSQL a través del backend en Java.</li>
+  <li><strong>Datos de postulaciones del estudiante</strong>: Un arreglo de ejemplo con la postulación del usuario logueado.</li>
+  <li><strong>Función <code>getBadge(estado)</code></strong>: Recibe un estado (como "en_revision", "aprobada", "cerrada") y devuelve el HTML del badge correspondiente con el color correcto.</li>
+  <li><strong>Función <code>formatFecha(fecha)</code></strong>: Convierte una fecha en formato técnico ("2026-05-15") a un formato legible en español ("15 de mayo de 2026").</li>
+  <li><strong>Función <code>simularEnvio()</code></strong>: Simula el envío de un formulario, deshabilita el botón brevemente y luego muestra un mensaje de éxito. Esto imita lo que hará el backend cuando esté conectado.</li>
+  <li><strong>Función <code>marcarNavActivo()</code></strong>: Detecta en qué página está el usuario y resalta el enlace correspondiente en la navegación.</li>
+</ul>
+
+<div class="resaltado">
+  <strong>¿Por qué datos de ejemplo?</strong> Porque el backend en Java todavía no está terminado. El frontend necesita verse funcional para la presentación, así que los datos se escriben directamente en JavaScript. Cuando el backend esté listo, solo se reemplaza el arreglo de datos por una llamada a la API (<code>fetch()</code>).
+</div>
+
+
+<h2>3.3 index.html — Página principal (convocatorias)</h2>
+
+<p>Es la <strong>primera página que ve el usuario</strong> al entrar a la plataforma. Muestra todas las convocatorias de intercambio disponibles.</p>
+
+<h3>¿Qué tiene?</h3>
+<ul>
+  <li><strong>Hero (banner)</strong>: Un encabezado llamativo con el nombre de la plataforma y un botón para registrarse.</li>
+  <li><strong>Filtro por estado</strong>: Una lista desplegable que permite ver solo convocatorias activas, próximas o cerradas. La función <code>filtrarConvocatorias()</code> filtra el arreglo de JavaScript y vuelve a dibujar las tarjetas.</li>
+  <li><strong>Tarjetas de convocatorias</strong>: Cada convocatoria se muestra en una tarjeta con su nombre, universidad, país, badge de estado, fecha de cierre, cupos y requisitos. Se generan automáticamente con JavaScript a partir del arreglo de datos.</li>
+  <li><strong>Botón "Postularme"</strong>: Solo aparece en convocatorias activas. Al hacer clic lleva a <code>postulacion.html</code> pasando el ID de la convocatoria en la URL.</li>
+</ul>
+
+<div class="resaltado">
+  <strong>Conexión con la base de datos:</strong> La tabla <code>convocatorias</code> en PostgreSQL tiene exactamente los mismos campos que se muestran en las tarjetas: título, universidad, país, descripción, requisitos, fechas y estado. Cuando el backend esté listo, el frontend pedirá esos datos con una petición HTTP GET.
+</div>
+
+
+<h2>3.4 login.html — Inicio de sesión</h2>
+
+<p>Permite a los usuarios (estudiantes y administradores) <strong>autenticarse en la plataforma</strong> con su correo y contraseña.</p>
+
+<h3>¿Qué tiene?</h3>
+<ul>
+  <li><strong>Formulario</strong>: Dos campos: correo electrónico y contraseña. Ambos son requeridos.</li>
+  <li><strong>Validación</strong>: Si el correo o contraseña no coinciden con los usuarios de prueba, aparece un mensaje de error en rojo dentro de la misma página (sin recargarla).</li>
+  <li><strong>Usuarios de prueba</strong>: Se hardcodearon dos usuarios para la demo: <code>estudiante@upc.edu.co / 1234</code> y <code>admin@upc.edu.co / admin</code>.</li>
+  <li><strong>Redirección por rol</strong>: Si el usuario es estudiante, va a <code>index.html</code>. Si es administrador, va a <code>admin/panel.html</code>.</li>
+  <li><strong>localStorage</strong>: Al iniciar sesión, se guarda la información del usuario en el almacenamiento local del navegador para simular una sesión activa.</li>
+</ul>
+
+<div class="resaltado">
+  <strong>Conexión con la base de datos:</strong> La tabla <code>usuarios</code> en PostgreSQL guarda el correo, la contraseña encriptada y el rol de cada persona. El backend recibirá las credenciales, las verificará contra la base de datos y devolverá un token de autenticación.
+</div>
+
+
+<h2>3.5 registro.html — Registro de estudiantes</h2>
+
+<p>Permite a un nuevo estudiante <strong>crear su cuenta</strong> en la plataforma.</p>
+
+<h3>¿Qué tiene?</h3>
+<ul>
+  <li><strong>Formulario completo</strong>: Nombre, apellido, correo institucional, código estudiantil, programa académico (lista desplegable con opciones reales), contraseña y confirmación de contraseña.</li>
+  <li><strong>Validación de contraseñas</strong>: Antes de enviar, JavaScript compara los dos campos de contraseña. Si no coinciden, muestra un error sin enviar el formulario.</li>
+  <li><strong>Distribución en columnas</strong>: Los campos se organizan en dos columnas usando CSS Grid (<code>form-fila</code>) para aprovechar el espacio de forma profesional.</li>
+</ul>
+
+<div class="resaltado">
+  <strong>Conexión con la base de datos:</strong> Los datos del formulario corresponden exactamente a las columnas de la tabla <code>usuarios</code>: nombre, apellido, email, contrasena, codigo, programa. El backend recibirá estos datos, encriptará la contraseña y los insertará en PostgreSQL.
+</div>
+
+
+<h2>3.6 postulacion.html — Formulario de postulación</h2>
+
+<p>Es la página más completa del sistema. Permite al estudiante <strong>aplicar a una convocatoria de intercambio</strong>.</p>
+
+<h3>¿Qué tiene?</h3>
+<p>El formulario está dividido en 4 pasos visuales para guiar al usuario:</p>
+<ol>
+  <li><strong>Paso 1 — Seleccionar convocatoria</strong>: Lista desplegable con solo las convocatorias activas. Al seleccionar una, aparece un recuadro con su información detallada (universidad, fecha de cierre, requisitos).</li>
+  <li><strong>Paso 2 — Datos del estudiante</strong>: Nombre, código, correo y promedio acumulado.</li>
+  <li><strong>Paso 3 — Carta de motivación</strong>: Área de texto donde el estudiante explica por qué quiere el intercambio.</li>
+  <li><strong>Paso 4 — Documentos</strong>: Campos de carga de archivos PDF para el certificado de notas, paz y salvo académico y certificado de idioma.</li>
+</ol>
+<p>Si el usuario llega desde la página principal haciendo clic en "Postularme", la convocatoria se preselecciona automáticamente leyendo el parámetro <code>?id=X</code> de la URL.</p>
+
+<div class="resaltado">
+  <strong>Conexión con la base de datos:</strong> Al enviar, se crea un registro en la tabla <code>postulaciones</code> (con el ID del estudiante, el ID de la convocatoria y estado "en_revision") y uno o más registros en la tabla <code>documentos</code> (con la ruta de cada archivo subido).
+</div>
+
+
+<h2>3.7 seguimiento.html — Estado de mis postulaciones</h2>
+
+<p>El estudiante puede ver en cualquier momento <strong>cómo va su proceso</strong> de postulación.</p>
+
+<h3>¿Qué tiene?</h3>
+<ul>
+  <li><strong>Notificación activa</strong>: Un banner informativo que avisa cuántas postulaciones están en revisión.</li>
+  <li><strong>Tabla de postulaciones</strong>: Muestra cada postulación con: nombre de la convocatoria, universidad, país, fecha en que se aplicó, estado actual (badge de color) y comentario del administrador.</li>
+  <li><strong>Sección explicativa</strong>: Tres tarjetas que explican en español simple qué significa cada estado: "En revisión", "Aprobada" y "Rechazada".</li>
+</ul>
+
+<div class="resaltado">
+  <strong>Conexión con la base de datos:</strong> Esta página consulta la tabla <code>postulaciones</code> filtrando por el ID del estudiante logueado. Los campos <code>estado</code> y <code>comentario_admin</code> son los que el administrador actualiza desde el panel.
+</div>
+
+
+<h2>3.8 admin/panel.html — Panel del administrador</h2>
+
+<p>Vista exclusiva para administradores institucionales. Permite <strong>gestionar todas las postulaciones recibidas</strong>.</p>
+
+<h3>¿Qué tiene?</h3>
+<ul>
+  <li><strong>Estadísticas rápidas</strong>: 4 tarjetas con el conteo total de postulaciones, cuántas están en revisión, cuántas aprobadas y cuántas rechazadas.</li>
+  <li><strong>Filtros por estado</strong>: Botones para ver solo las postulaciones "En revisión", "Aprobadas" o "Rechazadas", sin recargar la página.</li>
+  <li><strong>Tabla completa</strong>: Muestra todas las postulaciones con: nombre del estudiante, programa, convocatoria a la que aplicó, fecha, estado y botones de acción.</li>
+  <li><strong>Botones de acción</strong>: Por cada fila hay tres acciones:
+    <ul>
+      <li>✔ <strong>Aprobar</strong>: Cambia el estado a "aprobada" (botón verde).</li>
+      <li>✘ <strong>Rechazar</strong>: Cambia el estado a "rechazada" (botón rojo).</li>
+      <li>💬 <strong>Comentario</strong>: Abre una ventana emergente (modal) para escribir un mensaje que verá el estudiante en su página de seguimiento.</li>
+    </ul>
+  </li>
+  <li><strong>Modal de comentario</strong>: Una ventana que aparece sobre la página (sin abrir una nueva) donde el administrador escribe el comentario y lo guarda.</li>
+</ul>
+
+<div class="resaltado">
+  <strong>Conexión con la base de datos:</strong> El botón de Aprobar/Rechazar hace un UPDATE en la tabla <code>postulaciones</code> cambiando el campo <code>estado</code>. El comentario actualiza el campo <code>comentario_admin</code>. Esto se hace a través de una petición HTTP al backend en Java.
+</div>
+
+<hr class="separador"/>
+
+
+<!-- 4. FLUJO COMPLETO -->
+<h1>4. Flujo completo del sistema</h1>
+
+<p>El recorrido típico de un estudiante en la plataforma es el siguiente:</p>
+
+<table>
+  <tr>
+    <th>Paso</th>
+    <th>Acción del usuario</th>
+    <th>Página</th>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Entra a la plataforma y ve las convocatorias disponibles</td>
+    <td>index.html</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Crea una cuenta nueva con sus datos universitarios</td>
+    <td>registro.html</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Inicia sesión con su correo y contraseña</td>
+    <td>login.html</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>Elige una convocatoria y llena el formulario de postulación con sus documentos</td>
+    <td>postulacion.html</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Consulta el estado de su postulación y espera respuesta</td>
+    <td>seguimiento.html</td>
+  </tr>
+  <tr>
+    <td>—</td>
+    <td><em>(Mientras tanto, el administrador revisa, aprueba o rechaza la postulación)</em></td>
+    <td>admin/panel.html</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td>El estudiante regresa a seguimiento y ve el resultado: "Aprobada" o "Rechazada"</td>
+    <td>seguimiento.html</td>
+  </tr>
+</table>
+
+<hr class="separador"/>
+
+
+<!-- 5. RELACIÓN CON LA BASE DE DATOS -->
+<h1>5. Relación con la base de datos</h1>
+
+<p>Cada página del frontend corresponde a operaciones sobre las tablas de PostgreSQL que están definidas en <code>database/schema.sql</code>:</p>
+
+<table>
+  <tr>
+    <th>Página</th>
+    <th>Tabla(s) involucrada(s)</th>
+    <th>Operación</th>
+  </tr>
+  <tr>
+    <td>index.html</td>
+    <td>convocatorias</td>
+    <td>SELECT — listar convocatorias activas</td>
+  </tr>
+  <tr>
+    <td>registro.html</td>
+    <td>usuarios</td>
+    <td>INSERT — crear nuevo usuario</td>
+  </tr>
+  <tr>
+    <td>login.html</td>
+    <td>usuarios</td>
+    <td>SELECT — verificar credenciales</td>
+  </tr>
+  <tr>
+    <td>postulacion.html</td>
+    <td>postulaciones, documentos</td>
+    <td>INSERT — registrar postulación y documentos</td>
+  </tr>
+  <tr>
+    <td>seguimiento.html</td>
+    <td>postulaciones</td>
+    <td>SELECT — ver postulaciones del estudiante</td>
+  </tr>
+  <tr>
+    <td>admin/panel.html</td>
+    <td>postulaciones, usuarios</td>
+    <td>SELECT + UPDATE — ver y modificar estados</td>
+  </tr>
+</table>
+
+<hr class="separador"/>
+
+
+<!-- 6. DECISIONES DE DISEÑO -->
+<h1>6. Decisiones de diseño importantes</h1>
+
+<h3>¿Por qué no se usó un framework como React o Angular?</h3>
+<p>Porque el proyecto es académico y el objetivo es entender los fundamentos. Con HTML, CSS y JavaScript puro es más fácil explicar qué hace cada línea de código. Un framework agrega complejidad innecesaria para este nivel.</p>
+
+<h3>¿Por qué los datos están escritos en JavaScript y no vienen de la base de datos?</h3>
+<p>Porque el backend en Java no está terminado aún. Los datos "hardcodeados" permiten que el frontend se vea completo y funcional para la presentación. La conexión real se hace cuando el backend exponga los endpoints de la API REST.</p>
+
+<h3>¿Por qué un solo archivo CSS para todas las páginas?</h3>
+<p>Para mantener consistencia visual. Si todas las páginas usan el mismo CSS, tienen el mismo aspecto. Además, el navegador guarda el CSS en caché, así que solo se descarga una vez y las páginas cargan más rápido.</p>
+
+<h3>¿Por qué se usaron colores azul oscuro y azul medio?</h3>
+<p>El azul oscuro (<code>#1a3a6b</code>) transmite seriedad y confianza institucional, ideal para una plataforma universitaria. El azul medio (<code>#2563eb</code>) para los botones es vibrante y fácil de identificar como elemento interactivo.</p>
+
+<hr class="separador"/>
+
+
+<!-- 7. CÓMO ABRIRLO -->
+<h1>7. Cómo ver el proyecto en el navegador</h1>
+
+<p>Para ver el frontend funcionando, simplemente abre cualquier archivo HTML desde el explorador de archivos:</p>
+
+<ol>
+  <li>Ir a la carpeta <code>frontend/pages/</code></li>
+  <li>Hacer doble clic en <code>index.html</code></li>
+  <li>Se abrirá directamente en el navegador (Chrome, Edge, Firefox)</li>
+</ol>
+
+<p>Desde ahí puedes navegar a todas las demás páginas usando los enlaces de la barra de navegación superior.</p>
+
+<div class="resaltado">
+  <strong>Credenciales de prueba para login:</strong><br/>
+  Estudiante: <code>estudiante@upc.edu.co</code> / contraseña: <code>1234</code><br/>
+  Administrador: <code>admin@upc.edu.co</code> / contraseña: <code>admin</code>
+</div>
+
+<hr class="separador"/>
+
+
+<!-- ========================================================= -->
+<!-- SECCIÓN 8: BASE DE DATOS (agregada el 21 de abril de 2026) -->
+<!-- ========================================================= -->
+
+<h1>8. Base de Datos — Todo lo que se hizo (21 abril 2026)</h1>
+
+<p>En esta sesión se completó todo lo necesario para que la base de datos en PostgreSQL funcione correctamente. Se trabajaron tres archivos dentro de la carpeta <code>database/</code>:</p>
+
+<table>
+  <tr>
+    <th>Archivo</th>
+    <th>¿Qué hace?</th>
+  </tr>
+  <tr>
+    <td><code>schema.sql</code></td>
+    <td>Define la estructura de las tablas. Se mejoró agregando índices y un trigger automático.</td>
+  </tr>
+  <tr>
+    <td><code>seed.sql</code></td>
+    <td>Inserta datos de prueba realistas para poder probar la aplicación sin necesidad del backend.</td>
+  </tr>
+  <tr>
+    <td><code>queries.sql</code></td>
+    <td>Contiene todas las consultas SQL que el backend en Java va a necesitar, organizadas por módulo.</td>
+  </tr>
+</table>
+
+<p>Para usar estos archivos en PostgreSQL, el orden de ejecución es:</p>
+<ol>
+  <li>Primero correr <code>schema.sql</code> (crea las tablas)</li>
+  <li>Luego correr <code>seed.sql</code> (inserta los datos de prueba)</li>
+</ol>
+<p>Comando desde la terminal:</p>
+<p><code>psql -U postgres -d intercambios_db -f database/schema.sql</code><br/>
+<code>psql -U postgres -d intercambios_db -f database/seed.sql</code></p>
+
+
+<h2>8.1 Mejoras al schema.sql — Índices</h2>
+
+<p>El <code>schema.sql</code> ya tenía las 5 tablas del sistema. Se le agregaron <strong>índices</strong> al final del archivo.</p>
+
+<h3>¿Qué es un índice?</h3>
+<p>Un índice es como el índice de un libro: en lugar de leer página por página para encontrar un tema, vas directo a la página correcta. En la base de datos, un índice evita revisar todos los registros de una tabla y va directo al que necesita.</p>
+
+<h3>¿Qué índices se crearon y por qué?</h3>
+
+<table>
+  <tr>
+    <th>Índice</th>
+    <th>Tabla</th>
+    <th>¿Por qué se necesita?</th>
+  </tr>
+  <tr>
+    <td><code>idx_usuarios_email</code></td>
+    <td>usuarios</td>
+    <td>Cada vez que un usuario inicia sesión, el sistema busca su cuenta por email. Con el índice, esta búsqueda es instantánea aunque haya miles de usuarios.</td>
+  </tr>
+  <tr>
+    <td><code>idx_postulaciones_estudiante</code></td>
+    <td>postulaciones</td>
+    <td>La página "Mis Postulaciones" filtra por el ID del estudiante logueado. Sin índice, recorre toda la tabla de postulaciones.</td>
+  </tr>
+  <tr>
+    <td><code>idx_postulaciones_convocatoria</code></td>
+    <td>postulaciones</td>
+    <td>El admin necesita ver cuántos aplicaron a una convocatoria específica. El índice acelera esa consulta.</td>
+  </tr>
+  <tr>
+    <td><code>idx_postulaciones_estado</code></td>
+    <td>postulaciones</td>
+    <td>El panel admin filtra por estado (en revisión / aprobada / rechazada). El índice hace que ese filtro sea rápido.</td>
+  </tr>
+  <tr>
+    <td><code>idx_convocatorias_estado</code></td>
+    <td>convocatorias</td>
+    <td>La página principal solo muestra convocatorias "activas". El índice evita revisar las cerradas y próximas.</td>
+  </tr>
+  <tr>
+    <td><code>idx_notificaciones_usuario</code></td>
+    <td>notificaciones</td>
+    <td>Cada usuario solo ve sus propias notificaciones no leídas. El índice combina usuario_id + leida para responder al instante.</td>
+  </tr>
+</table>
+
+
+<h2>8.2 Mejoras al schema.sql — Trigger automático</h2>
+
+<p>Se agregó un <strong>trigger</strong> sobre la tabla <code>postulaciones</code>.</p>
+
+<h3>¿Qué es un trigger?</h3>
+<p>Un trigger es una acción automática que PostgreSQL ejecuta solo, sin que nadie lo llame. Es como una alarma: cuando pasa algo (en este caso, cuando se actualiza una postulación), se dispara automáticamente.</p>
+
+<h3>¿Qué hace el trigger del proyecto?</h3>
+<p>Cada vez que el administrador cambia el estado de una postulación (aprobar, rechazar o agregar comentario), el trigger actualiza automáticamente el campo <code>fecha_actualizacion</code> con la fecha y hora exacta del momento. Así el estudiante puede ver en "Mis Postulaciones" cuándo fue la última vez que su solicitud cambió.</p>
+
+<p>Sin el trigger, el backend tendría que recordar siempre actualizar ese campo manualmente — y si se olvida, el dato queda desactualizado. Con el trigger, la base de datos lo garantiza sola.</p>
+
+<div class="resaltado">
+  <strong>Resumen:</strong> Índices = velocidad. Trigger = automatización. Ambos mejoran la calidad del sistema sin cambiar cómo se ve por fuera.
+</div>
+
+
+<h2>8.3 seed.sql — Datos de prueba</h2>
+
+<p>Este archivo inserta datos realistas en todas las tablas para que la aplicación tenga información desde el primer momento y se pueda probar sin necesidad de ingresar datos a mano.</p>
+
+<h3>¿Qué datos se insertaron?</h3>
+
+<table>
+  <tr>
+    <th>Tabla</th>
+    <th>Registros</th>
+    <th>Detalle</th>
+  </tr>
+  <tr>
+    <td>usuarios</td>
+    <td>8</td>
+    <td>2 administradores + 6 estudiantes (los mismos nombres que aparecen en el panel de administrador del frontend)</td>
+  </tr>
+  <tr>
+    <td>convocatorias</td>
+    <td>4</td>
+    <td>Barcelona (activa), UNAM (activa), São Paulo (próximamente), Monterrey (cerrada) — los mismos que el frontend muestra en main.js</td>
+  </tr>
+  <tr>
+    <td>postulaciones</td>
+    <td>6</td>
+    <td>Con los 3 estados posibles: aprobada, en_revision, rechazada — coinciden con lo que muestra el panel de admin</td>
+  </tr>
+  <tr>
+    <td>documentos</td>
+    <td>8</td>
+    <td>Archivos PDF de prueba asociados a 3 de las postulaciones (notas, paz y salvo, idioma)</td>
+  </tr>
+  <tr>
+    <td>notificaciones</td>
+    <td>4</td>
+    <td>Mensajes automáticos generados al aprobar o rechazar postulaciones. Algunas leídas, otras no.</td>
+  </tr>
+</table>
+
+<h3>¿Por qué los datos del seed coinciden con el frontend?</h3>
+<p>Porque cuando el backend en Java se conecte a la base de datos, los datos que devuelva deben verse iguales a lo que el frontend ya muestra con datos hardcodeados. Así la integración será natural y sin sorpresas.</p>
+
+<div class="resaltado">
+  <strong>Nota sobre contraseñas:</strong> En el seed.sql las contraseñas están en texto plano solo para pruebas locales. Cuando el backend esté listo, deberá encriptarlas con BCrypt antes de guardarlas en la base de datos.
+</div>
+
+
+<h2>8.4 queries.sql — Consultas del backend</h2>
+
+<p>Este archivo reúne las <strong>23 consultas SQL</strong> que el backend en Java necesitará para que la aplicación funcione. Están organizadas en 4 módulos:</p>
+
+<table>
+  <tr>
+    <th>Módulo</th>
+    <th>Consultas</th>
+    <th>¿Qué hacen?</th>
+  </tr>
+  <tr>
+    <td>Usuarios</td>
+    <td>4</td>
+    <td>Login (buscar por email), registro (insertar), ver perfil, listar administradores</td>
+  </tr>
+  <tr>
+    <td>Convocatorias</td>
+    <td>5</td>
+    <td>Listar activas, listar todas, ver detalle, crear nueva (admin), cambiar estado (admin)</td>
+  </tr>
+  <tr>
+    <td>Postulaciones</td>
+    <td>7</td>
+    <td>Postularse, ver mis postulaciones, ver todas (admin), filtrar por estado, aprobar/rechazar, verificar duplicado, estadísticas del panel</td>
+  </tr>
+  <tr>
+    <td>Documentos</td>
+    <td>2</td>
+    <td>Registrar documento al postularse, ver documentos de una postulación</td>
+  </tr>
+  <tr>
+    <td>Notificaciones</td>
+    <td>5</td>
+    <td>Crear notificación, ver no leídas, marcar como leída, marcar todas como leídas, contar no leídas (badge)</td>
+  </tr>
+</table>
+
+<h3>¿Para qué sirve este archivo?</h3>
+<p>Cuando el equipo empiece a desarrollar el backend en Java, no tendrá que pensar en cómo escribir cada consulta desde cero. Este archivo ya tiene todo listo, probado y comentado. El desarrollador de backend solo toma la consulta que necesita y la integra en el código Java.</p>
+
+
+<hr class="separador"/>
+
+<p style="text-align:center; color:#6b7280; font-size:10pt; margin-top:24pt;">
+  Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026<br/>
+  Juan Andrés Vanegas Guzmán
+</p>
+
+</body>
+</html>

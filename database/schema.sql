@@ -86,3 +86,45 @@ CREATE TABLE notificaciones (
     leida        BOOLEAN DEFAULT FALSE,
     fecha        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- ============================================================
+-- ÍNDICES
+-- Aceleran las búsquedas más frecuentes de la aplicación
+-- ============================================================
+
+-- Buscar usuario por email (login)
+CREATE INDEX idx_usuarios_email ON usuarios(email);
+
+-- Buscar postulaciones de un estudiante específico
+CREATE INDEX idx_postulaciones_estudiante ON postulaciones(estudiante_id);
+
+-- Buscar postulaciones de una convocatoria específica
+CREATE INDEX idx_postulaciones_convocatoria ON postulaciones(convocatoria_id);
+
+-- Filtrar postulaciones por estado (en_revision / aprobada / rechazada)
+CREATE INDEX idx_postulaciones_estado ON postulaciones(estado);
+
+-- Buscar convocatorias por estado (activa / cerrada / proximamente)
+CREATE INDEX idx_convocatorias_estado ON convocatorias(estado);
+
+-- Buscar notificaciones no leídas de un usuario
+CREATE INDEX idx_notificaciones_usuario ON notificaciones(usuario_id, leida);
+
+-- ============================================================
+-- TRIGGER
+-- Actualiza automáticamente fecha_actualizacion en postulaciones
+-- cada vez que el administrador cambia el estado o agrega comentario
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION fn_actualizar_fecha_postulacion()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.fecha_actualizacion = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_actualizar_fecha_postulacion
+BEFORE UPDATE ON postulaciones
+FOR EACH ROW
+EXECUTE FUNCTION fn_actualizar_fecha_postulacion();

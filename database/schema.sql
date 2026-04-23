@@ -4,12 +4,42 @@
 -- Universidad Piloto de Colombia
 -- ============================================================
 
+
 -- Eliminar tablas si ya existen (para poder correr el script varias veces)
 DROP TABLE IF EXISTS notificaciones CASCADE;
 DROP TABLE IF EXISTS documentos CASCADE;
 DROP TABLE IF EXISTS postulaciones CASCADE;
 DROP TABLE IF EXISTS convocatorias CASCADE;
 DROP TABLE IF EXISTS usuarios CASCADE;
+DROP TABLE IF EXISTS programas_academicos;
+DROP TABLE IF EXISTS universidades;
+
+-- ============================================================
+-- Tabla de Muestra programas_academicos
+-- Almacena los programas academicos
+-- ============================================================
+CREATE TABLE programas_academicos (
+    id              SERIAL PRIMARY KEY,
+    nombre          VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- ============================================================
+-- Tabla de Muestra universidades
+-- Almacena las universidades
+-- ============================================================
+CREATE TABLE universidades (
+    id              SERIAL PRIMARY KEY,
+    nombre          VARCHAR(200) NOT NULL,
+    pais            VARCHAR(100) NOT NULL
+);
+-- ============================================================
+-- Tabla tipos_documentos
+-- Almacena los tipos de documentos de los usuarios
+-- ============================================================
+CREATE TABLE tipos_documentos (
+    id              SERIAL PRIMARY KEY,
+    nombre          VARCHAR(50) NOT NULL UNIQUE
+);
 
 -- ============================================================
 -- TABLA 1: USUARIOS
@@ -23,9 +53,11 @@ CREATE TABLE usuarios (
     contrasena      VARCHAR(255) NOT NULL,
     rol             VARCHAR(20)  NOT NULL CHECK (rol IN ('estudiante', 'administrador')),
     codigo          VARCHAR(20),
-    programa        VARCHAR(100),
+    programa_id     INT REFERENCES programas_academicos(id),
     fecha_registro  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
 
 -- ============================================================
 -- TABLA 2: CONVOCATORIAS
@@ -34,8 +66,7 @@ CREATE TABLE usuarios (
 CREATE TABLE convocatorias (
     id               SERIAL PRIMARY KEY,
     titulo           VARCHAR(200) NOT NULL,
-    universidad      VARCHAR(200) NOT NULL,
-    pais             VARCHAR(100) NOT NULL,
+    universidad_id   INT REFERENCES universidades(id),
     descripcion      TEXT,
     requisitos       TEXT,
     fecha_inicio     DATE NOT NULL,
@@ -70,7 +101,7 @@ CREATE TABLE documentos (
     id               SERIAL PRIMARY KEY,
     postulacion_id   INT NOT NULL REFERENCES postulaciones(id),
     nombre_archivo   VARCHAR(255) NOT NULL,
-    tipo_documento   VARCHAR(100) NOT NULL,
+    tipo_documento_id INT REFERENCES tipos_documentos(id),
     ruta_archivo     VARCHAR(500) NOT NULL,
     fecha_subida     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

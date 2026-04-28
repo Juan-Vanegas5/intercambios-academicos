@@ -2,7 +2,7 @@
 //  CONFIGURACIÓN Y UTILIDADES - Intercambios Académicos
 // =====================================================
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = "http://localhost:8001";
 
 // ---- Manejo de sesión ----
 function getToken()   { return localStorage.getItem("token"); }

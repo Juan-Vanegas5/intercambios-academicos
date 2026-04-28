@@ -11,6 +11,7 @@ from auth import obtener_usuario_actual
 router = APIRouter(prefix="/api/postulaciones", tags=["Postulaciones"])
 
 def to_response(p: Postulacion) -> PostulacionResponse:
+    programa = p.estudiante.programa.nombre if p.estudiante.programa else ""
     return PostulacionResponse(
         id=p.id,
         convocatoria=p.convocatoria.titulo,
@@ -19,7 +20,9 @@ def to_response(p: Postulacion) -> PostulacionResponse:
         estado=p.estado,
         comentarioAdmin=p.comentario_admin,
         fechaPostulacion=p.fecha_postulacion,
-        fechaActualizacion=p.fecha_actualizacion
+        fechaActualizacion=p.fecha_actualizacion,
+        estudiante=f"{p.estudiante.nombre} {p.estudiante.apellido}",
+        programa=programa
     )
 
 @router.get("/mis", response_model=List[PostulacionResponse],
@@ -28,7 +31,7 @@ def mis_postulaciones(
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(obtener_usuario_actual)
 ):
-    """Devuelve las postulaciones del estudiante autenticado con su estado actual."""
+    """Devuelve las postulaciones del estudiante autenticado."""
     postulaciones = (
         db.query(Postulacion)
         .filter(Postulacion.estudiante_id == usuario.id)
@@ -43,7 +46,7 @@ def postular(
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(obtener_usuario_actual)
 ):
-    """El estudiante se postula a una convocatoria activa. Solo puede postularse una vez."""
+    """El estudiante se postula a una convocatoria activa."""
     convocatoria = db.query(Convocatoria).filter(Convocatoria.id == request.convocatoriaId).first()
     if not convocatoria:
         raise HTTPException(status_code=404, detail="Convocatoria no encontrada")

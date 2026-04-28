@@ -8,13 +8,12 @@
 </head>
 <body>
 
-  <!-- NAVEGACIÓN -->
   <nav>
-    <a href="../../pages/index.html" class="nav-logo">🎓 Intercambios UPC</a>
+    <a href="../index.html" class="nav-logo">🎓 Intercambios UPC</a>
     <ul class="nav-links">
       <li><a href="panel.html" class="activo">Panel Admin</a></li>
       <li><a href="../index.html">Ver convocatorias</a></li>
-      <li><a href="../login.html">Cerrar Sesión</a></li>
+      <li><a href="#" onclick="cerrarSesion()">Cerrar Sesión</a></li>
     </ul>
   </nav>
 
@@ -27,22 +26,22 @@
       <span class="badge badge-azul" style="font-size:0.9rem;">Administrador</span>
     </div>
 
-    <!-- Estadísticas rápidas -->
+    <!-- Estadísticas -->
     <div class="cards-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom:2rem;">
       <div class="card text-center">
-        <div style="font-size:2rem; font-weight:700; color:#2563eb;">6</div>
+        <div id="stat-total" style="font-size:2rem; font-weight:700; color:#2563eb;">—</div>
         <div style="font-size:0.85rem; color:#6b7280;">Total postulaciones</div>
       </div>
       <div class="card text-center">
-        <div style="font-size:2rem; font-weight:700; color:#d97706;">3</div>
+        <div id="stat-revision" style="font-size:2rem; font-weight:700; color:#d97706;">—</div>
         <div style="font-size:0.85rem; color:#6b7280;">En revisión</div>
       </div>
       <div class="card text-center">
-        <div style="font-size:2rem; font-weight:700; color:#16a34a;">2</div>
+        <div id="stat-aprobadas" style="font-size:2rem; font-weight:700; color:#16a34a;">—</div>
         <div style="font-size:0.85rem; color:#6b7280;">Aprobadas</div>
       </div>
       <div class="card text-center">
-        <div style="font-size:2rem; font-weight:700; color:#dc2626;">1</div>
+        <div id="stat-rechazadas" style="font-size:2rem; font-weight:700; color:#dc2626;">—</div>
         <div style="font-size:0.85rem; color:#6b7280;">Rechazadas</div>
       </div>
     </div>
@@ -50,13 +49,15 @@
     <!-- Filtros -->
     <div class="card mb-3" style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
       <strong style="font-size:0.9rem; color:#1a3a6b;">Filtrar por estado:</strong>
-      <button class="btn btn-secundario btn-sm" onclick="filtrar('todas')" id="btn-todas">Todas</button>
-      <button class="btn btn-secundario btn-sm" onclick="filtrar('en_revision')" id="btn-en_revision">En revisión</button>
-      <button class="btn btn-exito btn-sm" onclick="filtrar('aprobada')" id="btn-aprobada">Aprobadas</button>
-      <button class="btn btn-danger btn-sm" onclick="filtrar('rechazada')" id="btn-rechazada">Rechazadas</button>
+      <button class="btn btn-secundario btn-sm" onclick="filtrar('todas')">Todas</button>
+      <button class="btn btn-secundario btn-sm" onclick="filtrar('en_revision')">En revisión</button>
+      <button class="btn btn-exito btn-sm"    onclick="filtrar('aprobada')">Aprobadas</button>
+      <button class="btn btn-danger btn-sm"   onclick="filtrar('rechazada')">Rechazadas</button>
     </div>
 
-    <!-- Tabla de postulaciones -->
+    <div id="alerta-admin" class="alerta mb-3" style="display:none;"></div>
+
+    <!-- Tabla -->
     <div class="card">
       <div class="tabla-container">
         <table>
@@ -72,13 +73,17 @@
             </tr>
           </thead>
           <tbody id="cuerpo-admin">
-            <!-- Se genera con JavaScript -->
+            <tr>
+              <td colspan="7" style="text-align:center; color:#6b7280; padding:2rem;">
+                Cargando postulaciones...
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Modal de comentario (oculto) -->
+    <!-- Modal comentario -->
     <div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:center; justify-content:center;">
       <div class="card" style="max-width:440px; width:90%; margin:auto;">
         <h3 style="color:#1a3a6b; margin-bottom:1rem;">Agregar comentario</h3>
@@ -88,7 +93,7 @@
         </div>
         <div style="display:flex; gap:1rem;">
           <button class="btn btn-secundario" onclick="cerrarModal()">Cancelar</button>
-          <button class="btn btn-primario" onclick="guardarComentario()" style="flex:1;">Guardar</button>
+          <button class="btn btn-primario" onclick="guardarComentario()" style="flex:1;">Guardar y actualizar</button>
         </div>
       </div>
     </div>
@@ -100,74 +105,118 @@
 
   <script src="../../js/main.js"></script>
   <script>
-    // Datos de ejemplo de postulaciones recibidas
-    let postulaciones = [
-      { id: 1, estudiante: "María López",      programa: "Ing. Sistemas",   convocatoria: "Univ. de Barcelona",    fecha: "2026-04-08", estado: "aprobada",    comentario: "Todo en orden." },
-      { id: 2, estudiante: "Carlos Ruiz",       programa: "Ing. Civil",      convocatoria: "UNAM México",           fecha: "2026-04-09", estado: "en_revision", comentario: "" },
-      { id: 3, estudiante: "Juan Vanegas",      programa: "Ing. Sistemas",   convocatoria: "Univ. de Barcelona",    fecha: "2026-04-10", estado: "en_revision", comentario: "" },
-      { id: 4, estudiante: "Sofía Martínez",    programa: "Administración",  convocatoria: "UNAM México",           fecha: "2026-04-11", estado: "rechazada",   comentario: "Promedio insuficiente." },
-      { id: 5, estudiante: "Andrés Gómez",      programa: "Arquitectura",    convocatoria: "Univ. de Barcelona",    fecha: "2026-04-12", estado: "aprobada",    comentario: "Excelente perfil." },
-      { id: 6, estudiante: "Laura Hernández",   programa: "Derecho",         convocatoria: "UNAM México",           fecha: "2026-04-13", estado: "en_revision", comentario: "" },
-    ];
+    requireAdmin();
 
-    let filaActual = null;
+    let todasPostulaciones = [];
+    let modalId = null;
+    let modalEstado = null;
+
+    function actualizarStats(lista) {
+      document.getElementById("stat-total").textContent     = lista.length;
+      document.getElementById("stat-revision").textContent  = lista.filter(p => p.estado === "en_revision").length;
+      document.getElementById("stat-aprobadas").textContent = lista.filter(p => p.estado === "aprobada").length;
+      document.getElementById("stat-rechazadas").textContent = lista.filter(p => p.estado === "rechazada").length;
+    }
 
     function renderTabla(lista) {
-      const tbody = document.getElementById('cuerpo-admin');
+      const tbody = document.getElementById("cuerpo-admin");
+      if (lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#6b7280; padding:2rem;">No hay postulaciones en esta categoría.</td></tr>`;
+        return;
+      }
       tbody.innerHTML = lista.map(p => `
         <tr id="fila-${p.id}">
           <td>${p.id}</td>
           <td><strong>${p.estudiante}</strong></td>
-          <td>${p.programa}</td>
+          <td>${p.programa || "—"}</td>
           <td>${p.convocatoria}</td>
-          <td>${formatFecha(p.fecha)}</td>
+          <td>${formatFecha(p.fechaPostulacion)}</td>
           <td>${getBadge(p.estado)}</td>
           <td style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <button class="btn btn-exito btn-sm" onclick="cambiarEstado(${p.id}, 'aprobada')">✔ Aprobar</button>
-            <button class="btn btn-danger btn-sm"  onclick="cambiarEstado(${p.id}, 'rechazada')">✘ Rechazar</button>
-            <button class="btn btn-secundario btn-sm" onclick="abrirModal(${p.id})">💬</button>
+            <button class="btn btn-exito btn-sm"     onclick="cambiarEstado(${p.id}, 'aprobada')">✔ Aprobar</button>
+            <button class="btn btn-danger btn-sm"    onclick="cambiarEstado(${p.id}, 'rechazada')">✘ Rechazar</button>
+            <button class="btn btn-secundario btn-sm" onclick="abrirModal(${p.id}, '${(p.comentarioAdmin || "").replace(/'/g, "\\'")}')">💬</button>
           </td>
         </tr>
-      `).join('');
+      `).join("");
     }
 
     function filtrar(estado) {
-      const lista = estado === 'todas'
-        ? postulaciones
-        : postulaciones.filter(p => p.estado === estado);
+      const lista = estado === "todas"
+        ? todasPostulaciones
+        : todasPostulaciones.filter(p => p.estado === estado);
       renderTabla(lista);
     }
 
-    function cambiarEstado(id, nuevoEstado) {
-      const p = postulaciones.find(x => x.id === id);
-      if (p) {
-        p.estado = nuevoEstado;
-        filtrar('todas');
+    async function cambiarEstado(id, nuevoEstado) {
+      const alerta = document.getElementById("alerta-admin");
+      try {
+        await apiFetch(`/api/admin/postulaciones/${id}/estado`, {
+          method: "PUT",
+          headers: authHeaders(),
+          body: JSON.stringify({ estado: nuevoEstado })
+        });
+        const p = todasPostulaciones.find(x => x.id === id);
+        if (p) p.estado = nuevoEstado;
+        actualizarStats(todasPostulaciones);
+        filtrar("todas");
+      } catch (err) {
+        alerta.className = "alerta alerta-error mb-3";
+        alerta.style.display = "block";
+        alerta.textContent = "Error al actualizar estado: " + err.message;
       }
     }
 
-    function abrirModal(id) {
-      filaActual = id;
-      const p = postulaciones.find(x => x.id === id);
-      document.getElementById('comentario-modal').value = p ? p.comentario : '';
-      document.getElementById('modal').style.display = 'flex';
+    function abrirModal(id, comentarioActual) {
+      modalId = id;
+      modalEstado = null;
+      document.getElementById("comentario-modal").value = comentarioActual;
+      document.getElementById("modal").style.display = "flex";
     }
 
     function cerrarModal() {
-      document.getElementById('modal').style.display = 'none';
-      filaActual = null;
+      document.getElementById("modal").style.display = "none";
+      modalId = null;
     }
 
-    function guardarComentario() {
-      const texto = document.getElementById('comentario-modal').value;
-      const p = postulaciones.find(x => x.id === filaActual);
-      if (p) p.comentario = texto;
+    async function guardarComentario() {
+      const comentario = document.getElementById("comentario-modal").value.trim();
+      const alerta = document.getElementById("alerta-admin");
+      const p = todasPostulaciones.find(x => x.id === modalId);
       cerrarModal();
-      filtrar('todas');
+      try {
+        await apiFetch(`/api/admin/postulaciones/${modalId}/estado`, {
+          method: "PUT",
+          headers: authHeaders(),
+          body: JSON.stringify({ estado: p ? p.estado : "en_revision", comentario: comentario })
+        });
+        if (p) p.comentarioAdmin = comentario;
+        filtrar("todas");
+      } catch (err) {
+        alerta.className = "alerta alerta-error mb-3";
+        alerta.style.display = "block";
+        alerta.textContent = "Error al guardar comentario: " + err.message;
+      }
     }
 
-    // Cargar al inicio
-    renderTabla(postulaciones);
+    async function cargarPostulaciones() {
+      try {
+        todasPostulaciones = await apiFetch("/api/admin/postulaciones", {
+          headers: authHeaders()
+        });
+        actualizarStats(todasPostulaciones);
+        renderTabla(todasPostulaciones);
+      } catch (err) {
+        const alerta = document.getElementById("alerta-admin");
+        alerta.className = "alerta alerta-error mb-3";
+        alerta.style.display = "block";
+        alerta.textContent = "No se pudieron cargar las postulaciones: " + err.message;
+        document.getElementById("cuerpo-admin").innerHTML =
+          `<tr><td colspan="7" style="text-align:center; color:#6b7280; padding:2rem;">Error al cargar datos.</td></tr>`;
+      }
+    }
+
+    cargarPostulaciones();
   </script>
 </body>
 </html>

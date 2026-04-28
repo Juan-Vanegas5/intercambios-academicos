@@ -8,7 +8,6 @@
 </head>
 <body>
 
-  <!-- NAVEGACIÓN -->
   <nav>
     <a href="index.html" class="nav-logo">🎓 Intercambios UPC</a>
     <ul class="nav-links">
@@ -19,34 +18,32 @@
     </ul>
   </nav>
 
-  <!-- HERO -->
   <div class="hero">
     <h1>Oportunidades de Intercambio Académico</h1>
     <p>Descubre universidades aliadas alrededor del mundo y postúlate a un programa de intercambio</p>
     <a href="registro.html" class="btn btn-primario">Registrarme</a>
   </div>
 
-  <!-- CONTENIDO -->
   <main>
     <div class="page-header flex-between">
       <div>
         <h1>Convocatorias Disponibles</h1>
         <p>Programas abiertos para postulación este semestre</p>
       </div>
-      <!-- Filtro por estado -->
-      <div>
-        <select id="filtro-estado" onchange="filtrarConvocatorias()" style="padding:0.5rem 1rem; border-radius:7px; border:1.5px solid #d1d5db; font-size:0.9rem;">
-          <option value="todas">Todas</option>
-          <option value="activa">Activas</option>
-          <option value="proximamente">Próximamente</option>
-          <option value="cerrada">Cerradas</option>
-        </select>
-      </div>
+      <select id="filtro-estado" onchange="filtrar()" style="padding:0.5rem 1rem; border-radius:7px; border:1.5px solid #d1d5db; font-size:0.9rem;">
+        <option value="todas">Todas</option>
+        <option value="activa">Activas</option>
+        <option value="proximamente">Próximamente</option>
+        <option value="cerrada">Cerradas</option>
+      </select>
     </div>
 
-    <!-- Tarjetas de convocatorias -->
+    <div id="alerta-api" class="alerta alerta-info mb-3" style="display:none;">
+      Conectando con el servidor...
+    </div>
+
     <div class="cards-grid" id="lista-convocatorias">
-      <!-- Se genera con JavaScript -->
+      <p style="grid-column:1/-1; text-align:center; color:#6b7280;">Cargando convocatorias...</p>
     </div>
   </main>
 
@@ -56,10 +53,12 @@
 
   <script src="../js/main.js"></script>
   <script>
+    let todasConvocatorias = [];
+
     function renderConvocatorias(lista) {
-      const contenedor = document.getElementById('lista-convocatorias');
+      const contenedor = document.getElementById("lista-convocatorias");
       if (lista.length === 0) {
-        contenedor.innerHTML = '<p class="text-center" style="grid-column:1/-1; color:#6b7280;">No hay convocatorias para mostrar.</p>';
+        contenedor.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#6b7280;">No hay convocatorias para mostrar.</p>';
         return;
       }
       contenedor.innerHTML = lista.map(c => `
@@ -71,32 +70,43 @@
             </div>
             ${getBadge(c.estado)}
           </div>
-          <p class="descripcion">${c.descripcion}</p>
+          <p class="descripcion">${c.descripcion || ""}</p>
           <div class="info-row">
-            <span>📅 Cierre: ${formatFecha(c.fecha_cierre)}</span>
+            <span>📅 Cierre: ${formatFecha(c.fechaCierre)}</span>
             <span>🪑 Cupos: ${c.cupos}</span>
           </div>
           <p style="font-size:0.85rem; color:#6b7280; margin-bottom:1rem;">
-            <strong>Requisitos:</strong> ${c.requisitos}
+            <strong>Requisitos:</strong> ${c.requisitos || ""}
           </p>
-          ${c.estado === 'activa'
+          ${c.estado === "activa"
             ? `<a href="postulacion.html?id=${c.id}" class="btn btn-primario btn-sm">Postularme</a>`
             : `<button class="btn btn-secundario btn-sm" disabled>No disponible</button>`
           }
         </div>
-      `).join('');
+      `).join("");
     }
 
-    function filtrarConvocatorias() {
-      const valor = document.getElementById('filtro-estado').value;
-      const filtradas = valor === 'todas'
-        ? convocatorias
-        : convocatorias.filter(c => c.estado === valor);
+    function filtrar() {
+      const valor = document.getElementById("filtro-estado").value;
+      const filtradas = valor === "todas"
+        ? todasConvocatorias
+        : todasConvocatorias.filter(c => c.estado === valor);
       renderConvocatorias(filtradas);
     }
 
-    // Cargar al inicio
-    renderConvocatorias(convocatorias);
+    async function cargar() {
+      try {
+        todasConvocatorias = await apiFetch("/api/convocatorias/todas");
+        renderConvocatorias(todasConvocatorias);
+      } catch (e) {
+        document.getElementById("alerta-api").style.display = "block";
+        document.getElementById("alerta-api").className = "alerta alerta-error mb-3";
+        document.getElementById("alerta-api").textContent = "No se pudo conectar con el servidor. Asegúrate de que el backend está corriendo.";
+        document.getElementById("lista-convocatorias").innerHTML = "";
+      }
+    }
+
+    cargar();
   </script>
 </body>
 </html>

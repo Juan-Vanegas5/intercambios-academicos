@@ -8,7 +8,6 @@
 </head>
 <body>
 
-  <!-- NAVEGACIÓN -->
   <nav>
     <a href="index.html" class="nav-logo">🎓 Intercambios UPC</a>
     <ul class="nav-links">
@@ -21,41 +20,24 @@
   <main>
     <div class="form-container">
       <div class="card">
-
         <div class="text-center mb-3">
           <div style="font-size:3rem; margin-bottom:0.5rem;">🎓</div>
           <h1 style="font-size:1.5rem; color:#1a3a6b; margin-bottom:0.3rem;">Bienvenido de vuelta</h1>
           <p style="color:#6b7280; font-size:0.9rem;">Ingresa a tu cuenta para gestionar tus postulaciones</p>
         </div>
 
-        <div class="alerta alerta-info">
-          <strong>Demo:</strong> Usa <code>estudiante@upc.edu.co</code> / <code>1234</code> para estudiante
-          o <code>admin@upc.edu.co</code> / <code>admin</code> para administrador.
-        </div>
+        <div id="alerta" style="display:none;"></div>
 
         <form id="form-login" onsubmit="iniciarSesion(event)">
-
           <div class="form-group">
             <label for="email">Correo institucional</label>
-            <input
-              type="email"
-              id="email"
-              placeholder="ejemplo@upc.edu.co"
-              required
-            />
+            <input type="email" id="email" placeholder="ejemplo@upc.edu.co" required />
           </div>
-
           <div class="form-group">
             <label for="contrasena">Contraseña</label>
-            <input
-              type="password"
-              id="contrasena"
-              placeholder="Tu contraseña"
-              required
-            />
+            <input type="password" id="contrasena" placeholder="Tu contraseña" required />
           </div>
-
-          <button type="submit" class="btn btn-primario btn-bloque btn-submit">
+          <button type="submit" class="btn btn-primario btn-bloque btn-submit" id="btn-login">
             Iniciar sesión
           </button>
         </form>
@@ -63,7 +45,6 @@
         <div class="form-pie mt-2">
           ¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a>
         </div>
-
       </div>
     </div>
   </main>
@@ -74,41 +55,43 @@
 
   <script src="../js/main.js"></script>
   <script>
-    // Usuarios de prueba (en producción esto lo valida el backend)
-    const usuarios = [
-      { email: 'estudiante@upc.edu.co', contrasena: '1234', rol: 'estudiante' },
-      { email: 'admin@upc.edu.co',      contrasena: 'admin', rol: 'administrador' }
-    ];
-
-    function iniciarSesion(e) {
+    async function iniciarSesion(e) {
       e.preventDefault();
-      const email     = document.getElementById('email').value.trim();
-      const contrasena = document.getElementById('contrasena').value;
+      const btn    = document.getElementById("btn-login");
+      const alerta = document.getElementById("alerta");
 
-      const usuario = usuarios.find(u => u.email === email && u.contrasena === contrasena);
+      btn.disabled    = true;
+      btn.textContent = "Verificando...";
+      alerta.style.display = "none";
 
-      if (!usuario) {
-        // Mostrar error
-        let alerta = document.getElementById('alerta-error');
-        if (!alerta) {
-          alerta = document.createElement('div');
-          alerta.id = 'alerta-error';
-          alerta.className = 'alerta alerta-error';
-          document.getElementById('form-login').prepend(alerta);
+      try {
+        const data = await apiFetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email:      document.getElementById("email").value.trim(),
+            contrasena: document.getElementById("contrasena").value
+          })
+        });
+
+        setSession(data.token, {
+          nombre:   data.nombre,
+          apellido: data.apellido,
+          email:    data.email,
+          rol:      data.rol
+        });
+
+        if (data.rol === "administrador") {
+          window.location.href = "admin/panel.html";
+        } else {
+          window.location.href = "index.html";
         }
-        alerta.textContent = 'Correo o contraseña incorrectos. Intenta de nuevo.';
-        return;
-      }
 
-      // Guardar sesión en localStorage (simulación)
-      localStorage.setItem('usuario', JSON.stringify({ email: usuario.email, rol: usuario.rol }));
-
-      alert(`¡Bienvenido! Ingresaste como ${usuario.rol}.`);
-
-      if (usuario.rol === 'administrador') {
-        window.location.href = 'admin/panel.html';
-      } else {
-        window.location.href = 'index.html';
+      } catch (err) {
+        alerta.style.display = "block";
+        mostrarError(alerta, err.message || "Correo o contraseña incorrectos");
+        btn.disabled    = false;
+        btn.textContent = "Iniciar sesión";
       }
     }
   </script>

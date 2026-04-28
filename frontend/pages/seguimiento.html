@@ -8,14 +8,13 @@
 </head>
 <body>
 
-  <!-- NAVEGACIÓN -->
   <nav>
     <a href="index.html" class="nav-logo">🎓 Intercambios UPC</a>
     <ul class="nav-links">
       <li><a href="index.html">Convocatorias</a></li>
       <li><a href="postulacion.html">Postularme</a></li>
       <li><a href="seguimiento.html" class="activo">Mis Postulaciones</a></li>
-      <li><a href="login.html">Cerrar Sesión</a></li>
+      <li><a href="#" onclick="cerrarSesion()">Cerrar Sesión</a></li>
     </ul>
   </nav>
 
@@ -25,12 +24,9 @@
       <p>Aquí puedes ver el estado de cada una de tus postulaciones</p>
     </div>
 
-    <!-- Notificación activa -->
-    <div class="alerta alerta-info mb-3">
-      🔔 Tienes <strong>1 postulación en revisión</strong>. Te notificaremos por correo cuando haya cambios.
-    </div>
+    <div id="alerta-notif" class="alerta alerta-info mb-3" style="display:none;"></div>
+    <div id="alerta-error" class="alerta alerta-error mb-3" style="display:none;"></div>
 
-    <!-- Tabla de postulaciones -->
     <div class="card">
       <div class="tabla-container">
         <table id="tabla-postulaciones">
@@ -45,13 +41,16 @@
             </tr>
           </thead>
           <tbody id="cuerpo-tabla">
-            <!-- Se genera con JavaScript -->
+            <tr>
+              <td colspan="6" style="text-align:center; color:#6b7280; padding:2rem;">
+                Cargando postulaciones...
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Detalle de estado -->
     <div style="margin-top:2rem;">
       <h2 style="color:#1a3a6b; font-size:1.1rem; margin-bottom:1rem;">¿Qué significa cada estado?</h2>
       <div class="cards-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
@@ -76,7 +75,6 @@
       </div>
     </div>
 
-    <!-- Acciones -->
     <div style="margin-top:1.5rem; display:flex; gap:1rem;">
       <a href="index.html" class="btn btn-primario">Ver más convocatorias</a>
       <a href="postulacion.html" class="btn btn-secundario">Nueva postulación</a>
@@ -89,31 +87,57 @@
 
   <script src="../js/main.js"></script>
   <script>
-    const cuerpo = document.getElementById('cuerpo-tabla');
+    requireAuth();
 
-    if (miPostulacion.length === 0) {
-      cuerpo.innerHTML = `
-        <tr>
-          <td colspan="6" style="text-align:center; color:#6b7280; padding:2rem;">
-            No tienes postulaciones registradas.
-            <a href="postulacion.html" style="color:#2563eb; margin-left:0.5rem;">Postúlate ahora →</a>
-          </td>
-        </tr>
-      `;
-    } else {
-      cuerpo.innerHTML = miPostulacion.map(p => `
-        <tr>
-          <td><strong>${p.convocatoria}</strong></td>
-          <td>${p.universidad}</td>
-          <td>${p.pais}</td>
-          <td>${formatFecha(p.fecha_postulacion)}</td>
-          <td>${getBadge(p.estado)}</td>
-          <td style="color:#6b7280; font-size:0.85rem;">
-            ${p.comentario || '—'}
-          </td>
-        </tr>
-      `).join('');
+    async function cargarMisPostulaciones() {
+      const cuerpo = document.getElementById("cuerpo-tabla");
+      const alertaNotif = document.getElementById("alerta-notif");
+      const alertaError = document.getElementById("alerta-error");
+
+      try {
+        const postulaciones = await apiFetch("/api/postulaciones/mis", {
+          headers: authHeaders()
+        });
+
+        const enRevision = postulaciones.filter(p => p.estado === "en_revision").length;
+        if (enRevision > 0) {
+          alertaNotif.style.display = "block";
+          alertaNotif.innerHTML = `🔔 Tienes <strong>${enRevision} postulación${enRevision > 1 ? "es" : ""} en revisión</strong>. Te notificaremos por correo cuando haya cambios.`;
+        }
+
+        if (postulaciones.length === 0) {
+          cuerpo.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align:center; color:#6b7280; padding:2rem;">
+                No tienes postulaciones registradas.
+                <a href="postulacion.html" style="color:#2563eb; margin-left:0.5rem;">Postúlate ahora →</a>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        cuerpo.innerHTML = postulaciones.map(p => `
+          <tr>
+            <td><strong>${p.convocatoria}</strong></td>
+            <td>${p.universidad}</td>
+            <td>${p.pais}</td>
+            <td>${formatFecha(p.fechaPostulacion)}</td>
+            <td>${getBadge(p.estado)}</td>
+            <td style="color:#6b7280; font-size:0.85rem;">
+              ${p.comentarioAdmin || "—"}
+            </td>
+          </tr>
+        `).join("");
+
+      } catch (err) {
+        alertaError.style.display = "block";
+        alertaError.textContent = "No se pudieron cargar las postulaciones: " + err.message;
+        cuerpo.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#6b7280; padding:2rem;">Error al cargar datos.</td></tr>`;
+      }
     }
+
+    cargarMisPostulaciones();
   </script>
 </body>
 </html>

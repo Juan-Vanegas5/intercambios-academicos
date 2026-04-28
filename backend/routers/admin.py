@@ -28,8 +28,8 @@ def actualizar_estado(
     admin: Usuario = Depends(solo_admin)
 ):
     """Cambia el estado a 'aprobada' o 'rechazada' y agrega un comentario al estudiante."""
-    if request.estado not in ["aprobada", "rechazada"]:
-        raise HTTPException(status_code=400, detail="Estado inválido. Use 'aprobada' o 'rechazada'")
+    if request.estado not in ["aprobada", "rechazada", "en_revision"]:
+        raise HTTPException(status_code=400, detail="Estado inválido")
 
     postulacion = db.query(Postulacion).filter(Postulacion.id == id).first()
     if not postulacion:

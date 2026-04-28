@@ -25,7 +25,9 @@ class PostulacionResponse(BaseModel):
     comentarioAdmin: Optional[str]
     fechaPostulacion: Optional[datetime]
     fechaActualizacion: Optional[datetime]
+    estudiante: Optional[str] = None
+    programa: Optional[str] = None
 
 class EstadoRequest(BaseModel):
-    estado: str           # "aprobada" | "rechazada"
+    estado: str
     comentario: Optional[str] = None

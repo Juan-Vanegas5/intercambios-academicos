@@ -1,8 +1,4 @@
--- ============================================================
--- ESQUEMA DE BASE DE DATOS
--- Aplicación de Gestión de Intercambios Académicos
--- Universidad Piloto de Colombia
--- ============================================================
+
 
 
 -- Eliminar tablas si ya existen (para poder correr el script varias veces)
@@ -14,37 +10,25 @@ DROP TABLE IF EXISTS usuarios CASCADE;
 DROP TABLE IF EXISTS programas_academicos;
 DROP TABLE IF EXISTS universidades;
 
--- ============================================================
--- Tabla de Muestra programas_academicos
--- Almacena los programas academicos
--- ============================================================
+
 CREATE TABLE programas_academicos (
     id              SERIAL PRIMARY KEY,
     nombre          VARCHAR(100) NOT NULL UNIQUE
 );
 
--- ============================================================
--- Tabla de Muestra universidades
--- Almacena las universidades
--- ============================================================
+
 CREATE TABLE universidades (
     id              SERIAL PRIMARY KEY,
     nombre          VARCHAR(200) NOT NULL,
     pais            VARCHAR(100) NOT NULL
 );
--- ============================================================
--- Tabla tipos_documentos
--- Almacena los tipos de documentos de los usuarios
--- ============================================================
+
 CREATE TABLE tipos_documentos (
     id              SERIAL PRIMARY KEY,
     nombre          VARCHAR(50) NOT NULL UNIQUE
 );
 
--- ============================================================
--- TABLA 1: USUARIOS
--- Almacena tanto estudiantes como administradores
--- ============================================================
+
 CREATE TABLE usuarios (
     id              SERIAL PRIMARY KEY,
     nombre          VARCHAR(100) NOT NULL,
@@ -59,10 +43,7 @@ CREATE TABLE usuarios (
 
 
 
--- ============================================================
--- TABLA 2: CONVOCATORIAS
--- Las oportunidades de intercambio disponibles
--- ============================================================
+
 CREATE TABLE convocatorias (
     id               SERIAL PRIMARY KEY,
     titulo           VARCHAR(200) NOT NULL,
@@ -77,10 +58,7 @@ CREATE TABLE convocatorias (
     fecha_creacion   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================================
--- TABLA 3: POSTULACIONES
--- Registra qué estudiante aplicó a qué convocatoria
--- ============================================================
+
 CREATE TABLE postulaciones (
     id                  SERIAL PRIMARY KEY,
     estudiante_id       INT NOT NULL REFERENCES usuarios(id),
@@ -93,10 +71,7 @@ CREATE TABLE postulaciones (
     UNIQUE (estudiante_id, convocatoria_id)
 );
 
--- ============================================================
--- TABLA 4: DOCUMENTOS
--- Archivos que sube el estudiante al postularse
--- ============================================================
+
 CREATE TABLE documentos (
     id               SERIAL PRIMARY KEY,
     postulacion_id   INT NOT NULL REFERENCES postulaciones(id),
@@ -106,10 +81,8 @@ CREATE TABLE documentos (
     fecha_subida     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================================
--- TABLA 5: NOTIFICACIONES
--- Mensajes que recibe el usuario dentro de la plataforma
--- ============================================================
+
+
 CREATE TABLE notificaciones (
     id           SERIAL PRIMARY KEY,
     usuario_id   INT NOT NULL REFERENCES usuarios(id),
@@ -118,10 +91,7 @@ CREATE TABLE notificaciones (
     fecha        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================================
--- ÍNDICES
--- Aceleran las búsquedas más frecuentes de la aplicación
--- ============================================================
+
 
 -- Buscar usuario por email (login)
 CREATE INDEX idx_usuarios_email ON usuarios(email);
@@ -141,11 +111,7 @@ CREATE INDEX idx_convocatorias_estado ON convocatorias(estado);
 -- Buscar notificaciones no leídas de un usuario
 CREATE INDEX idx_notificaciones_usuario ON notificaciones(usuario_id, leida);
 
--- ============================================================
--- TRIGGER
--- Actualiza automáticamente fecha_actualizacion en postulaciones
--- cada vez que el administrador cambia el estado o agrega comentario
--- ============================================================
+
 
 CREATE OR REPLACE FUNCTION fn_actualizar_fecha_postulacion()
 RETURNS TRIGGER AS $$

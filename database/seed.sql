@@ -1,20 +1,5 @@
--- ============================================================
--- DATOS DE PRUEBA (SEED)
--- Aplicación de Gestión de Intercambios Académicos
--- Universidad Piloto de Colombia
---
--- IMPORTANTE: Las contraseñas aquí son texto plano solo para
--- pruebas locales. En producción el backend debe encriptarlas
--- con BCrypt antes de guardarlas.
---
--- Ejecutar DESPUÉS de schema.sql:
---   psql -U postgres -d intercambios_db -f database/seed.sql
--- ============================================================
 
 
--- ============================================================
--- TABLA: programas_academicos
--- ============================================================
 INSERT INTO programas_academicos (nombre) VALUES
 ('Ingeniería de Sistemas'),
 ('Ingeniería Civil'),
@@ -25,9 +10,7 @@ INSERT INTO programas_academicos (nombre) VALUES
 ('Medicina');
 
 
--- ============================================================
--- TABLA: universidades
--- ============================================================
+
 INSERT INTO universidades (nombre, pais) VALUES
 ('Universidad de Barcelona',              'España'),
 ('Universidad Nacional Autónoma de México', 'México'),
@@ -35,9 +18,7 @@ INSERT INTO universidades (nombre, pais) VALUES
 ('Instituto Tecnológico de Monterrey',    'México');
 
 
--- ============================================================
--- TABLA: tipos_documentos
--- ============================================================
+
 INSERT INTO tipos_documentos (nombre) VALUES
 ('Certificado de notas'),
 ('Paz y salvo académico'),
@@ -45,15 +26,13 @@ INSERT INTO tipos_documentos (nombre) VALUES
 ('Carta de motivación');
 
 
--- ============================================================
--- TABLA: usuarios
--- ============================================================
+
 INSERT INTO usuarios (nombre, apellido, email, contrasena, rol, codigo, programa_id) VALUES
 -- Administradores
 ('Carlos', 'Pérez',      'admin@upc.edu.co',           'admin',    'administrador', NULL, NULL),
 ('Sandra', 'Romero',     'sandra.romero@upc.edu.co',   'admin123', 'administrador', NULL, NULL),
 
--- Estudiantes
+
 ('María',  'López',      'maria.lopez@upc.edu.co',     '1234', 'estudiante', '201901001',
     (SELECT id FROM programas_academicos WHERE nombre = 'Ingeniería de Sistemas')),
 ('Carlos', 'Ruiz',       'carlos.ruiz@upc.edu.co',     '1234', 'estudiante', '201901002',
@@ -68,9 +47,7 @@ INSERT INTO usuarios (nombre, apellido, email, contrasena, rol, codigo, programa
     (SELECT id FROM programas_academicos WHERE nombre = 'Derecho'));
 
 
--- ============================================================
--- TABLA: convocatorias
--- ============================================================
+
 INSERT INTO convocatorias (titulo, universidad_id, descripcion, requisitos, fecha_inicio, fecha_cierre, cupos, estado, creado_por) VALUES
 (
     'Intercambio Universidad de Barcelona',
@@ -106,9 +83,7 @@ INSERT INTO convocatorias (titulo, universidad_id, descripcion, requisitos, fech
 );
 
 
--- ============================================================
--- TABLA: postulaciones
--- ============================================================
+
 INSERT INTO postulaciones (estudiante_id, convocatoria_id, estado, comentario_admin, fecha_postulacion) VALUES
 (
     (SELECT id FROM usuarios WHERE email = 'maria.lopez@upc.edu.co'),
@@ -142,9 +117,7 @@ INSERT INTO postulaciones (estudiante_id, convocatoria_id, estado, comentario_ad
 );
 
 
--- ============================================================
--- TABLA: documentos
--- ============================================================
+
 INSERT INTO documentos (postulacion_id, nombre_archivo, tipo_documento_id, ruta_archivo) VALUES
 -- Documentos de María López (postulación 1)
 (1, 'certificado_notas_maria.pdf',
@@ -177,9 +150,7 @@ INSERT INTO documentos (postulacion_id, nombre_archivo, tipo_documento_id, ruta_
     'uploads/postulacion_5/idioma_andres.pdf');
 
 
--- ============================================================
--- TABLA: notificaciones
--- ============================================================
+
 INSERT INTO notificaciones (usuario_id, mensaje, leida) VALUES
 (
     (SELECT id FROM usuarios WHERE email = 'maria.lopez@upc.edu.co'),

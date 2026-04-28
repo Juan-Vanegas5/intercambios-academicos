@@ -697,6 +697,135 @@
 
 <hr class="separador"/>
 
+
+<!-- ========================================================= -->
+<!-- SECCIÓN 9: BACKEND PYTHON - FastAPI (21 abril 2026)      -->
+<!-- ========================================================= -->
+
+<h1>9. Backend Python — FastAPI (21 abril 2026)</h1>
+
+<p>En esta sesión se construyó el backend de la aplicación en <strong>Python</strong> usando el framework <strong>FastAPI</strong>. Se eligió Python sobre Java porque permite lograr exactamente la misma funcionalidad con muchos menos archivos, lo que facilita entenderlo y explicarlo. El backend es la capa del servidor que recibe peticiones del frontend, consulta la base de datos Neon y devuelve los datos.</p>
+
+<h2>9.1 ¿Qué tecnologías se usaron y por qué?</h2>
+
+<table>
+  <tr><th>Tecnología</th><th>¿Para qué?</th><th>¿Por qué se eligió?</th></tr>
+  <tr>
+    <td><strong>FastAPI</strong></td>
+    <td>Framework principal del backend</td>
+    <td>El más rápido y moderno para APIs en Python. Genera Swagger automáticamente y tiene muy poco código repetitivo.</td>
+  </tr>
+  <tr>
+    <td><strong>Uvicorn</strong></td>
+    <td>Servidor que corre la aplicación</td>
+    <td>Es el servidor recomendado para FastAPI. Se arranca con un solo comando.</td>
+  </tr>
+  <tr>
+    <td><strong>SQLAlchemy</strong></td>
+    <td>ORM — convierte tablas SQL en clases Python</td>
+    <td>Evita escribir SQL manualmente. Se define la clase <code>Usuario</code> en Python y SQLAlchemy sabe cómo leer la tabla <code>usuarios</code>.</td>
+  </tr>
+  <tr>
+    <td><strong>psycopg2</strong></td>
+    <td>Driver de conexión a PostgreSQL</td>
+    <td>Permite que SQLAlchemy hable con la base de datos Neon.</td>
+  </tr>
+  <tr>
+    <td><strong>python-jose</strong></td>
+    <td>Generación y validación de tokens JWT</td>
+    <td>JWT es el estándar moderno para autenticación en APIs REST sin sesiones.</td>
+  </tr>
+  <tr>
+    <td><strong>passlib + bcrypt</strong></td>
+    <td>Encriptación de contraseñas</td>
+    <td>BCrypt es el algoritmo estándar para guardar contraseñas de forma segura.</td>
+  </tr>
+  <tr>
+    <td><strong>python-dotenv</strong></td>
+    <td>Lee el archivo <code>.env</code></td>
+    <td>Guarda las credenciales (URL de Neon, secreto JWT) fuera del código, para no subirlas a GitHub.</td>
+  </tr>
+</table>
+
+
+<h2>9.2 Archivos creados — Solo 9 archivos</h2>
+
+<p>Una de las ventajas de Python sobre Java es la cantidad de archivos. La misma funcionalidad que en Java requería 26 archivos, en Python quedó en 9:</p>
+
+<table>
+  <tr><th>Archivo</th><th>¿Qué hace?</th></tr>
+  <tr><td><code>requirements.txt</code></td><td>Lista las librerías necesarias (equivalente al pom.xml de Java)</td></tr>
+  <tr><td><code>.env</code></td><td>Credenciales privadas: URL de Neon y secreto JWT (NO se sube a GitHub)</td></tr>
+  <tr><td><code>database.py</code></td><td>Configura la conexión a PostgreSQL en Neon y la sesión de base de datos</td></tr>
+  <tr><td><code>models.py</code></td><td>Define todas las tablas como clases Python (Usuario, Convocatoria, Postulacion, etc.)</td></tr>
+  <tr><td><code>schemas.py</code></td><td>Define el formato de los datos que entran y salen de la API (LoginRequest, PostulacionResponse, etc.)</td></tr>
+  <tr><td><code>auth.py</code></td><td>Lógica de seguridad: generar tokens JWT, verificar contraseñas, proteger endpoints</td></tr>
+  <tr><td><code>main.py</code></td><td>Arranca la aplicación, configura CORS y define el endpoint de login</td></tr>
+  <tr><td><code>routers/convocatorias.py</code></td><td>Endpoints de convocatorias</td></tr>
+  <tr><td><code>routers/postulaciones.py</code></td><td>Endpoints de postulaciones del estudiante</td></tr>
+  <tr><td><code>routers/admin.py</code></td><td>Endpoints del panel de administrador</td></tr>
+</table>
+
+
+<h2>9.3 Endpoints de la API</h2>
+
+<table>
+  <tr><th>Método</th><th>URL</th><th>¿Quién puede usarlo?</th><th>¿Qué hace?</th></tr>
+  <tr><td>POST</td><td>/api/auth/login</td><td>Todos (público)</td><td>Recibe email y contraseña, devuelve token JWT</td></tr>
+  <tr><td>GET</td><td>/api/convocatorias</td><td>Todos (público)</td><td>Lista convocatorias activas desde Neon</td></tr>
+  <tr><td>GET</td><td>/api/convocatorias/todas</td><td>Autenticado (JWT)</td><td>Lista todas las convocatorias sin importar estado</td></tr>
+  <tr><td>GET</td><td>/api/convocatorias/{id}</td><td>Autenticado (JWT)</td><td>Ver detalle de una convocatoria</td></tr>
+  <tr><td>GET</td><td>/api/postulaciones/mis</td><td>Estudiante (JWT)</td><td>Ver mis postulaciones con estado y comentario del admin</td></tr>
+  <tr><td>POST</td><td>/api/postulaciones</td><td>Estudiante (JWT)</td><td>Crear nueva postulación. Valida que no esté duplicada.</td></tr>
+  <tr><td>GET</td><td>/api/admin/postulaciones</td><td>Admin (JWT)</td><td>Ver todas las postulaciones de todos los estudiantes</td></tr>
+  <tr><td>PUT</td><td>/api/admin/postulaciones/{id}/estado</td><td>Admin (JWT)</td><td>Aprobar o rechazar una postulación con comentario</td></tr>
+</table>
+
+
+<h2>9.4 ¿Cómo funciona el login con JWT?</h2>
+
+<p>JWT significa <strong>JSON Web Token</strong>. Es una forma de identificar al usuario sin guardar sesiones en el servidor. Funciona así:</p>
+<ol>
+  <li>El usuario envía su email y contraseña al endpoint <code>POST /api/auth/login</code></li>
+  <li>El servidor busca al usuario en la base de datos Neon por su email</li>
+  <li>Verifica la contraseña (soporta BCrypt y texto plano para los datos de prueba)</li>
+  <li>Si son correctas, genera un <strong>token JWT</strong>: una cadena cifrada que contiene el email y el rol del usuario, válida por 24 horas</li>
+  <li>El frontend guarda ese token y lo envía en cada petición en el encabezado: <code>Authorization: Bearer &lt;token&gt;</code></li>
+  <li>La función <code>obtener_usuario_actual()</code> en <code>auth.py</code> intercepta cada petición, verifica el token y autoriza el acceso</li>
+</ol>
+
+<div class="resaltado">
+  <strong>Nota sobre contraseñas:</strong> El sistema soporta contraseñas en texto plano (para los datos de prueba del seed.sql) y contraseñas encriptadas con BCrypt (producción). La función <code>verificar_contrasena()</code> detecta automáticamente cuál usar según el formato guardado en la base de datos.
+</div>
+
+
+<h2>9.5 Cómo instalar y correr el backend en VS Code</h2>
+
+<ol>
+  <li>Instalar Python 3.11+ desde <code>python.org</code> si no está instalado</li>
+  <li>Abrir la carpeta <code>backend/</code> en VS Code</li>
+  <li>Abrir la terminal integrada (<code>Ctrl + `</code>) y ejecutar:</li>
+</ol>
+
+<p><code>pip install -r requirements.txt</code> &nbsp; (instala todas las librerías)</p>
+<p><code>uvicorn main:app --reload</code> &nbsp; (arranca el servidor con recarga automática)</p>
+
+<ol start="4">
+  <li>Abrir el navegador en: <code>http://localhost:8000/docs</code> — Swagger UI aparece automáticamente</li>
+</ol>
+
+<div class="resaltado">
+  <strong>Credenciales para probar en Swagger (<code>http://localhost:8000/docs</code>):</strong><br/>
+  1. Ejecutar <code>POST /api/auth/login</code> con <code>{ "email": "admin@upc.edu.co", "contrasena": "admin" }</code><br/>
+  2. Copiar el <code>token</code> que devuelve<br/>
+  3. Hacer clic en el candado 🔒 de la esquina superior derecha de Swagger<br/>
+  4. Pegar el token y hacer clic en "Authorize"<br/>
+  5. Ya puedes probar todos los endpoints protegidos
+</div>
+
+
+<hr class="separador"/>
+
 <p style="text-align:center; color:#6b7280; font-size:10pt; margin-top:24pt;">
   Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026<br/>
   Juan Andrés Vanegas Guzmán

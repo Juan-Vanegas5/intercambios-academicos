@@ -93,6 +93,17 @@ $RECYCLE.BIN/
 *.env
 
 # ========================
+# Python
+# ========================
+__pycache__/
+*.pyc
+*.pyo
+backend/venv/
+
+# LibreOffice
+docs/.~lock.*
+
+# ========================
 # Logs
 # ========================
 logs/

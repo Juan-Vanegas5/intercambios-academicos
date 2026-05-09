@@ -28,6 +28,14 @@ class PostulacionResponse(BaseModel):
     estudiante: Optional[str] = None
     programa: Optional[str] = None
 
+class RegistroRequest(BaseModel):
+    nombre: str
+    apellido: str
+    email: str
+    contrasena: str
+    codigo: str
+    programa: str
+
 class EstadoRequest(BaseModel):
     estado: str
     comentario: Optional[str] = None

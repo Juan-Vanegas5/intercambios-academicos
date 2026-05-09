@@ -50,11 +50,11 @@
         <div class="alerta alerta-info mb-2">Adjunta los documentos en formato PDF (máximo 5 MB cada uno).</div>
         <div class="form-group">
           <label>Certificado de notas (PDF)</label>
-          <input type="file" accept=".pdf" required />
+          <input type="file" accept=".pdf" />
         </div>
         <div class="form-group">
           <label>Paz y salvo académico (PDF)</label>
-          <input type="file" accept=".pdf" required />
+          <input type="file" accept=".pdf" />
         </div>
 
         <div style="display:flex; gap:1rem; margin-top:0.5rem;">
@@ -128,8 +128,10 @@
           headers: authHeaders(),
           body:    JSON.stringify({ convocatoriaId: convId })
         });
-        alert("¡Postulación enviada con éxito! Puedes hacer seguimiento en 'Mis Postulaciones'.");
-        window.location.href = "seguimiento.html";
+        alerta.style.display = "block";
+        alerta.className = "alerta alerta-exito";
+        alerta.textContent = "¡Postulación enviada con éxito! Redirigiendo a Mis Postulaciones...";
+        setTimeout(() => { window.location.href = "seguimiento.html"; }, 1500);
       } catch (err) {
         alerta.style.display = "block";
         mostrarError(alerta, err.message);

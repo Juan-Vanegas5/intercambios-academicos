@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Usuario
-from schemas import LoginRequest, LoginResponse
+from models import Usuario, ProgramaAcademico
+from schemas import LoginRequest, LoginResponse, RegistroRequest
 from auth import verificar_contrasena, generar_token
 from routers import convocatorias, postulaciones, admin
 
@@ -46,6 +46,35 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         email=usuario.email,
         rol=usuario.rol
     )
+
+# ---- REGISTRO ----
+@app.post("/api/auth/registro", response_model=LoginResponse, tags=["Autenticación"])
+def registro(request: RegistroRequest, db: Session = Depends(get_db)):
+    if db.query(Usuario).filter(Usuario.email == request.email).first():
+        raise HTTPException(status_code=400, detail="El correo ya está registrado")
+
+    programa = db.query(ProgramaAcademico).filter(ProgramaAcademico.nombre == request.programa).first()
+    if not programa:
+        programa = ProgramaAcademico(nombre=request.programa)
+        db.add(programa)
+        db.flush()
+
+    nuevo = Usuario(
+        nombre=request.nombre,
+        apellido=request.apellido,
+        email=request.email,
+        contrasena=request.contrasena,
+        rol="estudiante",
+        codigo=request.codigo,
+        programa_id=programa.id
+    )
+    db.add(nuevo)
+    db.commit()
+    db.refresh(nuevo)
+
+    token = generar_token(nuevo.email, nuevo.rol)
+    return LoginResponse(token=token, nombre=nuevo.nombre, apellido=nuevo.apellido,
+                         email=nuevo.email, rol=nuevo.rol)
 
 # ---- ROUTERS ----
 app.include_router(convocatorias.router)

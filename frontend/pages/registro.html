@@ -99,11 +99,12 @@
 
   <script src="../js/main.js"></script>
   <script>
-    function registrar(e) {
+    async function registrar(e) {
       e.preventDefault();
       const contrasena = document.getElementById('contrasena').value;
       const confirmar  = document.getElementById('confirmar').value;
       const alerta     = document.getElementById('alerta-registro');
+      const btn        = document.querySelector('#form-registro button[type="submit"]');
 
       if (contrasena !== confirmar) {
         alerta.className = 'alerta alerta-error';
@@ -112,7 +113,33 @@
       }
 
       alerta.textContent = '';
-      simularEnvio('¡Cuenta creada con éxito! Ahora puedes iniciar sesión.', 'login.html');
+      btn.disabled    = true;
+      btn.textContent = 'Creando cuenta...';
+
+      try {
+        const data = await apiFetch('/api/auth/registro', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre:     document.getElementById('nombre').value.trim(),
+            apellido:   document.getElementById('apellido').value.trim(),
+            email:      document.getElementById('email').value.trim(),
+            contrasena: contrasena,
+            codigo:     document.getElementById('codigo').value.trim(),
+            programa:   document.getElementById('programa').value
+          })
+        });
+        setSession(data.token, {
+          nombre: data.nombre, apellido: data.apellido,
+          email: data.email, rol: data.rol
+        });
+        window.location.href = 'index.html';
+      } catch (err) {
+        alerta.className = 'alerta alerta-error';
+        alerta.textContent = err.message || 'Error al crear la cuenta.';
+        btn.disabled    = false;
+        btn.textContent = 'Crear cuenta';
+      }
     }
   </script>
 </body>

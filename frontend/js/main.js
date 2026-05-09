@@ -2,7 +2,7 @@
 //  CONFIGURACIÓN Y UTILIDADES - Intercambios Académicos
 // =====================================================
 
-const BASE_URL = "http://192.168.10.105:8000";
+const BASE_URL = "";
 
 // ---- Manejo de sesión ----
 function getToken()   { return localStorage.getItem("token"); }
@@ -84,4 +84,33 @@ function marcarNavActivo() {
     });
 }
 
-document.addEventListener("DOMContentLoaded", marcarNavActivo);
+function actualizarNav() {
+    const u = getUsuario();
+    const links = document.querySelector(".nav-links");
+    if (!links) return;
+
+    if (u) {
+        // Reemplazar "Iniciar Sesión" si existe
+        const loginLink = [...links.querySelectorAll("a")]
+            .find(a => a.textContent.trim() === "Iniciar Sesión");
+        if (loginLink) {
+            const li = loginLink.parentElement;
+            li.innerHTML = `<span style="color:#1a3a6b;font-weight:600;">${u.nombre}</span>&nbsp;&nbsp;<a href="#" onclick="cerrarSesion()">Cerrar Sesión</a>`;
+        }
+
+        // Agregar nombre antes de "Cerrar Sesión" si ya existe y no tiene nombre
+        const logoutLink = [...links.querySelectorAll("a")]
+            .find(a => a.textContent.trim() === "Cerrar Sesión");
+        if (logoutLink && !logoutLink.parentElement.querySelector("span")) {
+            const span = document.createElement("span");
+            span.style.cssText = "color:#1a3a6b;font-weight:600;margin-right:0.75rem;";
+            span.textContent = u.nombre;
+            logoutLink.parentElement.insertBefore(span, logoutLink);
+        }
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    marcarNavActivo();
+    actualizarNav();
+});

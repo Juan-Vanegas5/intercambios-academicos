@@ -55,6 +55,12 @@
 
   <script src="../js/main.js"></script>
   <script>
+    // Si ya hay sesión activa, redirigir
+    (function() {
+      const u = getUsuario();
+      if (u) window.location.href = u.rol === "administrador" ? "admin/panel.html" : "index.html";
+    })();
+
     async function iniciarSesion(e) {
       e.preventDefault();
       const btn    = document.getElementById("btn-login");

@@ -37,6 +37,10 @@ class RegistroRequest(BaseModel):
     codigo: str
     programa: str
 
+class VerificarCodigoRequest(BaseModel):
+    email: str
+    codigo: str
+
 class EstadoRequest(BaseModel):
     estado: str
     comentario: Optional[str] = None

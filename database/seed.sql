@@ -28,22 +28,22 @@ INSERT INTO tipos_documentos (nombre) VALUES
 
 
 INSERT INTO usuarios (nombre, apellido, email, contrasena, rol, codigo, programa_id) VALUES
--- Administradores
-('Carlos', 'Pérez',      'admin@upc.edu.co',           'admin',    'administrador', NULL, NULL),
-('Sandra', 'Romero',     'sandra.romero@upc.edu.co',   'admin123', 'administrador', NULL, NULL),
+-- Administradores  (contraseñas hasheadas con BCrypt)
+('Carlos', 'Pérez',      'admin@upc.edu.co',           '$2b$12$03ES7p2BzSWAU0zefRzK9uV1mIa6RgZvki574OdIJIH5n6dBFygqu', 'administrador', NULL, NULL),
+('Sandra', 'Romero',     'sandra.romero@upc.edu.co',   '$2b$12$SIL3j7zFvmHb2SA1EUlYPOdUbuGsmTFjwKVsdEU9xqBYKkTI8jwPa', 'administrador', NULL, NULL),
 
 
-('María',  'López',      'maria.lopez@upc.edu.co',     '1234', 'estudiante', '201901001',
+('María',  'López',      'maria.lopez@upc.edu.co',     '$2b$12$jWMY94lZT65qFVcVvQgdN.DXcu96JDpgRQy54c7wmivF1AKQ4WqBu', 'estudiante', '201901001',
     (SELECT id FROM programas_academicos WHERE nombre = 'Ingeniería de Sistemas')),
-('Carlos', 'Ruiz',       'carlos.ruiz@upc.edu.co',     '1234', 'estudiante', '201901002',
+('Carlos', 'Ruiz',       'carlos.ruiz@upc.edu.co',     '$2b$12$jWMY94lZT65qFVcVvQgdN.DXcu96JDpgRQy54c7wmivF1AKQ4WqBu', 'estudiante', '201901002',
     (SELECT id FROM programas_academicos WHERE nombre = 'Ingeniería Civil')),
-('Juan',   'Vanegas',    'juan.vanegas@upc.edu.co',    '1234', 'estudiante', '201901003',
+('Juan',   'Vanegas',    'juan.vanegas@upc.edu.co',    '$2b$12$jWMY94lZT65qFVcVvQgdN.DXcu96JDpgRQy54c7wmivF1AKQ4WqBu', 'estudiante', '201901003',
     (SELECT id FROM programas_academicos WHERE nombre = 'Ingeniería de Sistemas')),
-('Sofía',  'Martínez',   'sofia.martinez@upc.edu.co',  '1234', 'estudiante', '201901004',
+('Sofía',  'Martínez',   'sofia.martinez@upc.edu.co',  '$2b$12$jWMY94lZT65qFVcVvQgdN.DXcu96JDpgRQy54c7wmivF1AKQ4WqBu', 'estudiante', '201901004',
     (SELECT id FROM programas_academicos WHERE nombre = 'Administración de Empresas')),
-('Andrés', 'Gómez',      'andres.gomez@upc.edu.co',    '1234', 'estudiante', '201901005',
+('Andrés', 'Gómez',      'andres.gomez@upc.edu.co',    '$2b$12$jWMY94lZT65qFVcVvQgdN.DXcu96JDpgRQy54c7wmivF1AKQ4WqBu', 'estudiante', '201901005',
     (SELECT id FROM programas_academicos WHERE nombre = 'Arquitectura')),
-('Laura',  'Hernández',  'laura.hernandez@upc.edu.co', '1234', 'estudiante', '201901006',
+('Laura',  'Hernández',  'laura.hernandez@upc.edu.co', '$2b$12$jWMY94lZT65qFVcVvQgdN.DXcu96JDpgRQy54c7wmivF1AKQ4WqBu', 'estudiante', '201901006',
     (SELECT id FROM programas_academicos WHERE nombre = 'Derecho'));
 
 

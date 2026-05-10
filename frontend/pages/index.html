@@ -21,7 +21,7 @@
   <div class="hero">
     <h1>Oportunidades de Intercambio Académico</h1>
     <p>Descubre universidades aliadas alrededor del mundo y postúlate a un programa de intercambio</p>
-    <a href="registro.html" class="btn btn-primario">Registrarme</a>
+    <div id="hero-cta"></div>
   </div>
 
   <main>
@@ -107,6 +107,21 @@
     }
 
     cargar();
+
+    // Botón hero dinámico según sesión
+    (function() {
+      const u = getUsuario();
+      const cta = document.getElementById("hero-cta");
+      if (u) {
+        cta.innerHTML = `<a href="postulacion.html" class="btn btn-primario">Postularme ahora</a>
+          &nbsp;
+          <a href="seguimiento.html" class="btn btn-secundario" style="background:rgba(255,255,255,0.15);color:white;border-color:rgba(255,255,255,0.4);">Mis postulaciones</a>`;
+      } else {
+        cta.innerHTML = `<a href="registro.html" class="btn btn-primario">Registrarme</a>
+          &nbsp;
+          <a href="login.html" class="btn btn-secundario" style="background:rgba(255,255,255,0.15);color:white;border-color:rgba(255,255,255,0.4);">Iniciar sesión</a>`;
+      }
+    })();
   </script>
 </body>
 </html>

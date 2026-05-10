@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
-from passlib.context import CryptContext
+import bcrypt as _bcrypt
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -11,17 +11,18 @@ import os
 
 load_dotenv()
 
-JWT_SECRET          = os.getenv("JWT_SECRET", "cambiar_en_produccion")
+JWT_SECRET           = os.getenv("JWT_SECRET", "cambiar_en_produccion")
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
-ALGORITHM           = "HS256"
+ALGORITHM            = "HS256"
 
-pwd_context    = CryptContext(schemes=["bcrypt"], deprecated="auto")
-bearer_scheme  = HTTPBearer()
+bearer_scheme = HTTPBearer()
+
+def hashear_contrasena(raw: str) -> str:
+    return _bcrypt.hashpw(raw.encode(), _bcrypt.gensalt()).decode()
 
 def verificar_contrasena(raw: str, guardada: str) -> bool:
-    # Soporta BCrypt (producción) y texto plano (datos de prueba)
     if guardada.startswith("$2"):
-        return pwd_context.verify(raw, guardada)
+        return _bcrypt.checkpw(raw.encode(), guardada.encode())
     return raw == guardada
 
 def generar_token(email: str, rol: str) -> str:

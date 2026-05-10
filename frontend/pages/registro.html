@@ -48,6 +48,17 @@
 
           <div class="form-fila">
             <div class="form-group">
+              <label for="cedula">Cédula de ciudadanía</label>
+              <input type="text" id="cedula" placeholder="Ej: 1234567890" required />
+            </div>
+            <div class="form-group">
+              <label for="celular">Número celular</label>
+              <input type="tel" id="celular" placeholder="Ej: 3001234567" required />
+            </div>
+          </div>
+
+          <div class="form-fila">
+            <div class="form-group">
               <label for="codigo">Código estudiantil</label>
               <input type="text" id="codigo" placeholder="Ej: 201923456" required />
             </div>
@@ -125,6 +136,8 @@
             apellido:   document.getElementById('apellido').value.trim(),
             email:      document.getElementById('email').value.trim(),
             contrasena: contrasena,
+            cedula:     document.getElementById('cedula').value.trim(),
+            celular:    document.getElementById('celular').value.trim(),
             codigo:     document.getElementById('codigo').value.trim(),
             programa:   document.getElementById('programa').value
           })

@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from database import get_db
-from models import Usuario, Postulacion
-from schemas import EstadoRequest, PostulacionResponse
+from models import Usuario, Postulacion, Documento
+from schemas import EstadoRequest, PostulacionResponse, DocumentoResponse
 from auth import solo_admin
 from routers.postulaciones import to_response
 
@@ -18,6 +18,28 @@ def todas(
 ):
     """Solo administradores. Lista todas las postulaciones con datos del estudiante."""
     return [to_response(p) for p in db.query(Postulacion).all()]
+
+@router.get("/postulaciones/{id}/documentos", response_model=List[DocumentoResponse],
+            summary="Ver documentos de una postulación")
+def ver_documentos(
+    id: int,
+    db: Session = Depends(get_db),
+    admin: Usuario = Depends(solo_admin)
+):
+    """Devuelve los documentos subidos para una postulación."""
+    if not db.query(Postulacion).filter(Postulacion.id == id).first():
+        raise HTTPException(status_code=404, detail="Postulación no encontrada")
+
+    docs = db.query(Documento).filter(Documento.postulacion_id == id).all()
+    return [
+        DocumentoResponse(
+            id=d.id,
+            nombre_archivo=d.nombre_archivo,
+            tipo=d.tipo_documento.nombre if d.tipo_documento else None,
+            ruta_archivo=d.ruta_archivo,
+            fecha_subida=d.fecha_subida
+        ) for d in docs
+    ]
 
 @router.put("/postulaciones/{id}/estado", response_model=PostulacionResponse,
             summary="Aprobar o rechazar postulación")

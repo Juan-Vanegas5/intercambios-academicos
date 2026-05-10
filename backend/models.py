@@ -28,6 +28,8 @@ class Usuario(Base):
     contrasena      = Column(String(255), nullable=False)
     rol             = Column(String(20), nullable=False)
     codigo          = Column(String(20))
+    cedula          = Column(String(20))
+    celular         = Column(String(20))
     programa_id     = Column(Integer, ForeignKey("programas_academicos.id"))
     fecha_registro  = Column(DateTime, default=datetime.datetime.now)
 
@@ -54,6 +56,8 @@ class Postulacion(Base):
     id                  = Column(Integer, primary_key=True)
     estudiante_id       = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
     convocatoria_id     = Column(Integer, ForeignKey("convocatorias.id"), nullable=False)
+    semestre            = Column(Integer)
+    carta_intencion     = Column(Text)
     estado              = Column(String(20), nullable=False, default="en_revision")
     comentario_admin    = Column(Text)
     fecha_postulacion   = Column(DateTime, default=datetime.datetime.now)
@@ -71,3 +75,5 @@ class Documento(Base):
     tipo_documento_id = Column(Integer, ForeignKey("tipos_documentos.id"))
     ruta_archivo      = Column(String(500), nullable=False)
     fecha_subida      = Column(DateTime, default=datetime.datetime.now)
+
+    tipo_documento = relationship("TipoDocumento", lazy="joined")

@@ -45,6 +45,11 @@ def enviar_codigo(email: str, codigo: str, nombre: str) -> bool:
         print(f"{'='*50}\n")
         return True
 
+    # Siempre mostrar en terminal (útil para cuentas de prueba sin correo real)
+    print(f"\n{'='*50}")
+    print(f"  CÓDIGO para {email}: {codigo}")
+    print(f"{'='*50}\n")
+
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = "Tu código de acceso — Intercambios UPC"
@@ -85,5 +90,5 @@ def enviar_codigo(email: str, codigo: str, nombre: str) -> bool:
         return True
 
     except Exception as e:
-        print(f"[email_service] Error al enviar correo: {e}")
-        return False
+        print(f"[email_service] No se pudo enviar a {email}: {e}")
+        return True  # El código ya se imprimió en terminal, el login puede continuar

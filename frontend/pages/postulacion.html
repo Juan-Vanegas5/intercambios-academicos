@@ -39,24 +39,43 @@
         </div>
 
         <hr style="margin:1.5rem 0; border:none; border-top:1px solid #e5e7eb;" />
-        <h3 style="color:#1a3a6b; margin-bottom:1rem; font-size:1rem;">2. Carta de motivación</h3>
+        <h3 style="color:#1a3a6b; margin-bottom:1rem; font-size:1rem;">2. Carta de intención</h3>
+        <p style="font-size:0.85rem; color:#6b7280; margin-bottom:1rem;">
+          Según el proceso de Relaciones Internacionales, debes indicar el semestre actual y exponer tus motivos para el intercambio.
+        </p>
         <div class="form-group">
-          <label for="motivacion">¿Por qué quieres participar en este intercambio?</label>
-          <textarea id="motivacion" rows="5" placeholder="Describe tus motivaciones y metas académicas..." required></textarea>
+          <label for="semestre">Semestre actual</label>
+          <select id="semestre" required>
+            <option value="">-- Selecciona tu semestre --</option>
+            <option value="3">3°</option>
+            <option value="4">4°</option>
+            <option value="5">5°</option>
+            <option value="6">6°</option>
+            <option value="7">7°</option>
+            <option value="8">8°</option>
+            <option value="9">9°</option>
+            <option value="10">10°</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="motivacion">Carta de intención</label>
+          <textarea id="motivacion" rows="7"
+            placeholder="Expón los motivos por los cuales deseas estudiar en el exterior, especificando: programa académico de destino, semestre actual, motivos de la internacionalización y tus datos de contacto (nombre, cédula, correo personal, celular)..."
+            required></textarea>
         </div>
 
         <hr style="margin:1.5rem 0; border:none; border-top:1px solid #e5e7eb;" />
         <h3 style="color:#1a3a6b; margin-bottom:1rem; font-size:1rem;">3. Documentos requeridos</h3>
         <div class="alerta alerta-info mb-2">
-          Adjunta los documentos en formato PDF (máximo 5 MB cada uno). Son opcionales pero recomendados.
+          Adjunta los documentos en formato PDF (máximo 5 MB cada uno).
         </div>
         <div class="form-group">
-          <label>Certificado de notas (PDF)</label>
-          <input type="file" id="certificado" accept=".pdf" />
+          <label>Certificado de notas (PDF) <span style="color:#dc2626;">*</span></label>
+          <input type="file" id="certificado" accept=".pdf" required />
         </div>
         <div class="form-group">
-          <label>Paz y salvo académico (PDF)</label>
-          <input type="file" id="paz_y_salvo" accept=".pdf" />
+          <label>Paz y salvo académico (PDF) <span style="color:#dc2626;">*</span></label>
+          <input type="file" id="paz_y_salvo" accept=".pdf" required />
         </div>
 
         <div id="progreso-docs" style="display:none;" class="alerta alerta-info mb-2">
@@ -148,14 +167,18 @@
       alerta.style.display = "none";
 
       try {
-        // Paso 1: crear la postulación
+        // Paso 1: crear la postulación con semestre y carta de intención
         const postulacion = await apiFetch("/api/postulaciones", {
           method:  "POST",
           headers: authHeaders(),
-          body:    JSON.stringify({ convocatoriaId: convId })
+          body:    JSON.stringify({
+            convocatoriaId: convId,
+            semestre: parseInt(document.getElementById("semestre").value),
+            cartaIntencion: document.getElementById("motivacion").value.trim()
+          })
         });
 
-        // Paso 2: subir documentos si el usuario adjuntó alguno
+        // Paso 2: subir documentos
         const certificado = document.getElementById("certificado").files[0];
         const pazYSalvo   = document.getElementById("paz_y_salvo").files[0];
 

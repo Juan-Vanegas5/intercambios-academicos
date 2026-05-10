@@ -91,6 +91,8 @@ def registro(request: RegistroRequest, db: Session = Depends(get_db)):
         contrasena=hashear_contrasena(request.contrasena),
         rol="estudiante",
         codigo=request.codigo,
+        cedula=request.cedula,
+        celular=request.celular,
         programa_id=programa.id
     )
     db.add(nuevo)

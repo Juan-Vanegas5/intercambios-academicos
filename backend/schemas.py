@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 class LoginRequest(BaseModel):
@@ -15,6 +15,8 @@ class LoginResponse(BaseModel):
 
 class PostulacionRequest(BaseModel):
     convocatoriaId: int
+    semestre: Optional[int] = None
+    cartaIntencion: Optional[str] = None
 
 class PostulacionResponse(BaseModel):
     id: int
@@ -22,12 +24,23 @@ class PostulacionResponse(BaseModel):
     universidad: str
     pais: str
     estado: str
-    comentarioAdmin: Optional[str]
-    fechaPostulacion: Optional[datetime]
-    fechaActualizacion: Optional[datetime]
+    semestre: Optional[int] = None
+    cartaIntencion: Optional[str] = None
+    comentarioAdmin: Optional[str] = None
+    fechaPostulacion: Optional[datetime] = None
+    fechaActualizacion: Optional[datetime] = None
     estudiante: Optional[str] = None
+    cedula: Optional[str] = None
+    celular: Optional[str] = None
     programa: Optional[str] = None
     documentos: Optional[int] = 0
+
+class DocumentoResponse(BaseModel):
+    id: int
+    nombre_archivo: str
+    tipo: Optional[str] = None
+    ruta_archivo: str
+    fecha_subida: Optional[datetime] = None
 
 class RegistroRequest(BaseModel):
     nombre: str
@@ -35,6 +48,8 @@ class RegistroRequest(BaseModel):
     email: str
     contrasena: str
     codigo: str
+    cedula: str
+    celular: str
     programa: str
 
 class VerificarCodigoRequest(BaseModel):

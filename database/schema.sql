@@ -38,6 +38,8 @@ CREATE TABLE usuarios (
     contrasena      VARCHAR(255) NOT NULL,
     rol             VARCHAR(20)  NOT NULL CHECK (rol IN ('estudiante', 'administrador')),
     codigo          VARCHAR(20),
+    cedula          VARCHAR(20),
+    celular         VARCHAR(20),
     programa_id     INT REFERENCES programas_academicos(id),
     fecha_registro  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -64,6 +66,8 @@ CREATE TABLE postulaciones (
     id                  SERIAL PRIMARY KEY,
     estudiante_id       INT NOT NULL REFERENCES usuarios(id),
     convocatoria_id     INT NOT NULL REFERENCES convocatorias(id),
+    semestre            INT,
+    carta_intencion     TEXT,
     estado              VARCHAR(20) NOT NULL DEFAULT 'en_revision'
                             CHECK (estado IN ('en_revision', 'aprobada', 'rechazada')),
     comentario_admin    TEXT,

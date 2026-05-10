@@ -22,10 +22,14 @@ def to_response(p: Postulacion) -> PostulacionResponse:
         universidad=p.convocatoria.universidad.nombre,
         pais=p.convocatoria.universidad.pais,
         estado=p.estado,
+        semestre=p.semestre,
+        cartaIntencion=p.carta_intencion,
         comentarioAdmin=p.comentario_admin,
         fechaPostulacion=p.fecha_postulacion,
         fechaActualizacion=p.fecha_actualizacion,
         estudiante=f"{p.estudiante.nombre} {p.estudiante.apellido}",
+        cedula=p.estudiante.cedula,
+        celular=p.estudiante.celular,
         programa=programa,
         documentos=len(p.documentos) if p.documentos else 0
     )
@@ -68,6 +72,8 @@ def postular(
     nueva = Postulacion(
         estudiante_id=usuario.id,
         convocatoria_id=convocatoria.id,
+        semestre=request.semestre,
+        carta_intencion=request.cartaIntencion,
         estado="en_revision",
         fecha_postulacion=datetime.datetime.now(),
         fecha_actualizacion=datetime.datetime.now()

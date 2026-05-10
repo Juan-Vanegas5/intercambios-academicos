@@ -1,5 +1,10 @@
 
 
+-- Limpiar datos existentes (seguro correr múltiples veces)
+TRUNCATE TABLE notificaciones, documentos, postulaciones, convocatorias,
+               usuarios, tipos_documentos, programas_academicos, universidades
+RESTART IDENTITY CASCADE;
+
 INSERT INTO programas_academicos (nombre) VALUES
 ('Ingeniería de Sistemas'),
 ('Ingeniería Civil'),

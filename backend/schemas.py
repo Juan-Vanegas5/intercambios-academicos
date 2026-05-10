@@ -27,6 +27,7 @@ class PostulacionResponse(BaseModel):
     fechaActualizacion: Optional[datetime]
     estudiante: Optional[str] = None
     programa: Optional[str] = None
+    documentos: Optional[int] = 0
 
 class RegistroRequest(BaseModel):
     nombre: str

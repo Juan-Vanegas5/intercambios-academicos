@@ -61,3 +61,13 @@ class Postulacion(Base):
 
     estudiante   = relationship("Usuario", lazy="joined")
     convocatoria = relationship("Convocatoria", lazy="joined")
+    documentos   = relationship("Documento", lazy="select")
+
+class Documento(Base):
+    __tablename__ = "documentos"
+    id                = Column(Integer, primary_key=True)
+    postulacion_id    = Column(Integer, ForeignKey("postulaciones.id"), nullable=False)
+    nombre_archivo    = Column(String(255), nullable=False)
+    tipo_documento_id = Column(Integer, ForeignKey("tipos_documentos.id"))
+    ruta_archivo      = Column(String(500), nullable=False)
+    fecha_subida      = Column(DateTime, default=datetime.datetime.now)

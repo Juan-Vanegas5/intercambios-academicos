@@ -47,14 +47,20 @@
 
         <hr style="margin:1.5rem 0; border:none; border-top:1px solid #e5e7eb;" />
         <h3 style="color:#1a3a6b; margin-bottom:1rem; font-size:1rem;">3. Documentos requeridos</h3>
-        <div class="alerta alerta-info mb-2">Adjunta los documentos en formato PDF (máximo 5 MB cada uno).</div>
+        <div class="alerta alerta-info mb-2">
+          Adjunta los documentos en formato PDF (máximo 5 MB cada uno). Son opcionales pero recomendados.
+        </div>
         <div class="form-group">
           <label>Certificado de notas (PDF)</label>
-          <input type="file" accept=".pdf" />
+          <input type="file" id="certificado" accept=".pdf" />
         </div>
         <div class="form-group">
           <label>Paz y salvo académico (PDF)</label>
-          <input type="file" accept=".pdf" />
+          <input type="file" id="paz_y_salvo" accept=".pdf" />
+        </div>
+
+        <div id="progreso-docs" style="display:none;" class="alerta alerta-info mb-2">
+          ⏳ Subiendo documentos...
         </div>
 
         <div style="display:flex; gap:1rem; margin-top:0.5rem;">
@@ -112,9 +118,28 @@
       }
     }
 
+    function validarArchivo(input) {
+      const archivo = input.files[0];
+      if (!archivo) return true;
+      if (!archivo.name.toLowerCase().endsWith(".pdf")) {
+        input.value = "";
+        alert("Solo se aceptan archivos PDF.");
+        return false;
+      }
+      if (archivo.size > 5 * 1024 * 1024) {
+        input.value = "";
+        alert("El archivo no puede superar 5 MB.");
+        return false;
+      }
+      return true;
+    }
+
+    document.getElementById("certificado").addEventListener("change", function() { validarArchivo(this); });
+    document.getElementById("paz_y_salvo").addEventListener("change", function() { validarArchivo(this); });
+
     async function enviarPostulacion(e) {
       e.preventDefault();
-      const btn   = document.getElementById("btn-postular");
+      const btn    = document.getElementById("btn-postular");
       const alerta = document.getElementById("alerta-envio");
       const convId = parseInt(document.getElementById("convocatoria").value);
 
@@ -123,15 +148,38 @@
       alerta.style.display = "none";
 
       try {
-        await apiFetch("/api/postulaciones", {
+        // Paso 1: crear la postulación
+        const postulacion = await apiFetch("/api/postulaciones", {
           method:  "POST",
           headers: authHeaders(),
           body:    JSON.stringify({ convocatoriaId: convId })
         });
+
+        // Paso 2: subir documentos si el usuario adjuntó alguno
+        const certificado = document.getElementById("certificado").files[0];
+        const pazYSalvo   = document.getElementById("paz_y_salvo").files[0];
+
+        if (certificado || pazYSalvo) {
+          document.getElementById("progreso-docs").style.display = "block";
+
+          const formData = new FormData();
+          if (certificado) formData.append("certificado", certificado);
+          if (pazYSalvo)   formData.append("paz_y_salvo", pazYSalvo);
+
+          await fetch(`${BASE_URL}/api/postulaciones/${postulacion.id}/documentos`, {
+            method:  "POST",
+            headers: { "Authorization": `Bearer ${getToken()}` },
+            body:    formData
+          });
+
+          document.getElementById("progreso-docs").style.display = "none";
+        }
+
         alerta.style.display = "block";
         alerta.className = "alerta alerta-exito";
         alerta.textContent = "¡Postulación enviada con éxito! Redirigiendo a Mis Postulaciones...";
         setTimeout(() => { window.location.href = "seguimiento.html"; }, 1500);
+
       } catch (err) {
         alerta.style.display = "block";
         mostrarError(alerta, err.message);

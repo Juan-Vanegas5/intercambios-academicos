@@ -99,6 +99,7 @@ __pycache__/
 *.pyc
 *.pyo
 backend/venv/
+backend/uploads/
 
 # LibreOffice
 docs/.~lock.*

@@ -37,12 +37,13 @@
               <th>País</th>
               <th>Fecha postulación</th>
               <th>Estado</th>
+              <th>Documentos</th>
               <th>Comentario</th>
             </tr>
           </thead>
           <tbody id="cuerpo-tabla">
             <tr>
-              <td colspan="6" style="text-align:center; color:#6b7280; padding:2rem;">
+              <td colspan="7" style="text-align:center; color:#6b7280; padding:2rem;">
                 Cargando postulaciones...
               </td>
             </tr>
@@ -108,7 +109,7 @@
         if (postulaciones.length === 0) {
           cuerpo.innerHTML = `
             <tr>
-              <td colspan="6" style="text-align:center; color:#6b7280; padding:2rem;">
+              <td colspan="7" style="text-align:center; color:#6b7280; padding:2rem;">
                 No tienes postulaciones registradas.
                 <a href="postulacion.html" style="color:#2563eb; margin-left:0.5rem;">Postúlate ahora →</a>
               </td>
@@ -124,6 +125,11 @@
             <td>${p.pais}</td>
             <td>${formatFecha(p.fechaPostulacion)}</td>
             <td>${getBadge(p.estado)}</td>
+            <td style="text-align:center;">
+              ${p.documentos > 0
+                ? `<span style="color:#16a34a; font-weight:600;">📎 ${p.documentos}</span>`
+                : `<span style="color:#9ca3af; font-size:0.85rem;">Sin adjuntos</span>`}
+            </td>
             <td style="color:#6b7280; font-size:0.85rem;">
               ${p.comentarioAdmin || "—"}
             </td>

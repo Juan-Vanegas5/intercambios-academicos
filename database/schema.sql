@@ -7,8 +7,9 @@ DROP TABLE IF EXISTS documentos CASCADE;
 DROP TABLE IF EXISTS postulaciones CASCADE;
 DROP TABLE IF EXISTS convocatorias CASCADE;
 DROP TABLE IF EXISTS usuarios CASCADE;
-DROP TABLE IF EXISTS programas_academicos;
-DROP TABLE IF EXISTS universidades;
+DROP TABLE IF EXISTS tipos_documentos CASCADE;
+DROP TABLE IF EXISTS programas_academicos CASCADE;
+DROP TABLE IF EXISTS universidades CASCADE;
 
 
 CREATE TABLE programas_academicos (

@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 720" font-family="Arial, sans-serif">
+  <title>Escenario Arquitectural - Plataforma Intercambios Acad&#233;micos</title>
+  <desc>Diagrama de infraestructura mostrando el flujo entre usuario, frontend, backend FastAPI, base de datos Neon y GitHub.</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1d4ed8"/>
+    </marker>
+  </defs>
+
+  <!-- T&#237;tulo -->
+  <text x="550" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">
+    Escenario Arquitectural - Plataforma Intercambios Acad&#233;micos
+  </text>
+  <text x="550" y="54" text-anchor="middle" font-size="13" fill="#475569">
+    Arquitectura cliente-servidor en tres capas con despliegue en la nube
+  </text>
+
+  <!-- Usuario final -->
+  <g>
+    <rect x="40" y="100" width="200" height="110" rx="10" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="140" y="130" text-anchor="middle" font-size="14" font-weight="700" fill="#92400e">USUARIO FINAL</text>
+    <text x="140" y="155" text-anchor="middle" font-size="12" fill="#78350f">Estudiante</text>
+    <text x="140" y="175" text-anchor="middle" font-size="12" fill="#78350f">Administrador</text>
+    <text x="140" y="198" text-anchor="middle" font-size="11" font-style="italic" fill="#a16207">Navegador Web</text>
+  </g>
+
+  <!-- Flecha Usuario -> Frontend -->
+  <line x1="240" y1="155" x2="335" y2="155" stroke="#1d4ed8" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <text x="287" y="148" text-anchor="middle" font-size="11" font-weight="600" fill="#1d4ed8">HTTPS</text>
+
+  <!-- Frontend -->
+  <g>
+    <rect x="340" y="100" width="240" height="180" rx="10" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+    <text x="460" y="128" text-anchor="middle" font-size="14" font-weight="700" fill="#1e3a8a">CAPA DE PRESENTACI&#211;N</text>
+    <text x="460" y="146" text-anchor="middle" font-size="12" font-weight="600" fill="#1e40af">FRONTEND</text>
+    <line x1="365" y1="158" x2="555" y2="158" stroke="#93c5fd" stroke-width="1"/>
+    <text x="460" y="180" text-anchor="middle" font-size="11" fill="#1e3a8a">HTML5 + CSS3</text>
+    <text x="460" y="198" text-anchor="middle" font-size="11" fill="#1e3a8a">JavaScript Vanilla</text>
+    <text x="460" y="216" text-anchor="middle" font-size="11" fill="#1e3a8a">Fetch API</text>
+    <text x="460" y="234" text-anchor="middle" font-size="11" fill="#1e3a8a">localStorage (sesi&#243;n / JWT)</text>
+    <text x="460" y="262" text-anchor="middle" font-size="10" font-style="italic" fill="#1e40af">Despliegue: Vercel / Netlify</text>
+  </g>
+
+  <!-- Flecha Frontend <-> Backend -->
+  <line x1="580" y1="170" x2="680" y2="170" stroke="#1d4ed8" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <line x1="680" y1="200" x2="580" y2="200" stroke="#1d4ed8" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <text x="630" y="160" text-anchor="middle" font-size="11" font-weight="600" fill="#1d4ed8">REST / JSON</text>
+  <text x="630" y="220" text-anchor="middle" font-size="10" fill="#475569">Bearer Token</text>
+
+  <!-- Backend -->
+  <g>
+    <rect x="685" y="100" width="270" height="240" rx="10" fill="#dcfce7" stroke="#15803d" stroke-width="2"/>
+    <text x="820" y="128" text-anchor="middle" font-size="14" font-weight="700" fill="#14532d">CAPA DE L&#211;GICA DE NEGOCIO</text>
+    <text x="820" y="146" text-anchor="middle" font-size="12" font-weight="600" fill="#166534">BACKEND API</text>
+    <line x1="710" y1="158" x2="930" y2="158" stroke="#86efac" stroke-width="1"/>
+    <text x="820" y="180" text-anchor="middle" font-size="11" fill="#14532d">Python 3.14</text>
+    <text x="820" y="198" text-anchor="middle" font-size="11" fill="#14532d">FastAPI (framework)</text>
+    <text x="820" y="216" text-anchor="middle" font-size="11" fill="#14532d">SQLAlchemy (ORM)</text>
+    <text x="820" y="234" text-anchor="middle" font-size="11" fill="#14532d">PyJWT + bcrypt</text>
+    <text x="820" y="252" text-anchor="middle" font-size="11" fill="#14532d">uvicorn (ASGI server)</text>
+    <text x="820" y="280" text-anchor="middle" font-size="10" font-style="italic" fill="#166534">Despliegue: Render (planificado)</text>
+    <text x="820" y="304" text-anchor="middle" font-size="10" fill="#15803d">Endpoints REST: /auth, /usuarios,</text>
+    <text x="820" y="320" text-anchor="middle" font-size="10" fill="#15803d">/convocatorias, /postulaciones</text>
+  </g>
+
+  <!-- Flecha Backend -> DB -->
+  <line x1="820" y1="340" x2="820" y2="430" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="900" y="385" text-anchor="middle" font-size="11" font-weight="600" fill="#7c3aed">SQL / TCP 5432</text>
+  <text x="900" y="402" text-anchor="middle" font-size="10" fill="#7c3aed">conexi&#243;n cifrada</text>
+
+  <!-- Base de Datos -->
+  <g>
+    <ellipse cx="820" cy="475" rx="155" ry="20" fill="#ede9fe" stroke="#6d28d9" stroke-width="2"/>
+    <rect x="665" y="475" width="310" height="100" fill="#ede9fe" stroke="#6d28d9" stroke-width="2"/>
+    <ellipse cx="820" cy="575" rx="155" ry="20" fill="#ede9fe" stroke="#6d28d9" stroke-width="2"/>
+    <text x="820" y="500" text-anchor="middle" font-size="14" font-weight="700" fill="#4c1d95">CAPA DE DATOS</text>
+    <text x="820" y="520" text-anchor="middle" font-size="12" font-weight="600" fill="#5b21b6">PostgreSQL en Neon Cloud</text>
+    <text x="820" y="540" text-anchor="middle" font-size="10" fill="#5b21b6">Serverless / Auto-scaling</text>
+    <text x="820" y="558" text-anchor="middle" font-size="10" fill="#5b21b6">Backups autom&#225;ticos &#183; Tier gratuito</text>
+  </g>
+
+  <!-- GitHub -->
+  <g>
+    <rect x="40" y="450" width="280" height="140" rx="10" fill="#f1f5f9" stroke="#334155" stroke-width="2"/>
+    <text x="180" y="478" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">CONTROL DE VERSIONES</text>
+    <line x1="65" y1="490" x2="295" y2="490" stroke="#94a3b8" stroke-width="1"/>
+    <text x="180" y="510" text-anchor="middle" font-size="12" font-weight="600" fill="#1e293b">GitHub</text>
+    <text x="180" y="528" text-anchor="middle" font-size="11" fill="#334155">intercambios-academicos</text>
+    <text x="180" y="548" text-anchor="middle" font-size="10" fill="#475569">Rama actual: main (26 commits)</text>
+    <text x="180" y="566" text-anchor="middle" font-size="10" fill="#475569">Planificadas: develop / test / prod</text>
+    <text x="180" y="582" text-anchor="middle" font-size="10" font-style="italic" fill="#64748b">CI/CD futuro</text>
+  </g>
+
+  <!-- Flecha GitHub -> Backend (despliegue) -->
+  <path d="M 320 470 Q 500 410 685 240" stroke="#334155" stroke-width="1.5" stroke-dasharray="6,4" fill="none" marker-end="url(#arrow)"/>
+  <text x="475" y="395" font-size="10" fill="#334155" font-style="italic">Deploy / Pull</text>
+
+  <!-- Flecha GitHub -> Frontend -->
+  <path d="M 220 450 Q 250 380 410 280" stroke="#334155" stroke-width="1.5" stroke-dasharray="6,4" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Leyenda -->
+  <g transform="translate(40, 630)">
+    <text x="0" y="0" font-size="12" font-weight="700" fill="#0f172a">Leyenda:</text>
+    <line x1="80" y1="-4" x2="120" y2="-4" stroke="#1d4ed8" stroke-width="2" marker-end="url(#arrowBlue)"/>
+    <text x="130" y="0" font-size="11" fill="#334155">Flujo HTTPS / REST</text>
+    <line x1="280" y1="-4" x2="320" y2="-4" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="330" y="0" font-size="11" fill="#334155">Conexi&#243;n SQL</text>
+    <line x1="450" y1="-4" x2="490" y2="-4" stroke="#334155" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+    <text x="500" y="0" font-size="11" fill="#334155">Despliegue / CI-CD</text>
+  </g>
+  <text x="40" y="660" font-size="10" fill="#64748b">Universidad Piloto de Colombia &#183; Desarrollo Web &#183; 2026</text>
+</svg>

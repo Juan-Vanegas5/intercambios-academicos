@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" font-family="Arial, sans-serif">
+  <title>Diagrama Entidad-Relaci&#243;n - Plataforma Intercambios Acad&#233;micos</title>
+  <desc>Modelo de datos real del sistema con 8 entidades.</desc>
+
+  <defs>
+    <marker id="one2" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="14" markerHeight="14" orient="auto">
+      <line x1="6" y1="0" x2="6" y2="12" stroke="#0f172a" stroke-width="1.5"/>
+    </marker>
+    <marker id="many2" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="14" markerHeight="14" orient="auto">
+      <path d="M 0 7 L 13 0 M 0 7 L 13 7 M 0 7 L 13 14" stroke="#0f172a" stroke-width="1.5" fill="none"/>
+    </marker>
+  </defs>
+
+  <text x="700" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">
+    Diagrama Entidad-Relaci&#243;n - Plataforma Intercambios Acad&#233;micos
+  </text>
+  <text x="700" y="54" text-anchor="middle" font-size="13" fill="#475569">
+    Modelo de datos PostgreSQL &#183; SQLAlchemy ORM &#183; 8 tablas normalizadas
+  </text>
+
+  <!-- ============ PROGRAMAS ACADEMICOS (catalogo) ============ -->
+  <g>
+    <rect x="40" y="90" width="200" height="100" rx="8" fill="#fef9c3" stroke="#a16207" stroke-width="2"/>
+    <rect x="40" y="90" width="200" height="30" rx="8" fill="#a16207"/>
+    <text x="140" y="111" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">PROGRAMAS_ACADEMICOS</text>
+    <text x="55" y="138" font-size="11" font-weight="700" fill="#713f12">PK</text>
+    <text x="80" y="138" font-size="11" fill="#1e293b">id : SERIAL</text>
+    <text x="55" y="158" font-size="11" fill="#1e293b">nombre : VARCHAR(100) UQ</text>
+    <text x="55" y="178" font-size="10" italic="true" fill="#713f12" font-style="italic">Cat&#225;logo de programas</text>
+  </g>
+
+  <!-- ============ UNIVERSIDADES (catalogo) ============ -->
+  <g>
+    <rect x="1160" y="90" width="200" height="100" rx="8" fill="#fef9c3" stroke="#a16207" stroke-width="2"/>
+    <rect x="1160" y="90" width="200" height="30" rx="8" fill="#a16207"/>
+    <text x="1260" y="111" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">UNIVERSIDADES</text>
+    <text x="1175" y="138" font-size="11" font-weight="700" fill="#713f12">PK</text>
+    <text x="1200" y="138" font-size="11" fill="#1e293b">id : SERIAL</text>
+    <text x="1175" y="158" font-size="11" fill="#1e293b">nombre : VARCHAR(200)</text>
+    <text x="1175" y="178" font-size="11" fill="#1e293b">pais : VARCHAR(100)</text>
+  </g>
+
+  <!-- ============ TIPOS_DOCUMENTOS (catalogo) ============ -->
+  <g>
+    <rect x="40" y="820" width="200" height="100" rx="8" fill="#fef9c3" stroke="#a16207" stroke-width="2"/>
+    <rect x="40" y="820" width="200" height="30" rx="8" fill="#a16207"/>
+    <text x="140" y="841" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">TIPOS_DOCUMENTOS</text>
+    <text x="55" y="868" font-size="11" font-weight="700" fill="#713f12">PK</text>
+    <text x="80" y="868" font-size="11" fill="#1e293b">id : SERIAL</text>
+    <text x="55" y="888" font-size="11" fill="#1e293b">nombre : VARCHAR(50) UQ</text>
+    <text x="55" y="908" font-size="10" font-style="italic" fill="#713f12">Cat&#225;logo de tipos</text>
+  </g>
+
+  <!-- ============ USUARIOS ============ -->
+  <g>
+    <rect x="40" y="240" width="280" height="280" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <rect x="40" y="240" width="280" height="34" rx="8" fill="#d97706"/>
+    <text x="180" y="263" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">USUARIOS</text>
+    <line x1="40" y1="274" x2="320" y2="274" stroke="#d97706" stroke-width="1"/>
+    <text x="55" y="295" font-size="11" font-weight="700" fill="#92400e">PK</text>
+    <text x="85" y="295" font-size="11" fill="#1e293b">id : SERIAL</text>
+    <text x="55" y="315" font-size="11" fill="#1e293b">nombre : VARCHAR(100)</text>
+    <text x="55" y="335" font-size="11" fill="#1e293b">apellido : VARCHAR(100)</text>
+    <text x="55" y="355" font-size="11" fill="#1e293b">email : VARCHAR(150) UQ</text>
+    <text x="55" y="375" font-size="11" fill="#1e293b">contrasena : VARCHAR(255)</text>
+    <text x="55" y="395" font-size="11" fill="#1e293b">rol : VARCHAR(20)</text>
+    <text x="55" y="409" font-size="9" fill="#475569" font-style="italic">  CHECK (estudiante | administrador)</text>
+    <text x="55" y="429" font-size="11" fill="#1e293b">codigo : VARCHAR(20)</text>
+    <text x="55" y="449" font-size="11" fill="#1e293b">cedula : VARCHAR(20)</text>
+    <text x="55" y="469" font-size="11" fill="#1e293b">celular : VARCHAR(20)</text>
+    <text x="55" y="489" font-size="11" font-weight="700" fill="#92400e">FK</text>
+    <text x="85" y="489" font-size="11" fill="#1e293b">programa_id</text>
+    <text x="55" y="509" font-size="11" fill="#1e293b">fecha_registro : TIMESTAMP</text>
+  </g>
+
+  <!-- ============ CONVOCATORIAS ============ -->
+  <g>
+    <rect x="1080" y="240" width="280" height="260" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+    <rect x="1080" y="240" width="280" height="34" rx="8" fill="#1d4ed8"/>
+    <text x="1220" y="263" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">CONVOCATORIAS</text>
+    <line x1="1080" y1="274" x2="1360" y2="274" stroke="#1d4ed8" stroke-width="1"/>
+    <text x="1095" y="295" font-size="11" font-weight="700" fill="#1e3a8a">PK</text>
+    <text x="1125" y="295" font-size="11" fill="#1e293b">id : SERIAL</text>
+    <text x="1095" y="315" font-size="11" fill="#1e293b">titulo : VARCHAR(200)</text>
+    <text x="1095" y="335" font-size="11" font-weight="700" fill="#1e3a8a">FK</text>
+    <text x="1125" y="335" font-size="11" fill="#1e293b">universidad_id</text>
+    <text x="1095" y="355" font-size="11" fill="#1e293b">descripcion : TEXT</text>
+    <text x="1095" y="375" font-size="11" fill="#1e293b">requisitos : TEXT</text>
+    <text x="1095" y="395" font-size="11" fill="#1e293b">fecha_inicio : DATE</text>
+    <text x="1095" y="415" font-size="11" fill="#1e293b">fecha_cierre : DATE</text>
+    <text x="1095" y="435" font-size="11" fill="#1e293b">cupos : INT</text>
+    <text x="1095" y="455" font-size="11" fill="#1e293b">estado : VARCHAR(20)</text>
+    <text x="1095" y="468" font-size="9" font-style="italic" fill="#475569">CHECK (activa|cerrada|proximamente)</text>
+    <text x="1095" y="488" font-size="11" font-weight="700" fill="#1e3a8a">FK</text>
+    <text x="1125" y="488" font-size="11" fill="#1e293b">creado_por (usuario_id)</text>
+  </g>
+
+  <!-- ============ POSTULACIONES ============ -->
+  <g>
+    <rect x="560" y="560" width="280" height="240" rx="8" fill="#dcfce7" stroke="#15803d" stroke-width="2"/>
+    <rect x="560" y="560" width="280" height="34" rx="8" fill="#15803d"/>
+    <text x="700" y="583" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">POSTULACIONES</text>
+    <line x1="560" y1="594" x2="840" y2="594" stroke="#15803d" stroke-width="1"/>
+    <text x="575" y="615" font-size="11" font-weight="700" fill="#14532d">PK</text>
+    <text x="605" y="615" font-size="11" fill="#1e293b">id : SERIAL</text>
+    <text x="575" y="635" font-size="11" font-weight="700" fill="#14532d">FK</text>
+    <text x="605" y="635" font-size="11" fill="#1e293b">estudiante_id</text>
+    <text x="575" y="655" font-size="11" font-weight="700" fill="#14532d">FK</text>
+    <text x="605" y="655" font-size="11" fill="#1e293b">convocatoria_id</text>
+    <text x="575" y="675" font-size="11" fill="#1e293b">semestre : INT</text>
+    <text x="575" y="695" font-size="11" fill="#1e293b">carta_intencion : TEXT</text>
+    <text x="575" y="715" font-size="11" fill="#1e293b">estado : VARCHAR(20)</text>
+    <text x="575" y="728" font-size="9" font-style="italic" fill="#475569">CHECK (en_revision|aprobada|rechazada)</text>
+    <text x="575" y="748" font-size="11" fill="#1e293b">comentario_admin : TEXT</text>
+    <text x="575" y="768" font-size="11" fill="#1e293b">fecha_postulacion : TS</text>
+    <text x="575" y="788" font-size="11" fill="#1e293b">fecha_actualizacion : TS</text>
+  </g>
+
+  <!-- Constraint UNIQUE -->
+  <g>
+    <rect x="845" y="640" width="170" height="50" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <text x="930" y="660" text-anchor="middle" font-size="10" font-weight="700" fill="#7f1d1d">UNIQUE</text>
+    <text x="930" y="678" text-anchor="middle" font-size="10" fill="#7f1d1d">(estudiante_id,</text>
+    <text x="930" y="688" text-anchor="middle" font-size="9" fill="#7f1d1d">convocatoria_id)</text>
+  </g>
+
+  <!-- ============ DOCUMENTOS ============ -->
+  <g>
+    <rect x="280" y="820" width="280" height="160" rx="8" fill="#ede9fe" stroke="#6d28d9" stroke-width="2"/>
+    <rect x="280" y="820" width="280" height="34" rx="8" fill="#6d28d9"/>
+    <text x="420" y="843" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">DOCUMENTOS</text>
+    <line x1="280" y1="854" x2="560" y2="854" stroke="#6d28d9" stroke-width="1"/>
+    <text x="295" y="875" font-size="11" font-weight="700" fill="#4c1d95">PK</text>
+    <text x="325" y="875" font-size="11" fill="#1e293b">id : SERIAL</text>
+    <text x="295" y="895" font-size="11" font-weight="700" fill="#4c1d95">FK</text>
+    <text x="325" y="895" font-size="11" fill="#1e293b">postulacion_id</text>
+    <text x="295" y="915" font-size="11" fill="#1e293b">nombre_archivo : VARCHAR</text>
+    <text x="295" y="935" font-size="11" font-weight="700" fill="#4c1d95">FK</text>
+    <text x="325" y="935" font-size="11" fill="#1e293b">tipo_documento_id</text>
+    <text x="295" y="955" font-size="11" fill="#1e293b">ruta_archivo : VARCHAR(500)</text>
+    <text x="295" y="975" font-size="11" fill="#1e293b">fecha_subida : TIMESTAMP</text>
+  </g>
+
+  <!-- ============ NOTIFICACIONES ============ -->
+  <g>
+    <rect x="900" y="820" width="280" height="160" rx="8" fill="#fce7f3" stroke="#be185d" stroke-width="2"/>
+    <rect x="900" y="820" width="280" height="34" rx="8" fill="#be185d"/>
+    <text x="1040" y="843" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">NOTIFICACIONES</text>
+    <line x1="900" y1="854" x2="1180" y2="854" stroke="#be185d" stroke-width="1"/>
+    <text x="915" y="875" font-size="11" font-weight="700" fill="#831843">PK</text>
+    <text x="945" y="875" font-size="11" fill="#1e293b">id : SERIAL</text>
+    <text x="915" y="895" font-size="11" font-weight="700" fill="#831843">FK</text>
+    <text x="945" y="895" font-size="11" fill="#1e293b">usuario_id</text>
+    <text x="915" y="915" font-size="11" fill="#1e293b">mensaje : TEXT</text>
+    <text x="915" y="935" font-size="11" fill="#1e293b">leida : BOOLEAN</text>
+    <text x="915" y="955" font-size="11" fill="#1e293b">fecha : TIMESTAMP</text>
+  </g>
+
+  <!-- ============ RELACIONES ============ -->
+
+  <!-- programas_academicos (1) -> usuarios (N) -->
+  <path d="M 140 190 L 140 240" stroke="#0f172a" stroke-width="2" fill="none" marker-start="url(#one2)" marker-end="url(#many2)"/>
+  <rect x="150" y="200" width="50" height="20" rx="3" fill="#ffffff" stroke="#0f172a"/>
+  <text x="175" y="214" text-anchor="middle" font-size="10" fill="#0f172a">1 : N</text>
+
+  <!-- universidades (1) -> convocatorias (N) -->
+  <path d="M 1260 190 L 1260 240" stroke="#0f172a" stroke-width="2" fill="none" marker-start="url(#one2)" marker-end="url(#many2)"/>
+  <rect x="1270" y="200" width="50" height="20" rx="3" fill="#ffffff" stroke="#0f172a"/>
+  <text x="1295" y="214" text-anchor="middle" font-size="10" fill="#0f172a">1 : N</text>
+
+  <!-- usuarios (1) -> postulaciones (N) -->
+  <path d="M 280 520 Q 320 540 560 640" stroke="#0f172a" stroke-width="2" fill="none" marker-start="url(#one2)" marker-end="url(#many2)"/>
+  <rect x="380" y="555" width="60" height="20" rx="3" fill="#ffffff" stroke="#0f172a"/>
+  <text x="410" y="569" text-anchor="middle" font-size="10" fill="#0f172a">1 : N</text>
+  <text x="440" y="595" font-size="10" font-style="italic" fill="#475569">realiza</text>
+
+  <!-- convocatorias (1) -> postulaciones (N) -->
+  <path d="M 1120 500 Q 1080 540 840 640" stroke="#0f172a" stroke-width="2" fill="none" marker-start="url(#one2)" marker-end="url(#many2)"/>
+  <rect x="950" y="555" width="60" height="20" rx="3" fill="#ffffff" stroke="#0f172a"/>
+  <text x="980" y="569" text-anchor="middle" font-size="10" fill="#0f172a">1 : N</text>
+  <text x="930" y="595" font-size="10" font-style="italic" fill="#475569">recibe</text>
+
+  <!-- postulaciones (1) -> documentos (N) -->
+  <path d="M 620 800 L 420 820" stroke="#0f172a" stroke-width="2" fill="none" marker-start="url(#one2)" marker-end="url(#many2)"/>
+  <rect x="470" y="800" width="50" height="20" rx="3" fill="#ffffff" stroke="#0f172a"/>
+  <text x="495" y="814" text-anchor="middle" font-size="10" fill="#0f172a">1 : N</text>
+
+  <!-- tipos_documentos (1) -> documentos (N) -->
+  <path d="M 240 870 L 280 880" stroke="#0f172a" stroke-width="2" fill="none" marker-start="url(#one2)" marker-end="url(#many2)"/>
+  <rect x="240" y="845" width="50" height="20" rx="3" fill="#ffffff" stroke="#0f172a"/>
+  <text x="265" y="859" text-anchor="middle" font-size="10" fill="#0f172a">1 : N</text>
+
+  <!-- usuarios (1) -> notificaciones (N) -->
+  <path d="M 320 380 Q 700 450 940 820" stroke="#0f172a" stroke-width="2" fill="none" marker-start="url(#one2)" marker-end="url(#many2)"/>
+  <rect x="600" y="540" width="60" height="20" rx="3" fill="#ffffff" stroke="#0f172a"/>
+  <text x="630" y="554" text-anchor="middle" font-size="10" fill="#0f172a">1 : N</text>
+
+  <!-- usuarios (1) -> convocatorias (creado_por) -->
+  <path d="M 320 280 Q 700 220 1080 320" stroke="#475569" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-start="url(#one2)" marker-end="url(#many2)"/>
+  <rect x="690" y="208" width="80" height="20" rx="3" fill="#ffffff" stroke="#475569"/>
+  <text x="730" y="222" text-anchor="middle" font-size="10" fill="#475569">1 : N (crea)</text>
+
+  <!-- Leyenda -->
+  <g transform="translate(40, 60)">
+    <text x="0" y="0" font-size="10" font-weight="700" fill="#0f172a">PK = Primary Key</text>
+    <text x="130" y="0" font-size="10" font-weight="700" fill="#0f172a">FK = Foreign Key</text>
+    <text x="270" y="0" font-size="10" font-weight="700" fill="#0f172a">UQ = Unique</text>
+    <text x="370" y="0" font-size="10" fill="#475569">&#183; Notaci&#243;n &quot;pata de gallo&quot;</text>
+    <text x="540" y="0" font-size="10" fill="#475569">&#183; Trigger: BEFORE UPDATE actualiza fecha_actualizacion</text>
+  </g>
+</svg>

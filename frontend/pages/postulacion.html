@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Postulación - Intercambios UPC</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">🎓 Intercambios UPC</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Convocatorias</a></li>
+      <li><a href="postulacion.html" class="activo">Postularme</a></li>
+      <li><a href="seguimiento.html">Mis Postulaciones</a></li>
+      <li><a href="#" onclick="cerrarSesion()">Cerrar Sesión</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="page-header">
+      <h1>Formulario de Postulación</h1>
+      <p>Completa la información para aplicar a una convocatoria de intercambio</p>
+    </div>
+
+    <div class="card" style="max-width:680px; margin:0 auto;">
+      <div id="info-convocatoria" class="alerta alerta-info mb-3" style="display:none;"></div>
+      <div id="alerta-envio" style="display:none;"></div>
+
+      <form id="form-postulacion" onsubmit="enviarPostulacion(event)">
+
+        <h3 style="color:#1a3a6b; margin-bottom:1rem; font-size:1rem;">1. Selecciona la convocatoria</h3>
+        <div class="form-group">
+          <label for="convocatoria">Convocatoria</label>
+          <select id="convocatoria" required onchange="mostrarInfo()">
+            <option value="">-- Cargando convocatorias... --</option>
+          </select>
+        </div>
+
+        <hr style="margin:1.5rem 0; border:none; border-top:1px solid #e5e7eb;" />
+        <h3 style="color:#1a3a6b; margin-bottom:1rem; font-size:1rem;">2. Carta de intención</h3>
+        <p style="font-size:0.85rem; color:#6b7280; margin-bottom:1rem;">
+          Según el proceso de Relaciones Internacionales, debes indicar el semestre actual y exponer tus motivos para el intercambio.
+        </p>
+        <div class="form-group">
+          <label for="semestre">Semestre actual</label>
+          <select id="semestre" required>
+            <option value="">-- Selecciona tu semestre --</option>
+            <option value="3">3°</option>
+            <option value="4">4°</option>
+            <option value="5">5°</option>
+            <option value="6">6°</option>
+            <option value="7">7°</option>
+            <option value="8">8°</option>
+            <option value="9">9°</option>
+            <option value="10">10°</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="motivacion">Carta de intención</label>
+          <textarea id="motivacion" rows="7"
+            placeholder="Expón los motivos por los cuales deseas estudiar en el exterior, especificando: programa académico de destino, semestre actual, motivos de la internacionalización y tus datos de contacto (nombre, cédula, correo personal, celular)..."
+            required></textarea>
+        </div>
+
+        <hr style="margin:1.5rem 0; border:none; border-top:1px solid #e5e7eb;" />
+        <h3 style="color:#1a3a6b; margin-bottom:1rem; font-size:1rem;">3. Documentos requeridos</h3>
+        <div class="alerta alerta-info mb-2">
+          Adjunta los documentos en formato PDF (máximo 5 MB cada uno).
+        </div>
+        <div class="form-group">
+          <label>Certificado de notas (PDF) <span style="color:#dc2626;">*</span></label>
+          <input type="file" id="certificado" accept=".pdf" required />
+        </div>
+        <div class="form-group">
+          <label>Paz y salvo académico (PDF) <span style="color:#dc2626;">*</span></label>
+          <input type="file" id="paz_y_salvo" accept=".pdf" required />
+        </div>
+
+        <div id="progreso-docs" style="display:none;" class="alerta alerta-info mb-2">
+          ⏳ Subiendo documentos...
+        </div>
+
+        <div style="display:flex; gap:1rem; margin-top:0.5rem;">
+          <a href="index.html" class="btn btn-secundario">Cancelar</a>
+          <button type="submit" class="btn btn-primario" id="btn-postular" style="flex:1;">
+            Enviar postulación
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    requireAuth();
+
+    let convocatorias = [];
+
+    async function cargarConvocatorias() {
+      const select = document.getElementById("convocatoria");
+      try {
+        convocatorias = await apiFetch("/api/convocatorias");
+        select.innerHTML = '<option value="">-- Elige una convocatoria activa --</option>';
+        convocatorias.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = `${c.titulo} — ${c.pais}`;
+          select.appendChild(opt);
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        const idParam = params.get("id");
+        if (idParam) { select.value = idParam; mostrarInfo(); }
+
+      } catch (e) {
+        select.innerHTML = '<option>Error al cargar convocatorias</option>';
+      }
+    }
+
+    function mostrarInfo() {
+      const id = parseInt(document.getElementById("convocatoria").value);
+      const c  = convocatorias.find(x => x.id === id);
+      const div = document.getElementById("info-convocatoria");
+      if (c) {
+        div.style.display = "block";
+        div.innerHTML = `<strong>${c.titulo}</strong> — ${c.universidad}, ${c.pais}<br/>
+          <small>Cierre: ${formatFecha(c.fechaCierre)} &bull; Cupos: ${c.cupos}</small><br/>
+          <small><strong>Requisitos:</strong> ${c.requisitos}</small>`;
+      } else {
+        div.style.display = "none";
+      }
+    }
+
+    function validarArchivo(input) {
+      const archivo = input.files[0];
+      if (!archivo) return true;
+      if (!archivo.name.toLowerCase().endsWith(".pdf")) {
+        input.value = "";
+        alert("Solo se aceptan archivos PDF.");
+        return false;
+      }
+      if (archivo.size > 5 * 1024 * 1024) {
+        input.value = "";
+        alert("El archivo no puede superar 5 MB.");
+        return false;
+      }
+      return true;
+    }
+
+    document.getElementById("certificado").addEventListener("change", function() { validarArchivo(this); });
+    document.getElementById("paz_y_salvo").addEventListener("change", function() { validarArchivo(this); });
+
+    async function enviarPostulacion(e) {
+      e.preventDefault();
+      const btn    = document.getElementById("btn-postular");
+      const alerta = document.getElementById("alerta-envio");
+      const convId = parseInt(document.getElementById("convocatoria").value);
+
+      btn.disabled    = true;
+      btn.textContent = "Enviando...";
+      alerta.style.display = "none";
+
+      try {
+        // Paso 1: crear la postulación con semestre y carta de intención
+        const postulacion = await apiFetch("/api/postulaciones", {
+          method:  "POST",
+          headers: authHeaders(),
+          body:    JSON.stringify({
+            convocatoriaId: convId,
+            semestre: parseInt(document.getElementById("semestre").value),
+            cartaIntencion: document.getElementById("motivacion").value.trim()
+          })
+        });
+
+        // Paso 2: subir documentos
+        const certificado = document.getElementById("certificado").files[0];
+        const pazYSalvo   = document.getElementById("paz_y_salvo").files[0];
+
+        if (certificado || pazYSalvo) {
+          document.getElementById("progreso-docs").style.display = "block";
+
+          const formData = new FormData();
+          if (certificado) formData.append("certificado", certificado);
+          if (pazYSalvo)   formData.append("paz_y_salvo", pazYSalvo);
+
+          await fetch(`${BASE_URL}/api/postulaciones/${postulacion.id}/documentos`, {
+            method:  "POST",
+            headers: { "Authorization": `Bearer ${getToken()}` },
+            body:    formData
+          });
+
+          document.getElementById("progreso-docs").style.display = "none";
+        }
+
+        // Notificación para el admin
+        const convNombre = document.getElementById("convocatoria").selectedOptions[0]?.textContent || "una convocatoria";
+        const u = getUsuario();
+        const adminEmail = "admin@upc.edu.co";
+        guardarNotificacion("postulacion",
+            `📋 ${u.nombre} ${u.apellido} envió una nueva postulación a ${convNombre}.`,
+            adminEmail
+        );
+        if (certificado || pazYSalvo) {
+            guardarNotificacion("documento",
+                `📎 ${u.nombre} ${u.apellido} subió documentos en su postulación a ${convNombre}.`,
+                adminEmail
+            );
+        }
+        // Notificación para el propio estudiante
+        guardarNotificacion("postulacion",
+            `✅ Tu postulación a ${convNombre} fue enviada correctamente y está en revisión.`,
+            u.email
+        );
+
+        alerta.style.display = "block";
+        alerta.className = "alerta alerta-exito";
+        alerta.textContent = "¡Postulación enviada con éxito! Redirigiendo a Mis Postulaciones...";
+        setTimeout(() => { window.location.href = "seguimiento.html"; }, 1500);
+
+      } catch (err) {
+        alerta.style.display = "block";
+        mostrarError(alerta, err.message);
+        btn.disabled    = false;
+        btn.textContent = "Enviar postulación";
+      }
+    }
+
+    cargarConvocatorias();
+  </script>
+</body>
+</html>

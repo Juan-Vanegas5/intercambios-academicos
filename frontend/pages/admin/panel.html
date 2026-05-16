@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Administrador - Intercambios UPC</title>
+  <link rel="stylesheet" href="../../css/styles.css" />
+</head>
+<body>
+
+  <nav>
+    <a href="../index.html" class="nav-logo">🎓 Intercambios UPC</a>
+    <ul class="nav-links">
+      <li><a href="panel.html" class="activo">Panel Admin</a></li>
+      <li><a href="../index.html">Ver convocatorias</a></li>
+      <li><a href="#" onclick="cerrarSesion()">Cerrar Sesión</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="page-header flex-between">
+      <div>
+        <h1>Panel de Administración</h1>
+        <p>Gestiona las postulaciones recibidas y actualiza su estado</p>
+      </div>
+      <span class="badge badge-azul" style="font-size:0.9rem;">Administrador</span>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="cards-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom:2rem;">
+      <div class="card text-center">
+        <div id="stat-total" style="font-size:2rem; font-weight:700; color:#2563eb;">—</div>
+        <div style="font-size:0.85rem; color:#6b7280;">Total postulaciones</div>
+      </div>
+      <div class="card text-center">
+        <div id="stat-revision" style="font-size:2rem; font-weight:700; color:#d97706;">—</div>
+        <div style="font-size:0.85rem; color:#6b7280;">En revisión</div>
+      </div>
+      <div class="card text-center">
+        <div id="stat-aprobadas" style="font-size:2rem; font-weight:700; color:#16a34a;">—</div>
+        <div style="font-size:0.85rem; color:#6b7280;">Aprobadas</div>
+      </div>
+      <div class="card text-center">
+        <div id="stat-rechazadas" style="font-size:2rem; font-weight:700; color:#dc2626;">—</div>
+        <div style="font-size:0.85rem; color:#6b7280;">Rechazadas</div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-3" style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+      <strong style="font-size:0.9rem; color:#1a3a6b;">Filtrar por estado:</strong>
+      <button class="btn btn-secundario btn-sm" onclick="filtrar('todas')">Todas</button>
+      <button class="btn btn-secundario btn-sm" onclick="filtrar('en_revision')">En revisión</button>
+      <button class="btn btn-exito btn-sm"    onclick="filtrar('aprobada')">Aprobadas</button>
+      <button class="btn btn-danger btn-sm"   onclick="filtrar('rechazada')">Rechazadas</button>
+    </div>
+
+    <div id="alerta-admin" class="alerta mb-3" style="display:none;"></div>
+
+    <!-- Tabla -->
+    <div class="card">
+      <div class="tabla-container">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Estudiante</th>
+              <th>Programa</th>
+              <th>Convocatoria</th>
+              <th>Semestre</th>
+              <th>Docs</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-admin">
+            <tr>
+              <td colspan="9" style="text-align:center; color:#6b7280; padding:2rem;">
+                Cargando postulaciones...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal detalle del estudiante y documentos -->
+    <div id="modal-detalle" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;">
+      <div class="card" style="max-width:600px; width:100%; margin:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+          <h3 style="color:#1a3a6b; margin:0;">Detalle de postulación</h3>
+          <button onclick="cerrarDetalle()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+        </div>
+
+        <!-- Datos del estudiante -->
+        <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+          <h4 style="color:#1a3a6b; margin:0 0 0.75rem;">👤 Datos del estudiante</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.9rem;">
+            <div><span style="color:#6b7280;">Nombre:</span> <strong id="d-nombre"></strong></div>
+            <div><span style="color:#6b7280;">Programa:</span> <strong id="d-programa"></strong></div>
+            <div><span style="color:#6b7280;">Cédula:</span> <strong id="d-cedula"></strong></div>
+            <div><span style="color:#6b7280;">Celular:</span> <strong id="d-celular"></strong></div>
+            <div><span style="color:#6b7280;">Semestre:</span> <strong id="d-semestre"></strong></div>
+            <div><span style="color:#6b7280;">Convocatoria:</span> <strong id="d-convocatoria"></strong></div>
+          </div>
+        </div>
+
+        <!-- Carta de intención -->
+        <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+          <h4 style="color:#1a3a6b; margin:0 0 0.5rem;">📝 Carta de intención</h4>
+          <p id="d-carta" style="font-size:0.9rem; color:#374151; white-space:pre-wrap; margin:0;">—</p>
+        </div>
+
+        <!-- Documentos -->
+        <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+          <h4 style="color:#1a3a6b; margin:0 0 0.75rem;">📎 Documentos adjuntos</h4>
+          <div id="d-documentos">
+            <p style="color:#9ca3af; font-size:0.9rem;">Cargando documentos...</p>
+          </div>
+        </div>
+
+        <!-- Comentario del admin -->
+        <div class="form-group">
+          <label style="font-weight:600; color:#1a3a6b;">💬 Comentario para el estudiante</label>
+          <textarea id="comentario-detalle" rows="3" placeholder="Ej: Documentos aprobados. Se le notificará por correo..."></textarea>
+        </div>
+
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+          <button class="btn btn-secundario" onclick="cerrarDetalle()">Cerrar</button>
+          <button class="btn btn-exito" onclick="accionDetalle('aprobada')" style="flex:1;">✔ Aprobar</button>
+          <button class="btn btn-danger" onclick="accionDetalle('rechazada')" style="flex:1;">✘ Rechazar</button>
+          <button class="btn btn-primario" onclick="soloComentario()" style="flex:1;">💬 Guardar comentario</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal comentario rápido -->
+    <div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:center; justify-content:center;">
+      <div class="card" style="max-width:440px; width:90%; margin:auto;">
+        <h3 style="color:#1a3a6b; margin-bottom:1rem;">Agregar comentario</h3>
+        <div class="form-group">
+          <label>Comentario para el estudiante</label>
+          <textarea id="comentario-modal" rows="4" placeholder="Ej: Documentos aprobados. Se notificará por correo..."></textarea>
+        </div>
+        <div style="display:flex; gap:1rem;">
+          <button class="btn btn-secundario" onclick="cerrarModal()">Cancelar</button>
+          <button class="btn btn-primario" onclick="guardarComentario()" style="flex:1;">Guardar y actualizar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
+  </footer>
+
+  <script src="../../js/main.js"></script>
+  <script>
+    requireAdmin();
+
+    let todasPostulaciones = [];
+    let modalId = null;
+    let detalleId = null;
+
+    function actualizarStats(lista) {
+      document.getElementById("stat-total").textContent      = lista.length;
+      document.getElementById("stat-revision").textContent   = lista.filter(p => p.estado === "en_revision").length;
+      document.getElementById("stat-aprobadas").textContent  = lista.filter(p => p.estado === "aprobada").length;
+      document.getElementById("stat-rechazadas").textContent = lista.filter(p => p.estado === "rechazada").length;
+    }
+
+    function renderTabla(lista) {
+      const tbody = document.getElementById("cuerpo-admin");
+      if (lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#6b7280; padding:2rem;">No hay postulaciones en esta categoría.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = lista.map(p => `
+        <tr id="fila-${p.id}">
+          <td>${p.id}</td>
+          <td><strong>${p.estudiante}</strong></td>
+          <td style="font-size:0.85rem;">${p.programa || "—"}</td>
+          <td style="font-size:0.85rem;">${p.convocatoria}</td>
+          <td style="text-align:center;">${p.semestre ? p.semestre + "°" : "—"}</td>
+          <td style="text-align:center;">
+            ${p.documentos > 0
+              ? `<span style="color:#16a34a;font-weight:600;">📎 ${p.documentos}</span>`
+              : `<span style="color:#9ca3af;font-size:0.8rem;">—</span>`}
+          </td>
+          <td style="font-size:0.85rem;">${formatFecha(p.fechaPostulacion)}</td>
+          <td>${getBadge(p.estado)}</td>
+          <td style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+            <button class="btn btn-secundario btn-sm" onclick="abrirDetalle(${p.id})" title="Ver detalle y documentos">🔍</button>
+            <button class="btn btn-exito btn-sm"      onclick="cambiarEstado(${p.id}, 'aprobada')" title="Aprobar">✔</button>
+            <button class="btn btn-danger btn-sm"     onclick="cambiarEstado(${p.id}, 'rechazada')" title="Rechazar">✘</button>
+            <button class="btn btn-secundario btn-sm" onclick="abrirModal(${p.id}, '${(p.comentarioAdmin || "").replace(/'/g, "\\'")}')">💬</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function filtrar(estado) {
+      const lista = estado === "todas"
+        ? todasPostulaciones
+        : todasPostulaciones.filter(p => p.estado === estado);
+      renderTabla(lista);
+    }
+
+    async function abrirDetalle(id) {
+      detalleId = id;
+      const p = todasPostulaciones.find(x => x.id === id);
+      if (!p) return;
+
+      document.getElementById("d-nombre").textContent       = p.estudiante || "—";
+      document.getElementById("d-programa").textContent     = p.programa || "—";
+      document.getElementById("d-cedula").textContent       = p.cedula || "—";
+      document.getElementById("d-celular").textContent      = p.celular || "—";
+      document.getElementById("d-semestre").textContent     = p.semestre ? p.semestre + "° semestre" : "—";
+      document.getElementById("d-convocatoria").textContent = p.convocatoria + " — " + p.universidad;
+      document.getElementById("d-carta").textContent        = p.cartaIntencion || "No adjuntó carta de intención.";
+      document.getElementById("comentario-detalle").value   = p.comentarioAdmin || "";
+      document.getElementById("d-documentos").innerHTML     = '<p style="color:#9ca3af;font-size:0.9rem;">Cargando...</p>';
+      document.getElementById("modal-detalle").style.display = "flex";
+
+      // Cargar documentos
+      try {
+        const docs = await apiFetch(`/api/admin/postulaciones/${id}/documentos`, { headers: authHeaders() });
+        if (!docs || docs.length === 0) {
+          document.getElementById("d-documentos").innerHTML = '<p style="color:#9ca3af;font-size:0.9rem;">No hay documentos adjuntos.</p>';
+        } else {
+          document.getElementById("d-documentos").innerHTML = docs.map(d => `
+            <div style="display:flex; align-items:center; gap:0.75rem; padding:0.6rem 0; border-bottom:1px solid #e5e7eb;">
+              <span style="font-size:1.3rem;">📄</span>
+              <div style="flex:1;">
+                <div style="font-weight:600; font-size:0.9rem;">${d.tipo || "Documento"}</div>
+                <div style="font-size:0.8rem; color:#6b7280;">${d.nombre_archivo}</div>
+              </div>
+              <a href="${BASE_URL}/${d.ruta_archivo.replace(/\\/g, "/")}" target="_blank"
+                 class="btn btn-secundario btn-sm">⬇ Descargar</a>
+            </div>
+          `).join("");
+        }
+      } catch (e) {
+        document.getElementById("d-documentos").innerHTML = '<p style="color:#dc2626;font-size:0.9rem;">Error al cargar documentos.</p>';
+      }
+    }
+
+    function cerrarDetalle() {
+      document.getElementById("modal-detalle").style.display = "none";
+      detalleId = null;
+    }
+
+    async function accionDetalle(nuevoEstado) {
+      const comentario = document.getElementById("comentario-detalle").value.trim();
+      cerrarDetalle();
+      await cambiarEstado(detalleId || 0, nuevoEstado, comentario);
+    }
+
+    async function soloComentario() {
+      const comentario = document.getElementById("comentario-detalle").value.trim();
+      const id = detalleId;
+      cerrarDetalle();
+      const p = todasPostulaciones.find(x => x.id === id);
+      try {
+        await apiFetch(`/api/admin/postulaciones/${id}/estado`, {
+          method: "PUT", headers: authHeaders(),
+          body: JSON.stringify({ estado: p ? p.estado : "en_revision", comentario })
+        });
+        if (p) p.comentarioAdmin = comentario;
+        // Notificación al estudiante
+        if (comentario && p) {
+          const emailEstudiante = p.cedula ? null : null; // usamos nombre como fallback
+          guardarNotificacion("comentario",
+            `💬 El administrador dejó un comentario en tu postulación a ${p.convocatoria}: "${comentario.slice(0, 80)}${comentario.length > 80 ? "..." : ""}"`,
+            p.estudianteEmail || p.estudiante
+          );
+        }
+        filtrar("todas");
+      } catch (err) {
+        const alerta = document.getElementById("alerta-admin");
+        alerta.className = "alerta alerta-error mb-3";
+        alerta.style.display = "block";
+        alerta.textContent = "Error: " + err.message;
+      }
+    }
+
+    async function cambiarEstado(id, nuevoEstado, comentario = null) {
+      const alerta = document.getElementById("alerta-admin");
+      const p = todasPostulaciones.find(x => x.id === id);
+      try {
+        await apiFetch(`/api/admin/postulaciones/${id}/estado`, {
+          method: "PUT", headers: authHeaders(),
+          body: JSON.stringify({ estado: nuevoEstado, comentario: comentario ?? (p ? p.comentarioAdmin : null) })
+        });
+        if (p) { p.estado = nuevoEstado; if (comentario !== null) p.comentarioAdmin = comentario; }
+
+        // Notificación al estudiante
+        if (p) {
+          const emoji = nuevoEstado === "aprobada" ? "✅" : "❌";
+          const textoEstado = nuevoEstado === "aprobada" ? "aprobada" : "rechazada";
+          let msg = `${emoji} Tu postulación a ${p.convocatoria} fue ${textoEstado}.`;
+          if (comentario) msg += ` Comentario: "${comentario.slice(0, 60)}${comentario.length > 60 ? "..." : ""}"`;
+          guardarNotificacion("estado", msg, p.estudianteEmail || p.estudiante);
+        }
+
+        actualizarStats(todasPostulaciones);
+        filtrar("todas");
+      } catch (err) {
+        alerta.className = "alerta alerta-error mb-3";
+        alerta.style.display = "block";
+        alerta.textContent = "Error al actualizar estado: " + err.message;
+      }
+    }
+
+    function abrirModal(id, comentarioActual) {
+      modalId = id;
+      document.getElementById("comentario-modal").value = comentarioActual;
+      document.getElementById("modal").style.display = "flex";
+    }
+
+    function cerrarModal() {
+      document.getElementById("modal").style.display = "none";
+      modalId = null;
+    }
+
+    async function guardarComentario() {
+      const comentario = document.getElementById("comentario-modal").value.trim();
+      const p = todasPostulaciones.find(x => x.id === modalId);
+      cerrarModal();
+      try {
+        await apiFetch(`/api/admin/postulaciones/${modalId}/estado`, {
+          method: "PUT", headers: authHeaders(),
+          body: JSON.stringify({ estado: p ? p.estado : "en_revision", comentario })
+        });
+        if (p) p.comentarioAdmin = comentario;
+        // Notificación al estudiante
+        if (comentario && p) {
+          guardarNotificacion("comentario",
+            `💬 El administrador dejó un comentario en tu postulación a ${p.convocatoria}: "${comentario.slice(0, 80)}${comentario.length > 80 ? "..." : ""}"`,
+            p.estudianteEmail || p.estudiante
+          );
+        }
+        filtrar("todas");
+      } catch (err) {
+        const alerta = document.getElementById("alerta-admin");
+        alerta.className = "alerta alerta-error mb-3";
+        alerta.style.display = "block";
+        alerta.textContent = "Error al guardar comentario: " + err.message;
+      }
+    }
+
+    async function cargarPostulaciones() {
+      try {
+        todasPostulaciones = await apiFetch("/api/admin/postulaciones", { headers: authHeaders() });
+        actualizarStats(todasPostulaciones);
+        renderTabla(todasPostulaciones);
+      } catch (err) {
+        const alerta = document.getElementById("alerta-admin");
+        alerta.className = "alerta alerta-error mb-3";
+        alerta.style.display = "block";
+        alerta.textContent = "No se pudieron cargar las postulaciones: " + err.message;
+        document.getElementById("cuerpo-admin").innerHTML =
+          `<tr><td colspan="9" style="text-align:center; color:#6b7280; padding:2rem;">Error al cargar datos.</td></tr>`;
+      }
+    }
+
+    cargarPostulaciones();
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") { cerrarModal(); cerrarDetalle(); }
+    });
+  </script>
+</body>
+</html>

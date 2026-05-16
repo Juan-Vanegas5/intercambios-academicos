@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intercambios Académicos - Inicio</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">🎓 Intercambios UPC</a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="activo">Convocatorias</a></li>
+      <li><a href="postulacion.html">Postularme</a></li>
+      <li><a href="seguimiento.html">Mis Postulaciones</a></li>
+      <li><a href="login.html">Iniciar Sesión</a></li>
+    </ul>
+  </nav>
+
+  <div class="hero">
+    <h1>Oportunidades de Intercambio Académico</h1>
+    <p>Descubre universidades aliadas alrededor del mundo y postúlate a un programa de intercambio</p>
+    <div id="hero-cta"></div>
+  </div>
+
+  <main>
+    <div class="page-header flex-between">
+      <div>
+        <h1>Convocatorias Disponibles</h1>
+        <p>Programas abiertos para postulación este semestre</p>
+      </div>
+      <select id="filtro-estado" onchange="filtrar()" style="padding:0.5rem 1rem; border-radius:7px; border:1.5px solid #d1d5db; font-size:0.9rem;">
+        <option value="todas">Todas</option>
+        <option value="activa">Activas</option>
+        <option value="proximamente">Próximamente</option>
+        <option value="cerrada">Cerradas</option>
+      </select>
+    </div>
+
+    <div id="alerta-api" class="alerta alerta-info mb-3" style="display:none;">
+      Conectando con el servidor...
+    </div>
+
+    <div class="cards-grid" id="lista-convocatorias">
+      <p style="grid-column:1/-1; text-align:center; color:#6b7280;">Cargando convocatorias...</p>
+    </div>
+  </main>
+
+  <footer>
+    <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    let todasConvocatorias = [];
+
+    function renderConvocatorias(lista) {
+      const contenedor = document.getElementById("lista-convocatorias");
+      if (lista.length === 0) {
+        contenedor.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#6b7280;">No hay convocatorias para mostrar.</p>';
+        return;
+      }
+      contenedor.innerHTML = lista.map(c => `
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>${c.titulo}</h2>
+              <p class="universidad">🏫 ${c.universidad} &mdash; 🌍 ${c.pais}</p>
+            </div>
+            ${getBadge(c.estado)}
+          </div>
+          <p class="descripcion">${c.descripcion || ""}</p>
+          <div class="info-row">
+            <span>📅 Cierre: ${formatFecha(c.fechaCierre)}</span>
+            <span>🪑 Cupos: ${c.cupos}</span>
+          </div>
+          <p style="font-size:0.85rem; color:#6b7280; margin-bottom:1rem;">
+            <strong>Requisitos:</strong> ${c.requisitos || ""}
+          </p>
+          ${c.estado === "activa"
+            ? `<a href="postulacion.html?id=${c.id}" class="btn btn-primario btn-sm">Postularme</a>`
+            : `<button class="btn btn-secundario btn-sm" disabled>No disponible</button>`
+          }
+        </div>
+      `).join("");
+    }
+
+    function filtrar() {
+      const valor = document.getElementById("filtro-estado").value;
+      const filtradas = valor === "todas"
+        ? todasConvocatorias
+        : todasConvocatorias.filter(c => c.estado === valor);
+      renderConvocatorias(filtradas);
+    }
+
+    async function cargar() {
+      try {
+        todasConvocatorias = await apiFetch("/api/convocatorias/todas");
+        renderConvocatorias(todasConvocatorias);
+      } catch (e) {
+        document.getElementById("alerta-api").style.display = "block";
+        document.getElementById("alerta-api").className = "alerta alerta-error mb-3";
+        document.getElementById("alerta-api").textContent = "No se pudo conectar con el servidor. Asegúrate de que el backend está corriendo.";
+        document.getElementById("lista-convocatorias").innerHTML = "";
+      }
+    }
+
+    cargar();
+
+    // Botón hero dinámico según sesión
+    (function() {
+      const u = getUsuario();
+      const cta = document.getElementById("hero-cta");
+      if (u) {
+        cta.innerHTML = `<a href="postulacion.html" class="btn btn-primario">Postularme ahora</a>
+          &nbsp;
+          <a href="seguimiento.html" class="btn btn-secundario" style="background:rgba(255,255,255,0.15);color:white;border-color:rgba(255,255,255,0.4);">Mis postulaciones</a>`;
+      } else {
+        cta.innerHTML = `<a href="registro.html" class="btn btn-primario">Registrarme</a>
+          &nbsp;
+          <a href="login.html" class="btn btn-secundario" style="background:rgba(255,255,255,0.15);color:white;border-color:rgba(255,255,255,0.4);">Iniciar sesión</a>`;
+      }
+    })();
+  </script>
+</body>
+</html>

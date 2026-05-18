@@ -1,8 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-import os
 
 from database import get_db
 from models import Usuario, ProgramaAcademico
@@ -10,8 +8,6 @@ from schemas import LoginRequest, LoginResponse, RegistroRequest, VerificarCodig
 from auth import verificar_contrasena, hashear_contrasena, generar_token
 from email_service import generar_y_guardar_codigo, enviar_codigo, verificar_codigo
 from routers import convocatorias, postulaciones, admin
-
-os.makedirs("uploads", exist_ok=True)
 
 app = FastAPI(
     title="API Intercambios Académicos",
@@ -107,5 +103,3 @@ def registro(request: RegistroRequest, db: Session = Depends(get_db)):
 app.include_router(convocatorias.router)
 app.include_router(postulaciones.router)
 app.include_router(admin.router)
-
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

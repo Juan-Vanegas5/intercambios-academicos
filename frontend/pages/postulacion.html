@@ -198,6 +198,26 @@
           document.getElementById("progreso-docs").style.display = "none";
         }
 
+        // Notificación para el admin
+        const convNombre = document.getElementById("convocatoria").selectedOptions[0]?.textContent || "una convocatoria";
+        const u = getUsuario();
+        const adminEmail = "admin@upc.edu.co";
+        guardarNotificacion("postulacion",
+            `📋 ${u.nombre} ${u.apellido} envió una nueva postulación a ${convNombre}.`,
+            adminEmail
+        );
+        if (certificado || pazYSalvo) {
+            guardarNotificacion("documento",
+                `📎 ${u.nombre} ${u.apellido} subió documentos en su postulación a ${convNombre}.`,
+                adminEmail
+            );
+        }
+        // Notificación para el propio estudiante
+        guardarNotificacion("postulacion",
+            `✅ Tu postulación a ${convNombre} fue enviada correctamente y está en revisión.`,
+            u.email
+        );
+
         alerta.style.display = "block";
         alerta.className = "alerta alerta-exito";
         alerta.textContent = "¡Postulación enviada con éxito! Redirigiendo a Mis Postulaciones...";

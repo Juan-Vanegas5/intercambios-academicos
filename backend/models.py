@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Date, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, LargeBinary, Text, Date 
 from sqlalchemy.orm import relationship
 from database import Base
 import datetime
@@ -73,7 +73,13 @@ class Documento(Base):
     postulacion_id    = Column(Integer, ForeignKey("postulaciones.id"), nullable=False)
     nombre_archivo    = Column(String(255), nullable=False)
     tipo_documento_id = Column(Integer, ForeignKey("tipos_documentos.id"))
-    ruta_archivo      = Column(String(500), nullable=False)
+    
+    # CAMBIO: De String a LargeBinary para guardar los bytes del PDF
+    contenido_archivo = Column(LargeBinary, nullable=False) 
+    
+    # Opcional: Guardar el tipo de archivo (ej. application/pdf)
+    mimetype          = Column(String(50), default="application/pdf")
+    
     fecha_subida      = Column(DateTime, default=datetime.datetime.now)
 
     tipo_documento = relationship("TipoDocumento", lazy="joined")

@@ -110,12 +110,108 @@
 
   <script src="../js/main.js"></script>
   <script>
+    function validarEmail(email) {
+      const regex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+      return regex.test(email.trim());
+    }
+
+    function validarSoloLetras(valor) {
+      // Permite letras, tildes, ñ y espacios — no números ni símbolos
+      return /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/.test(valor.trim());
+    }
+
+    function aplicarValidacionTexto(inputEl, alerta) {
+      inputEl.addEventListener('blur', function () {
+        const val = inputEl.value.trim();
+        if (val && !validarSoloLetras(val)) {
+          alerta.className = 'alerta alerta-error';
+          alerta.textContent = `El campo "${inputEl.previousElementSibling.textContent}" no puede contener números ni símbolos.`;
+          inputEl.style.borderColor = '#dc2626';
+        } else {
+          if (alerta.textContent.includes(inputEl.previousElementSibling.textContent)) {
+            alerta.textContent = '';
+            alerta.className = '';
+          }
+          inputEl.style.borderColor = '';
+        }
+      });
+
+      inputEl.addEventListener('input', function () {
+        if (inputEl.style.borderColor === 'rgb(220, 38, 38)' && validarSoloLetras(inputEl.value.trim())) {
+          alerta.textContent = '';
+          alerta.className = '';
+          inputEl.style.borderColor = '';
+        }
+      });
+    }
+
+    // Validación en tiempo real
+    document.addEventListener('DOMContentLoaded', function () {
+      const inputEmail   = document.getElementById('email');
+      const inputNombre  = document.getElementById('nombre');
+      const inputApellido = document.getElementById('apellido');
+      const alerta = document.getElementById('alerta-registro');
+
+      // Validación email
+      inputEmail.addEventListener('blur', function () {
+        const val = inputEmail.value.trim();
+        if (val && !validarEmail(val)) {
+          alerta.className = 'alerta alerta-error';
+          alerta.textContent = 'El correo no es válido. Debe tener el formato: ejemplo@dominio.com';
+          inputEmail.style.borderColor = '#dc2626';
+        } else {
+          alerta.textContent = '';
+          alerta.className = '';
+          inputEmail.style.borderColor = '';
+        }
+      });
+
+      inputEmail.addEventListener('input', function () {
+        if (inputEmail.style.borderColor === 'rgb(220, 38, 38)' && validarEmail(inputEmail.value.trim())) {
+          alerta.textContent = '';
+          alerta.className = '';
+          inputEmail.style.borderColor = '';
+        }
+      });
+
+      // Validación nombre y apellido
+      aplicarValidacionTexto(inputNombre, alerta);
+      aplicarValidacionTexto(inputApellido, alerta);
+    });
+
     async function registrar(e) {
       e.preventDefault();
       const contrasena = document.getElementById('contrasena').value;
       const confirmar  = document.getElementById('confirmar').value;
+      const email      = document.getElementById('email').value.trim();
+      const nombre     = document.getElementById('nombre').value.trim();
+      const apellido   = document.getElementById('apellido').value.trim();
       const alerta     = document.getElementById('alerta-registro');
       const btn        = document.querySelector('#form-registro button[type="submit"]');
+
+      if (!validarSoloLetras(nombre)) {
+        alerta.className = 'alerta alerta-error';
+        alerta.textContent = 'El nombre no puede contener números ni símbolos.';
+        document.getElementById('nombre').style.borderColor = '#dc2626';
+        document.getElementById('nombre').focus();
+        return;
+      }
+
+      if (!validarSoloLetras(apellido)) {
+        alerta.className = 'alerta alerta-error';
+        alerta.textContent = 'El apellido no puede contener números ni símbolos.';
+        document.getElementById('apellido').style.borderColor = '#dc2626';
+        document.getElementById('apellido').focus();
+        return;
+      }
+
+      if (!validarEmail(email)) {
+        alerta.className = 'alerta alerta-error';
+        alerta.textContent = 'El correo no es válido. Debe tener el formato: ejemplo@dominio.com';
+        document.getElementById('email').style.borderColor = '#dc2626';
+        document.getElementById('email').focus();
+        return;
+      }
 
       if (contrasena !== confirmar) {
         alerta.className = 'alerta alerta-error';

@@ -236,7 +236,7 @@
                 <div style="font-weight:600; font-size:0.9rem;">${d.tipo || "Documento"}</div>
                 <div style="font-size:0.8rem; color:#6b7280;">${d.nombre_archivo}</div>
               </div>
-              <a href="${BASE_URL}/${d.ruta_archivo.replace(/\\/g, "/")}" target="_blank"
+              <a href="${BASE_URL}/api/admin/documentos/${d.id}/descargar?token=${getToken()}" target="_blank"
                  class="btn btn-secundario btn-sm">⬇ Descargar</a>
             </div>
           `).join("");

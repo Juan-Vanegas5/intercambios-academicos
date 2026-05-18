@@ -78,12 +78,18 @@ CREATE TABLE postulaciones (
 
 
 CREATE TABLE documentos (
-    id               SERIAL PRIMARY KEY,
-    postulacion_id   INT NOT NULL REFERENCES postulaciones(id),
-    nombre_archivo   VARCHAR(255) NOT NULL,
+    id                SERIAL PRIMARY KEY,
+    postulacion_id    INT NOT NULL REFERENCES postulaciones(id),
+    nombre_archivo    VARCHAR(255) NOT NULL, -- Ej: "diploma.pdf"
     tipo_documento_id INT REFERENCES tipos_documentos(id),
-    ruta_archivo     VARCHAR(500) NOT NULL,
-    fecha_subida     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    
+    -- CAMBIO CLAVE: Guardamos el archivo real aquí
+    contenido_archivo BYTEA NOT NULL, 
+    
+    -- Metadatos útiles para la Opción 1
+    mimetype          VARCHAR(50) DEFAULT 'application/pdf', -- Para saber qué tipo de archivo es al extraerlo
+    tamano_bytes      BIGINT, -- Para control de cuotas de almacenamiento
+    fecha_subida      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 

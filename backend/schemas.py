@@ -50,8 +50,12 @@ class DocumentoResponse(BaseModel):
     id: int
     nombre_archivo: str
     tipo: Optional[str] = None
-    ruta_archivo: str
+    # ruta_archivo: str  <-- Elimina esto si ya no usas rutas
+    mimetype: Optional[str] = "application/pdf"
     fecha_subida: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
 
 class RegistroRequest(BaseModel):
     nombre: str

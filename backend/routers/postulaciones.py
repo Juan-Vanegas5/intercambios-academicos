@@ -30,17 +30,30 @@ def to_response(p: Postulacion) -> PostulacionResponse:
         documentos=len(p.documentos) if p.documentos else 0
     )
 
-@router.get("/mis", response_model=List[PostulacionResponse])
-def mis_postulaciones(db: Session = Depends(get_db), usuario: Usuario = Depends(obtener_usuario_actual)):
-    postulaciones = db.query(Postulacion).filter(Postulacion.estudiante_id == usuario.id).order_by(Postulacion.fecha_postulacion.desc()).all()
+@router.get("/mis", response_model=List[PostulacionResponse],
+            summary="Ver mis postulaciones")
+def mis_postulaciones(
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obtener_usuario_actual)
+):
+    postulaciones = (
+        db.query(Postulacion)
+        .filter(Postulacion.estudiante_id == usuario.id)
+        .order_by(Postulacion.fecha_postulacion.desc())
+        .all()
+    )
     return [to_response(p) for p in postulaciones]
 
-@router.post("", response_model=PostulacionResponse)
-def postular(request: PostulacionRequest, db: Session = Depends(get_db), usuario: Usuario = Depends(obtener_usuario_actual)):
+@router.post("", response_model=PostulacionResponse, summary="Crear postulación")
+def postular(
+    request: PostulacionRequest,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obtener_usuario_actual)
+):
     convocatoria = db.query(Convocatoria).filter(Convocatoria.id == request.convocatoriaId).first()
     if not convocatoria or convocatoria.estado != "activa":
         raise HTTPException(status_code=400, detail="Convocatoria no disponible")
-    
+
     nueva = Postulacion(
         estudiante_id=usuario.id, convocatoria_id=convocatoria.id,
         semestre=request.semestre, carta_intencion=request.cartaIntencion
@@ -50,8 +63,7 @@ def postular(request: PostulacionRequest, db: Session = Depends(get_db), usuario
     db.refresh(nueva)
     return to_response(nueva)
 
-# ESTA ES LA FUNCIÓN QUE CAMBIAMOS COMPLETAMENTE
-@router.post("/{id}/documentos")
+@router.post("/{id}/documentos", summary="Subir documentos PDF")
 async def subir_documentos(
     id: int,
     db: Session = Depends(get_db),
@@ -59,7 +71,10 @@ async def subir_documentos(
     certificado: UploadFile = File(None),
     paz_y_salvo: UploadFile = File(None)
 ):
-    postulacion = db.query(Postulacion).filter(Postulacion.id == id, Postulacion.estudiante_id == usuario.id).first()
+    postulacion = db.query(Postulacion).filter(
+        Postulacion.id == id,
+        Postulacion.estudiante_id == usuario.id
+    ).first()
     if not postulacion:
         raise HTTPException(status_code=404, detail="Postulación no encontrada")
 
@@ -71,18 +86,19 @@ async def subir_documentos(
             if not archivo.filename.lower().endswith(".pdf"):
                 raise HTTPException(status_code=400, detail=f"El archivo {archivo.filename} debe ser PDF")
 
-            # Leemos los bytes del archivo
             contenido_binario = await archivo.read()
 
-            # Limpiamos si ya existía uno de ese tipo
-            db.query(Documento).filter(Documento.postulacion_id == id, Documento.tipo_documento_id == tipo_id).delete()
+            db.query(Documento).filter(
+                Documento.postulacion_id == id,
+                Documento.tipo_documento_id == tipo_id
+            ).delete()
 
-            # Guardamos en la base de datos (campo contenido_archivo)
             doc = Documento(
                 postulacion_id=id,
                 nombre_archivo=archivo.filename,
                 tipo_documento_id=tipo_id,
-                contenido_archivo=contenido_binario
+                contenido_archivo=contenido_binario,
+                mimetype="application/pdf"
             )
             db.add(doc)
             archivos_subidos.append(archivo.filename)

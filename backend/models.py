@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, LargeBinary, Text, Date 
+from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey, LargeBinary
 from sqlalchemy.orm import relationship
 from database import Base
 import datetime
@@ -21,17 +21,19 @@ class TipoDocumento(Base):
 
 class Usuario(Base):
     __tablename__ = "usuarios"
-    id              = Column(Integer, primary_key=True)
-    nombre          = Column(String(100), nullable=False)
-    apellido        = Column(String(100), nullable=False)
-    email           = Column(String(150), nullable=False, unique=True)
-    contrasena      = Column(String(255), nullable=False)
-    rol             = Column(String(20), nullable=False)
-    codigo          = Column(String(20))
-    cedula          = Column(String(20))
-    celular         = Column(String(20))
-    programa_id     = Column(Integer, ForeignKey("programas_academicos.id"))
-    fecha_registro  = Column(DateTime, default=datetime.datetime.now)
+    id                    = Column(Integer, primary_key=True)
+    nombre                = Column(String(100), nullable=False)
+    apellido              = Column(String(100), nullable=False)
+    email                 = Column(String(150), nullable=False, unique=True)
+    contrasena            = Column(String(255), nullable=False)
+    rol                   = Column(String(20), nullable=False)
+    codigo                = Column(String(20))
+    cedula                = Column(String(20))
+    celular               = Column(String(20))
+    programa_id           = Column(Integer, ForeignKey("programas_academicos.id"))
+    fecha_registro        = Column(DateTime, default=datetime.datetime.now)
+    verificacion_codigo   = Column(String(10), nullable=True)
+    verificacion_expira   = Column(DateTime, nullable=True)
 
     programa = relationship("ProgramaAcademico", lazy="joined")
 
@@ -73,13 +75,8 @@ class Documento(Base):
     postulacion_id    = Column(Integer, ForeignKey("postulaciones.id"), nullable=False)
     nombre_archivo    = Column(String(255), nullable=False)
     tipo_documento_id = Column(Integer, ForeignKey("tipos_documentos.id"))
-    
-    # CAMBIO: De String a LargeBinary para guardar los bytes del PDF
-    contenido_archivo = Column(LargeBinary, nullable=False) 
-    
-    # Opcional: Guardar el tipo de archivo (ej. application/pdf)
+    contenido_archivo = Column(LargeBinary, nullable=False)
     mimetype          = Column(String(50), default="application/pdf")
-    
     fecha_subida      = Column(DateTime, default=datetime.datetime.now)
 
     tipo_documento = relationship("TipoDocumento", lazy="joined")

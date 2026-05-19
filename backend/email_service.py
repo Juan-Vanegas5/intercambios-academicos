@@ -13,42 +13,43 @@ EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
 EMAIL_HOST     = os.getenv("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT     = int(os.getenv("EMAIL_PORT", "587"))
 
-# Almacén temporal en memoria: { email: { "codigo": "123456", "expira": datetime } }
-_codigos: dict = {}
 
-def generar_y_guardar_codigo(email: str) -> str:
+def generar_y_guardar_codigo(email: str, db) -> str:
+    from models import Usuario
     codigo = str(random.randint(100000, 999999))
-    _codigos[email] = {
-        "codigo": codigo,
-        "expira": datetime.datetime.now() + datetime.timedelta(minutes=10)
-    }
+    usuario = db.query(Usuario).filter(Usuario.email == email).first()
+    if usuario:
+        usuario.verificacion_codigo = codigo
+        usuario.verificacion_expira = datetime.datetime.now() + datetime.timedelta(minutes=10)
+        db.commit()
     return codigo
 
-def verificar_codigo(email: str, codigo: str) -> bool:
-    entrada = _codigos.get(email)
-    if not entrada:
+
+def verificar_codigo(email: str, codigo: str, db) -> bool:
+    from models import Usuario
+    usuario = db.query(Usuario).filter(Usuario.email == email).first()
+    if not usuario or not usuario.verificacion_codigo:
         return False
-    if datetime.datetime.now() > entrada["expira"]:
-        _codigos.pop(email, None)
+    if datetime.datetime.now() > usuario.verificacion_expira:
+        usuario.verificacion_codigo = None
+        usuario.verificacion_expira = None
+        db.commit()
         return False
-    if entrada["codigo"] != codigo:
+    if usuario.verificacion_codigo != codigo:
         return False
-    _codigos.pop(email, None)
+    usuario.verificacion_codigo = None
+    usuario.verificacion_expira = None
+    db.commit()
     return True
 
-def enviar_codigo(email: str, codigo: str, nombre: str) -> bool:
-    # Sin credenciales configuradas → mostrar código en la terminal (modo desarrollo)
-    if not EMAIL_USER or not EMAIL_PASSWORD:
-        print(f"\n{'='*50}")
-        print(f"  CÓDIGO DE VERIFICACIÓN para {email}")
-        print(f"  Código: {codigo}")
-        print(f"{'='*50}\n")
-        return True
 
-    # Siempre mostrar en terminal (útil para cuentas de prueba sin correo real)
+def enviar_codigo(email: str, codigo: str, nombre: str) -> bool:
     print(f"\n{'='*50}")
     print(f"  CÓDIGO para {email}: {codigo}")
     print(f"{'='*50}\n")
+
+    if not EMAIL_USER or not EMAIL_PASSWORD:
+        return True
 
     try:
         msg = MIMEMultipart("alternative")
@@ -91,4 +92,4 @@ def enviar_codigo(email: str, codigo: str, nombre: str) -> bool:
 
     except Exception as e:
         print(f"[email_service] No se pudo enviar a {email}: {e}")
-        return True  # El código ya se imprimió en terminal, el login puede continuar
+        return True

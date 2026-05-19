@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, field_validator
 from typing import Optional, List
 from datetime import datetime
 import re
@@ -50,7 +50,6 @@ class DocumentoResponse(BaseModel):
     id: int
     nombre_archivo: str
     tipo: Optional[str] = None
-    # ruta_archivo: str  <-- Elimina esto si ya no usas rutas
     mimetype: Optional[str] = "application/pdf"
     fecha_subida: Optional[datetime] = None
 
@@ -77,7 +76,6 @@ class RegistroRequest(BaseModel):
     @field_validator('nombre', 'apellido')
     @classmethod
     def validar_solo_letras(cls, v):
-        import re
         if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$', v.strip()):
             raise ValueError('El nombre y apellido solo pueden contener letras, no números ni símbolos.')
         return v.strip()

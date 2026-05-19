@@ -38,7 +38,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     if not usuario or not verificar_contrasena(request.contrasena, usuario.contrasena):
         raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos")
 
-    codigo = generar_y_guardar_codigo(usuario.email)
+    codigo = generar_y_guardar_codigo(usuario.email, db)
     enviado = enviar_codigo(usuario.email, codigo, usuario.nombre)
 
     if not enviado:
@@ -51,7 +51,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
           summary="Paso 2: ingresar el código recibido por correo y obtener el token")
 def verificar_codigo_login(request: VerificarCodigoRequest, db: Session = Depends(get_db)):
     """Valida el código de 6 dígitos. Si es correcto devuelve el JWT."""
-    if not verificar_codigo(request.email, request.codigo):
+    if not verificar_codigo(request.email, request.codigo, db):
         raise HTTPException(status_code=401, detail="Código incorrecto o expirado")
 
     usuario = db.query(Usuario).filter(Usuario.email == request.email).first()

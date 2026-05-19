@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from database import get_db
-from models import Usuario, Postulacion, Convocatoria, Documento
+from models import Usuario, Postulacion, Convocatoria, Documento, Universidad
 from schemas import EstadoRequest, PostulacionResponse, DocumentoResponse, ConvocatoriaCreate
 from auth import solo_admin
 from routers.postulaciones import to_response
@@ -81,7 +81,6 @@ def actualizar_estado(
 
 @router.post("/convocatorias", summary="Crear convocatoria")
 def crear_convocatoria(request: ConvocatoriaCreate, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
-    from models import Universidad
     universidad = db.query(Universidad).filter(Universidad.id == request.universidadId).first()
     if not universidad:
         raise HTTPException(status_code=404, detail="Universidad no encontrada")

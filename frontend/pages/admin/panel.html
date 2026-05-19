@@ -21,151 +21,310 @@
     <div class="page-header flex-between">
       <div>
         <h1>Panel de Administración</h1>
-        <p>Gestiona las postulaciones recibidas y actualiza su estado</p>
+        <p>Gestiona postulaciones y convocatorias</p>
       </div>
       <span class="badge badge-azul" style="font-size:0.9rem;">Administrador</span>
     </div>
 
-    <!-- Estadísticas -->
-    <div class="cards-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom:2rem;">
-      <div class="card text-center">
-        <div id="stat-total" style="font-size:2rem; font-weight:700; color:#2563eb;">—</div>
-        <div style="font-size:0.85rem; color:#6b7280;">Total postulaciones</div>
-      </div>
-      <div class="card text-center">
-        <div id="stat-revision" style="font-size:2rem; font-weight:700; color:#d97706;">—</div>
-        <div style="font-size:0.85rem; color:#6b7280;">En revisión</div>
-      </div>
-      <div class="card text-center">
-        <div id="stat-aprobadas" style="font-size:2rem; font-weight:700; color:#16a34a;">—</div>
-        <div style="font-size:0.85rem; color:#6b7280;">Aprobadas</div>
-      </div>
-      <div class="card text-center">
-        <div id="stat-rechazadas" style="font-size:2rem; font-weight:700; color:#dc2626;">—</div>
-        <div style="font-size:0.85rem; color:#6b7280;">Rechazadas</div>
-      </div>
+    <!-- Pestañas -->
+    <div style="display:flex;gap:0;margin-bottom:1.5rem;border-bottom:2px solid #e5e7eb;">
+      <button id="tab-postulaciones" onclick="mostrarTab('postulaciones')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#1a3a6b;border-bottom:3px solid #1a3a6b;margin-bottom:-2px;">
+        📋 Postulaciones
+      </button>
+      <button id="tab-convocatorias" onclick="mostrarTab('convocatorias')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        📣 Convocatorias
+      </button>
     </div>
 
-    <!-- Filtros -->
-    <div class="card mb-3" style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
-      <strong style="font-size:0.9rem; color:#1a3a6b;">Filtrar por estado:</strong>
-      <button class="btn btn-secundario btn-sm" onclick="filtrar('todas')">Todas</button>
-      <button class="btn btn-secundario btn-sm" onclick="filtrar('en_revision')">En revisión</button>
-      <button class="btn btn-exito btn-sm"    onclick="filtrar('aprobada')">Aprobadas</button>
-      <button class="btn btn-danger btn-sm"   onclick="filtrar('rechazada')">Rechazadas</button>
-    </div>
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SECCIÓN: POSTULACIONES                                             -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div id="seccion-postulaciones">
 
-    <div id="alerta-admin" class="alerta mb-3" style="display:none;"></div>
-
-    <!-- Tabla -->
-    <div class="card">
-      <div class="tabla-container">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Estudiante</th>
-              <th>Programa</th>
-              <th>Convocatoria</th>
-              <th>Semestre</th>
-              <th>Docs</th>
-              <th>Fecha</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="cuerpo-admin">
-            <tr>
-              <td colspan="9" style="text-align:center; color:#6b7280; padding:2rem;">
-                Cargando postulaciones...
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Estadísticas -->
+      <div class="cards-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom:2rem;">
+        <div class="card text-center">
+          <div id="stat-total" style="font-size:2rem; font-weight:700; color:#2563eb;">—</div>
+          <div style="font-size:0.85rem; color:#6b7280;">Total postulaciones</div>
+        </div>
+        <div class="card text-center">
+          <div id="stat-revision" style="font-size:2rem; font-weight:700; color:#d97706;">—</div>
+          <div style="font-size:0.85rem; color:#6b7280;">En proceso</div>
+        </div>
+        <div class="card text-center">
+          <div id="stat-aprobadas" style="font-size:2rem; font-weight:700; color:#16a34a;">—</div>
+          <div style="font-size:0.85rem; color:#6b7280;">Aprobadas</div>
+        </div>
+        <div class="card text-center">
+          <div id="stat-rechazadas" style="font-size:2rem; font-weight:700; color:#dc2626;">—</div>
+          <div style="font-size:0.85rem; color:#6b7280;">Rechazadas</div>
+        </div>
       </div>
-    </div>
 
-    <!-- Modal detalle del estudiante y documentos -->
-    <div id="modal-detalle" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;">
-      <div class="card" style="max-width:600px; width:100%; margin:auto;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
-          <h3 style="color:#1a3a6b; margin:0;">Detalle de postulación</h3>
-          <button onclick="cerrarDetalle()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
-        </div>
+      <!-- Filtros -->
+      <div class="card mb-3" style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+        <strong style="font-size:0.9rem; color:#1a3a6b;">Filtrar:</strong>
+        <button class="btn btn-secundario btn-sm" onclick="filtrar('todas')">Todas</button>
+        <button class="btn btn-secundario btn-sm" onclick="filtrar('en_revision')">En revisión</button>
+        <button class="btn btn-secundario btn-sm" onclick="filtrar('revisando_documentos')">Revisando docs</button>
+        <button class="btn btn-secundario btn-sm" onclick="filtrar('necesita_correcciones')">Necesita correcciones</button>
+        <button class="btn btn-exito btn-sm"    onclick="filtrar('aprobada')">Aprobadas</button>
+        <button class="btn btn-danger btn-sm"   onclick="filtrar('rechazada')">Rechazadas</button>
+      </div>
 
-        <!-- Datos del estudiante -->
-        <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
-          <h4 style="color:#1a3a6b; margin:0 0 0.75rem;">👤 Datos del estudiante</h4>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.9rem;">
-            <div><span style="color:#6b7280;">Nombre:</span> <strong id="d-nombre"></strong></div>
-            <div><span style="color:#6b7280;">Programa:</span> <strong id="d-programa"></strong></div>
-            <div><span style="color:#6b7280;">Cédula:</span> <strong id="d-cedula"></strong></div>
-            <div><span style="color:#6b7280;">Celular:</span> <strong id="d-celular"></strong></div>
-            <div><span style="color:#6b7280;">Semestre:</span> <strong id="d-semestre"></strong></div>
-            <div><span style="color:#6b7280;">Convocatoria:</span> <strong id="d-convocatoria"></strong></div>
-          </div>
-        </div>
+      <div id="alerta-admin" class="alerta mb-3" style="display:none;"></div>
 
-        <!-- Carta de intención -->
-        <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
-          <h4 style="color:#1a3a6b; margin:0 0 0.5rem;">📝 Carta de intención</h4>
-          <p id="d-carta" style="font-size:0.9rem; color:#374151; white-space:pre-wrap; margin:0;">—</p>
-        </div>
-
-        <!-- Documentos -->
-        <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
-          <h4 style="color:#1a3a6b; margin:0 0 0.75rem;">📎 Documentos adjuntos</h4>
-          <div id="d-documentos">
-            <p style="color:#9ca3af; font-size:0.9rem;">Cargando documentos...</p>
-          </div>
-        </div>
-
-        <!-- Comentario del admin -->
-        <div class="form-group">
-          <label style="font-weight:600; color:#1a3a6b;">💬 Comentario para el estudiante</label>
-          <textarea id="comentario-detalle" rows="3" placeholder="Ej: Documentos aprobados. Se le notificará por correo..."></textarea>
-        </div>
-
-        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-          <button class="btn btn-secundario" onclick="cerrarDetalle()">Cerrar</button>
-          <button class="btn btn-exito" onclick="accionDetalle('aprobada')" style="flex:1;">✔ Aprobar</button>
-          <button class="btn btn-danger" onclick="accionDetalle('rechazada')" style="flex:1;">✘ Rechazar</button>
-          <button class="btn btn-primario" onclick="soloComentario()" style="flex:1;">💬 Guardar comentario</button>
+      <!-- Tabla postulaciones -->
+      <div class="card">
+        <div class="tabla-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Estudiante</th>
+                <th>Programa</th>
+                <th>Convocatoria</th>
+                <th>Semestre</th>
+                <th>Docs</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-admin">
+              <tr>
+                <td colspan="9" style="text-align:center; color:#6b7280; padding:2rem;">
+                  Cargando postulaciones...
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <!-- Modal comentario rápido -->
-    <div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:center; justify-content:center;">
-      <div class="card" style="max-width:440px; width:90%; margin:auto;">
-        <h3 style="color:#1a3a6b; margin-bottom:1rem;">Agregar comentario</h3>
-        <div class="form-group">
-          <label>Comentario para el estudiante</label>
-          <textarea id="comentario-modal" rows="4" placeholder="Ej: Documentos aprobados. Se notificará por correo..."></textarea>
-        </div>
-        <div style="display:flex; gap:1rem;">
-          <button class="btn btn-secundario" onclick="cerrarModal()">Cancelar</button>
-          <button class="btn btn-primario" onclick="guardarComentario()" style="flex:1;">Guardar y actualizar</button>
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SECCIÓN: CONVOCATORIAS                                             -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div id="seccion-convocatorias" style="display:none;">
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h2 style="margin:0;color:#1a3a6b;">Gestión de Convocatorias</h2>
+        <button class="btn btn-primario" onclick="abrirModalConvocatoria()">+ Nueva Convocatoria</button>
+      </div>
+
+      <div id="alerta-conv" class="alerta mb-3" style="display:none;"></div>
+
+      <div class="card">
+        <div class="tabla-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Título</th>
+                <th>Universidad</th>
+                <th>País</th>
+                <th>Fecha inicio</th>
+                <th>Fecha cierre</th>
+                <th>Cupos</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-conv">
+              <tr>
+                <td colspan="9" style="text-align:center;color:#6b7280;padding:2rem;">Cargando...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
+
   </main>
 
   <footer>
     <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
   </footer>
 
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL: Detalle de postulación                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="modal-detalle" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;">
+    <div class="card" style="max-width:620px; width:100%; margin:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+        <h3 style="color:#1a3a6b; margin:0;">Detalle de postulación</h3>
+        <button onclick="cerrarDetalle()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+      </div>
+
+      <!-- Datos del estudiante -->
+      <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+        <h4 style="color:#1a3a6b; margin:0 0 0.75rem;">👤 Datos del estudiante</h4>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.9rem;">
+          <div><span style="color:#6b7280;">Nombre:</span> <strong id="d-nombre"></strong></div>
+          <div><span style="color:#6b7280;">Programa:</span> <strong id="d-programa"></strong></div>
+          <div><span style="color:#6b7280;">Cédula:</span> <strong id="d-cedula"></strong></div>
+          <div><span style="color:#6b7280;">Celular:</span> <strong id="d-celular"></strong></div>
+          <div><span style="color:#6b7280;">Semestre:</span> <strong id="d-semestre"></strong></div>
+          <div><span style="color:#6b7280;">Convocatoria:</span> <strong id="d-convocatoria"></strong></div>
+        </div>
+      </div>
+
+      <!-- Estado actual -->
+      <div style="background:#f8faff; border-radius:8px; padding:0.75rem 1rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.75rem;">
+        <span style="color:#6b7280;font-size:0.9rem;">Estado actual:</span>
+        <span id="d-estado-badge"></span>
+      </div>
+
+      <!-- Carta de intención -->
+      <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+        <h4 style="color:#1a3a6b; margin:0 0 0.5rem;">📝 Carta de intención</h4>
+        <p id="d-carta" style="font-size:0.9rem; color:#374151; white-space:pre-wrap; margin:0;">—</p>
+      </div>
+
+      <!-- Documentos -->
+      <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+        <h4 style="color:#1a3a6b; margin:0 0 0.75rem;">📎 Documentos adjuntos</h4>
+        <div id="d-documentos">
+          <p style="color:#9ca3af; font-size:0.9rem;">Cargando documentos...</p>
+        </div>
+      </div>
+
+      <!-- Comentario del admin -->
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label style="font-weight:600; color:#1a3a6b;">💬 Comentario para el estudiante</label>
+        <textarea id="comentario-detalle" rows="3" placeholder="Ej: Documentos aprobados. Se le notificará por correo..."></textarea>
+      </div>
+
+      <!-- Acciones de proceso -->
+      <div style="margin-bottom:0.75rem;">
+        <p style="font-size:0.85rem;color:#6b7280;margin:0 0 0.5rem;">Actualizar proceso de revisión:</p>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button class="btn btn-secundario btn-sm" onclick="accionDetalle('en_revision')" title="Volver a En revisión">📥 En revisión</button>
+          <button class="btn btn-secundario btn-sm" onclick="accionDetalle('revisando_documentos')" title="Indicar que se están revisando los documentos" style="color:#2563eb;border-color:#2563eb;">🔍 Revisando docs</button>
+          <button class="btn btn-secundario btn-sm" onclick="accionDetalle('necesita_correcciones')" title="El estudiante debe corregir algo" style="color:#d97706;border-color:#d97706;">⚠ Necesita correcciones</button>
+        </div>
+      </div>
+
+      <!-- Acciones finales -->
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+        <button class="btn btn-secundario" onclick="cerrarDetalle()">Cerrar</button>
+        <button class="btn btn-primario" onclick="soloComentario()" style="flex:1;">💬 Guardar comentario</button>
+        <button class="btn btn-exito" onclick="accionDetalle('aprobada')" style="flex:1;">✔ Aprobar</button>
+        <button class="btn btn-danger" onclick="accionDetalle('rechazada')" style="flex:1;">✘ Rechazar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL: Comentario rápido                                               -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:center; justify-content:center;">
+    <div class="card" style="max-width:440px; width:90%; margin:auto;">
+      <h3 style="color:#1a3a6b; margin-bottom:1rem;">Agregar comentario</h3>
+      <div class="form-group">
+        <label>Comentario para el estudiante</label>
+        <textarea id="comentario-modal" rows="4" placeholder="Ej: Documentos aprobados. Se notificará por correo..."></textarea>
+      </div>
+      <div style="display:flex; gap:1rem;">
+        <button class="btn btn-secundario" onclick="cerrarModal()">Cancelar</button>
+        <button class="btn btn-primario" onclick="guardarComentario()" style="flex:1;">Guardar y actualizar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- MODAL: Crear / Editar Convocatoria                                     -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="modal-conv" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;">
+    <div class="card" style="max-width:580px; width:100%; margin:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
+        <h3 id="modal-conv-titulo" style="color:#1a3a6b;margin:0;">Nueva Convocatoria</h3>
+        <button onclick="cerrarModalConv()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+      </div>
+
+      <div id="alerta-modal-conv" class="alerta mb-3" style="display:none;"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Título <span style="color:#dc2626;">*</span></label>
+          <input type="text" id="conv-titulo" placeholder="Ej: Intercambio Universidad de Barcelona" />
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Universidad <span style="color:#dc2626;">*</span></label>
+          <select id="conv-universidad">
+            <option value="">Cargando universidades...</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Descripción</label>
+          <textarea id="conv-descripcion" rows="3" placeholder="Descripción general de la convocatoria..."></textarea>
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Requisitos</label>
+          <textarea id="conv-requisitos" rows="3" placeholder="Requisitos para postularse..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Fecha de inicio <span style="color:#dc2626;">*</span></label>
+          <input type="date" id="conv-fecha-inicio" />
+        </div>
+        <div class="form-group">
+          <label>Fecha de cierre <span style="color:#dc2626;">*</span></label>
+          <input type="date" id="conv-fecha-cierre" />
+        </div>
+        <div class="form-group">
+          <label>Cupos <span style="color:#dc2626;">*</span></label>
+          <input type="number" id="conv-cupos" min="1" value="1" />
+        </div>
+        <div class="form-group">
+          <label>Estado <span style="color:#dc2626;">*</span></label>
+          <select id="conv-estado">
+            <option value="activa">Activa</option>
+            <option value="proximamente">Próximamente</option>
+            <option value="cerrada">Cerrada</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+        <button class="btn btn-secundario" onclick="cerrarModalConv()">Cancelar</button>
+        <button class="btn btn-primario" id="btn-guardar-conv" onclick="guardarConvocatoria()" style="flex:1;">Guardar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="../../js/main.js"></script>
   <script>
     requireAdmin();
 
     let todasPostulaciones = [];
+    let todasConvocatorias = [];
     let modalId = null;
     let detalleId = null;
+    let convEditandoId = null;
+    let universidades = [];
+
+    // ── Pestañas ───────────────────────────────────────────────────────────
+
+    function mostrarTab(tab) {
+      const tabs = ["postulaciones", "convocatorias"];
+      tabs.forEach(t => {
+        document.getElementById(`seccion-${t}`).style.display = t === tab ? "block" : "none";
+        const btn = document.getElementById(`tab-${t}`);
+        btn.style.color = t === tab ? "#1a3a6b" : "#6b7280";
+        btn.style.borderBottomColor = t === tab ? "#1a3a6b" : "transparent";
+      });
+      if (tab === "convocatorias") cargarConvocatorias();
+    }
+
+    // ── Postulaciones ──────────────────────────────────────────────────────
 
     function actualizarStats(lista) {
       document.getElementById("stat-total").textContent      = lista.length;
-      document.getElementById("stat-revision").textContent   = lista.filter(p => p.estado === "en_revision").length;
+      document.getElementById("stat-revision").textContent   = lista.filter(p =>
+        ["en_revision","revisando_documentos","necesita_correcciones"].includes(p.estado)).length;
       document.getElementById("stat-aprobadas").textContent  = lista.filter(p => p.estado === "aprobada").length;
       document.getElementById("stat-rechazadas").textContent = lista.filter(p => p.estado === "rechazada").length;
     }
@@ -219,11 +378,11 @@
       document.getElementById("d-semestre").textContent     = p.semestre ? p.semestre + "° semestre" : "—";
       document.getElementById("d-convocatoria").textContent = p.convocatoria + " — " + p.universidad;
       document.getElementById("d-carta").textContent        = p.cartaIntencion || "No adjuntó carta de intención.";
+      document.getElementById("d-estado-badge").innerHTML   = getBadge(p.estado);
       document.getElementById("comentario-detalle").value   = p.comentarioAdmin || "";
       document.getElementById("d-documentos").innerHTML     = '<p style="color:#9ca3af;font-size:0.9rem;">Cargando...</p>';
       document.getElementById("modal-detalle").style.display = "flex";
 
-      // Cargar documentos
       try {
         const docs = await apiFetch(`/api/admin/postulaciones/${id}/documentos`, { headers: authHeaders() });
         if (!docs || docs.length === 0) {
@@ -252,9 +411,10 @@
     }
 
     async function accionDetalle(nuevoEstado) {
+      const id = detalleId;
       const comentario = document.getElementById("comentario-detalle").value.trim();
       cerrarDetalle();
-      await cambiarEstado(detalleId || 0, nuevoEstado, comentario);
+      await cambiarEstado(id || 0, nuevoEstado, comentario);
     }
 
     async function soloComentario() {
@@ -270,15 +430,11 @@
         if (p) p.comentarioAdmin = comentario;
         filtrar("todas");
       } catch (err) {
-        const alerta = document.getElementById("alerta-admin");
-        alerta.className = "alerta alerta-error mb-3";
-        alerta.style.display = "block";
-        alerta.textContent = "Error: " + err.message;
+        mostrarAlertaAdmin("Error: " + err.message, "error");
       }
     }
 
     async function cambiarEstado(id, nuevoEstado, comentario = null) {
-      const alerta = document.getElementById("alerta-admin");
       const p = todasPostulaciones.find(x => x.id === id);
       try {
         await apiFetch(`/api/admin/postulaciones/${id}/estado`, {
@@ -289,9 +445,7 @@
         actualizarStats(todasPostulaciones);
         filtrar("todas");
       } catch (err) {
-        alerta.className = "alerta alerta-error mb-3";
-        alerta.style.display = "block";
-        alerta.textContent = "Error al actualizar estado: " + err.message;
+        mostrarAlertaAdmin("Error al actualizar estado: " + err.message, "error");
       }
     }
 
@@ -318,10 +472,7 @@
         if (p) p.comentarioAdmin = comentario;
         filtrar("todas");
       } catch (err) {
-        const alerta = document.getElementById("alerta-admin");
-        alerta.className = "alerta alerta-error mb-3";
-        alerta.style.display = "block";
-        alerta.textContent = "Error al guardar comentario: " + err.message;
+        mostrarAlertaAdmin("Error al guardar comentario: " + err.message, "error");
       }
     }
 
@@ -331,19 +482,164 @@
         actualizarStats(todasPostulaciones);
         renderTabla(todasPostulaciones);
       } catch (err) {
-        const alerta = document.getElementById("alerta-admin");
-        alerta.className = "alerta alerta-error mb-3";
-        alerta.style.display = "block";
-        alerta.textContent = "No se pudieron cargar las postulaciones: " + err.message;
+        mostrarAlertaAdmin("No se pudieron cargar las postulaciones: " + err.message, "error");
         document.getElementById("cuerpo-admin").innerHTML =
           `<tr><td colspan="9" style="text-align:center; color:#6b7280; padding:2rem;">Error al cargar datos.</td></tr>`;
       }
     }
 
+    function mostrarAlertaAdmin(msg, tipo = "error") {
+      const alerta = document.getElementById("alerta-admin");
+      alerta.className = `alerta alerta-${tipo} mb-3`;
+      alerta.style.display = "block";
+      alerta.textContent = msg;
+      setTimeout(() => { alerta.style.display = "none"; }, 5000);
+    }
+
+    // ── Convocatorias ──────────────────────────────────────────────────────
+
+    async function cargarUniversidades() {
+      if (universidades.length) return;
+      try {
+        universidades = await apiFetch("/api/admin/universidades", { headers: authHeaders() });
+        const sel = document.getElementById("conv-universidad");
+        sel.innerHTML = '<option value="">Selecciona una universidad</option>' +
+          universidades.map(u => `<option value="${u.id}">${u.nombre} (${u.pais})</option>`).join("");
+      } catch (err) {
+        mostrarAlertaConv("No se pudieron cargar las universidades: " + err.message, "error");
+      }
+    }
+
+    async function cargarConvocatorias() {
+      try {
+        todasConvocatorias = await apiFetch("/api/admin/convocatorias", { headers: authHeaders() });
+        renderTablaConv(todasConvocatorias);
+      } catch (err) {
+        mostrarAlertaConv("Error al cargar convocatorias: " + err.message, "error");
+      }
+    }
+
+    function renderTablaConv(lista) {
+      const tbody = document.getElementById("cuerpo-conv");
+      if (!lista || lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#6b7280;padding:2rem;">No hay convocatorias.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = lista.map(c => `
+        <tr>
+          <td>${c.id}</td>
+          <td><strong>${c.titulo}</strong></td>
+          <td style="font-size:0.85rem;">${c.universidad}</td>
+          <td style="font-size:0.85rem;">${c.pais}</td>
+          <td style="font-size:0.85rem;">${c.fechaInicio}</td>
+          <td style="font-size:0.85rem;">${c.fechaCierre}</td>
+          <td style="text-align:center;">${c.cupos}</td>
+          <td>${getBadge(c.estado)}</td>
+          <td>
+            <button class="btn btn-secundario btn-sm" onclick="editarConvocatoria(${c.id})">✏ Editar</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function abrirModalConvocatoria() {
+      convEditandoId = null;
+      document.getElementById("modal-conv-titulo").textContent = "Nueva Convocatoria";
+      document.getElementById("btn-guardar-conv").textContent = "Crear convocatoria";
+      document.getElementById("conv-titulo").value = "";
+      document.getElementById("conv-descripcion").value = "";
+      document.getElementById("conv-requisitos").value = "";
+      document.getElementById("conv-fecha-inicio").value = "";
+      document.getElementById("conv-fecha-cierre").value = "";
+      document.getElementById("conv-cupos").value = "1";
+      document.getElementById("conv-estado").value = "activa";
+      document.getElementById("alerta-modal-conv").style.display = "none";
+      cargarUniversidades().then(() => {
+        document.getElementById("conv-universidad").value = "";
+      });
+      document.getElementById("modal-conv").style.display = "flex";
+    }
+
+    function editarConvocatoria(id) {
+      const c = todasConvocatorias.find(x => x.id === id);
+      if (!c) return;
+      convEditandoId = id;
+      document.getElementById("modal-conv-titulo").textContent = "Editar Convocatoria";
+      document.getElementById("btn-guardar-conv").textContent = "Guardar cambios";
+      document.getElementById("conv-titulo").value = c.titulo;
+      document.getElementById("conv-descripcion").value = c.descripcion || "";
+      document.getElementById("conv-requisitos").value = c.requisitos || "";
+      document.getElementById("conv-fecha-inicio").value = c.fechaInicio;
+      document.getElementById("conv-fecha-cierre").value = c.fechaCierre;
+      document.getElementById("conv-cupos").value = c.cupos;
+      document.getElementById("conv-estado").value = c.estado;
+      document.getElementById("alerta-modal-conv").style.display = "none";
+      cargarUniversidades().then(() => {
+        document.getElementById("conv-universidad").value = c.universidadId;
+      });
+      document.getElementById("modal-conv").style.display = "flex";
+    }
+
+    function cerrarModalConv() {
+      document.getElementById("modal-conv").style.display = "none";
+      convEditandoId = null;
+    }
+
+    async function guardarConvocatoria() {
+      const titulo        = document.getElementById("conv-titulo").value.trim();
+      const universidadId = parseInt(document.getElementById("conv-universidad").value);
+      const descripcion   = document.getElementById("conv-descripcion").value.trim();
+      const requisitos    = document.getElementById("conv-requisitos").value.trim();
+      const fechaInicio   = document.getElementById("conv-fecha-inicio").value;
+      const fechaCierre   = document.getElementById("conv-fecha-cierre").value;
+      const cupos         = parseInt(document.getElementById("conv-cupos").value);
+      const estado        = document.getElementById("conv-estado").value;
+
+      if (!titulo || !universidadId || !fechaInicio || !fechaCierre || !cupos) {
+        mostrarAlertaModalConv("Completa todos los campos obligatorios.", "error");
+        return;
+      }
+
+      const body = { titulo, universidadId, descripcion, requisitos, fechaInicio, fechaCierre, cupos, estado };
+      const url  = convEditandoId
+        ? `/api/admin/convocatorias/${convEditandoId}`
+        : "/api/admin/convocatorias";
+      const method = convEditandoId ? "PUT" : "POST";
+
+      try {
+        document.getElementById("btn-guardar-conv").disabled = true;
+        await apiFetch(url, { method, headers: authHeaders(), body: JSON.stringify(body) });
+        cerrarModalConv();
+        await cargarConvocatorias();
+        mostrarAlertaConv(convEditandoId ? "Convocatoria actualizada." : "Convocatoria creada.", "exito");
+      } catch (err) {
+        mostrarAlertaModalConv("Error: " + err.message, "error");
+      } finally {
+        document.getElementById("btn-guardar-conv").disabled = false;
+      }
+    }
+
+    function mostrarAlertaConv(msg, tipo = "error") {
+      const alerta = document.getElementById("alerta-conv");
+      alerta.className = `alerta alerta-${tipo} mb-3`;
+      alerta.style.display = "block";
+      alerta.textContent = msg;
+      setTimeout(() => { alerta.style.display = "none"; }, 5000);
+    }
+
+    function mostrarAlertaModalConv(msg, tipo = "error") {
+      const alerta = document.getElementById("alerta-modal-conv");
+      alerta.className = `alerta alerta-${tipo} mb-3`;
+      alerta.style.display = "block";
+      alerta.textContent = msg;
+    }
+
+    // ── Init ───────────────────────────────────────────────────────────────
+
     cargarPostulaciones();
 
     document.addEventListener("keydown", e => {
-      if (e.key === "Escape") { cerrarModal(); cerrarDetalle(); }
+      if (e.key === "Escape") { cerrarModal(); cerrarDetalle(); cerrarModalConv(); }
     });
   </script>
 </body>

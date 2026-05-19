@@ -4,29 +4,40 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from database import get_db
-from models import Usuario, Postulacion, Convocatoria, Documento, Universidad
-from schemas import EstadoRequest, PostulacionResponse, DocumentoResponse, ConvocatoriaCreate
+from models import Usuario, Postulacion, Convocatoria, Documento, Universidad, Notificacion
+from schemas import EstadoRequest, PostulacionResponse, DocumentoResponse, ConvocatoriaCreate, NotificacionResponse
 from auth import solo_admin
 from routers.postulaciones import to_response
 
 router = APIRouter(prefix="/api/admin", tags=["Administración"])
 
+ESTADOS_VALIDOS = ["aprobada", "rechazada", "en_revision", "revisando_documentos", "necesita_correcciones"]
+
+# ── Postulaciones ─────────────────────────────────────────────────────────────
+
 @router.get("/postulaciones", response_model=List[PostulacionResponse],
-            summary="Ver todas las postulaciones")
-def todas(db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+            summary="Ver todas las postulaciones", dependencies=[Depends(solo_admin)])
+def todas(db: Session = Depends(get_db)):
     return [to_response(p) for p in db.query(Postulacion).all()]
 
-@router.get("/estadisticas", summary="Estadísticas generales")
-def estadisticas(db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+@router.get("/estadisticas", summary="Estadísticas generales", dependencies=[Depends(solo_admin)])
+def estadisticas(db: Session = Depends(get_db)):
     total      = db.query(Postulacion).count()
     aprobadas  = db.query(Postulacion).filter(Postulacion.estado == "aprobada").count()
     rechazadas = db.query(Postulacion).filter(Postulacion.estado == "rechazada").count()
     revision   = db.query(Postulacion).filter(Postulacion.estado == "en_revision").count()
-    return {"total": total, "aprobadas": aprobadas, "rechazadas": rechazadas, "en_revision": revision}
+    revisando  = db.query(Postulacion).filter(Postulacion.estado == "revisando_documentos").count()
+    correcciones = db.query(Postulacion).filter(Postulacion.estado == "necesita_correcciones").count()
+    return {
+        "total": total,
+        "aprobadas": aprobadas,
+        "rechazadas": rechazadas,
+        "en_revision": revision + revisando + correcciones
+    }
 
 @router.get("/postulaciones/{id}/documentos", response_model=List[DocumentoResponse],
-            summary="Listar documentos de una postulación")
-def ver_documentos(id: int, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+            summary="Listar documentos de una postulación", dependencies=[Depends(solo_admin)])
+def ver_documentos(id: int, db: Session = Depends(get_db)):
     if not db.query(Postulacion).filter(Postulacion.id == id).first():
         raise HTTPException(status_code=404, detail="Postulación no encontrada")
     docs = db.query(Documento).filter(Documento.postulacion_id == id).all()
@@ -63,12 +74,12 @@ def descargar_documento(doc_id: int, token: str = None, db: Session = Depends(ge
     )
 
 @router.put("/postulaciones/{id}/estado", response_model=PostulacionResponse,
-            summary="Aprobar o rechazar postulación")
+            summary="Cambiar estado de postulación")
 def actualizar_estado(
     id: int, request: EstadoRequest,
     db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)
 ):
-    if request.estado not in ["aprobada", "rechazada", "en_revision"]:
+    if request.estado not in ESTADOS_VALIDOS:
         raise HTTPException(status_code=400, detail="Estado inválido")
     postulacion = db.query(Postulacion).filter(Postulacion.id == id).first()
     if not postulacion:
@@ -78,6 +89,33 @@ def actualizar_estado(
     db.commit()
     db.refresh(postulacion)
     return to_response(postulacion)
+
+# ── Convocatorias ─────────────────────────────────────────────────────────────
+
+@router.get("/universidades", summary="Listar universidades", dependencies=[Depends(solo_admin)])
+def listar_universidades(db: Session = Depends(get_db)):
+    return [{"id": u.id, "nombre": u.nombre, "pais": u.pais}
+            for u in db.query(Universidad).order_by(Universidad.nombre).all()]
+
+@router.get("/convocatorias", summary="Listar todas las convocatorias (gestión)", dependencies=[Depends(solo_admin)])
+def listar_convocatorias_admin(db: Session = Depends(get_db)):
+    convs = db.query(Convocatoria).order_by(Convocatoria.fecha_creacion.desc()).all()
+    return [
+        {
+            "id": c.id,
+            "titulo": c.titulo,
+            "universidad": c.universidad.nombre if c.universidad else "—",
+            "pais": c.universidad.pais if c.universidad else "—",
+            "universidadId": c.universidad_id,
+            "descripcion": c.descripcion,
+            "requisitos": c.requisitos,
+            "fechaInicio": str(c.fecha_inicio),
+            "fechaCierre": str(c.fecha_cierre),
+            "cupos": c.cupos,
+            "estado": c.estado,
+        }
+        for c in convs
+    ]
 
 @router.post("/convocatorias", summary="Crear convocatoria")
 def crear_convocatoria(request: ConvocatoriaCreate, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
@@ -100,11 +138,58 @@ def crear_convocatoria(request: ConvocatoriaCreate, db: Session = Depends(get_db
     db.refresh(nueva)
     return {"id": nueva.id, "titulo": nueva.titulo}
 
-@router.delete("/convocatorias/{id}", summary="Eliminar convocatoria")
-def eliminar_convocatoria(id: int, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+@router.put("/convocatorias/{id}", summary="Editar convocatoria", dependencies=[Depends(solo_admin)])
+def editar_convocatoria(id: int, request: ConvocatoriaCreate, db: Session = Depends(get_db)):
+    conv = db.query(Convocatoria).filter(Convocatoria.id == id).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="Convocatoria no encontrada")
+    universidad = db.query(Universidad).filter(Universidad.id == request.universidadId).first()
+    if not universidad:
+        raise HTTPException(status_code=404, detail="Universidad no encontrada")
+    conv.titulo         = request.titulo
+    conv.universidad_id = request.universidadId
+    conv.descripcion    = request.descripcion
+    conv.requisitos     = request.requisitos
+    conv.fecha_inicio   = request.fechaInicio
+    conv.fecha_cierre   = request.fechaCierre
+    conv.cupos          = request.cupos
+    conv.estado         = request.estado
+    db.commit()
+    return {"id": conv.id, "titulo": conv.titulo}
+
+@router.delete("/convocatorias/{id}", summary="Eliminar convocatoria", dependencies=[Depends(solo_admin)])
+def eliminar_convocatoria(id: int, db: Session = Depends(get_db)):
     conv = db.query(Convocatoria).filter(Convocatoria.id == id).first()
     if not conv:
         raise HTTPException(status_code=404, detail="Convocatoria no encontrada")
     db.delete(conv)
     db.commit()
     return {"mensaje": "Convocatoria eliminada"}
+
+# ── Notificaciones ────────────────────────────────────────────────────────────
+
+@router.get("/notificaciones", response_model=List[NotificacionResponse],
+            summary="Obtener notificaciones del admin")
+def obtener_notificaciones(db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+    notifs = (db.query(Notificacion)
+              .filter(Notificacion.usuario_id == admin.id)
+              .order_by(Notificacion.fecha.desc())
+              .limit(30)
+              .all())
+    return [
+        NotificacionResponse(
+            id=n.id,
+            mensaje=n.mensaje,
+            leida=n.leida,
+            fecha=n.fecha,
+            tipo=n.tipo or "postulacion"
+        ) for n in notifs
+    ]
+
+@router.put("/notificaciones/leidas", summary="Marcar todas las notificaciones como leídas")
+def marcar_leidas(db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+    (db.query(Notificacion)
+     .filter(Notificacion.usuario_id == admin.id, Notificacion.leida == False)
+     .update({"leida": True}))
+    db.commit()
+    return {"mensaje": "Notificaciones marcadas como leídas"}

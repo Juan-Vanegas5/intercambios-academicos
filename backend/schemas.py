@@ -97,3 +97,10 @@ class ConvocatoriaCreate(BaseModel):
     fechaCierre: str
     cupos: int = 1
     estado: str = "activa"
+
+class NotificacionResponse(BaseModel):
+    id: int
+    mensaje: str
+    leida: bool
+    fecha: Optional[datetime] = None
+    tipo: Optional[str] = "postulacion"

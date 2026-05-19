@@ -56,12 +56,14 @@ async function apiFetch(url, options = {}) {
 // ---- Helpers visuales ----
 function getBadge(estado) {
     const mapa = {
-        "activa":        { clase: "badge-verde",    texto: "Activa" },
-        "cerrada":       { clase: "badge-rojo",     texto: "Cerrada" },
-        "proximamente":  { clase: "badge-amarillo", texto: "Próximamente" },
-        "en_revision":   { clase: "badge-amarillo", texto: "En revisión" },
-        "aprobada":      { clase: "badge-verde",    texto: "Aprobada" },
-        "rechazada":     { clase: "badge-rojo",     texto: "Rechazada" }
+        "activa":                 { clase: "badge-verde",    texto: "Activa" },
+        "cerrada":                { clase: "badge-rojo",     texto: "Cerrada" },
+        "proximamente":           { clase: "badge-amarillo", texto: "Próximamente" },
+        "en_revision":            { clase: "badge-amarillo", texto: "En revisión" },
+        "revisando_documentos":   { clase: "badge-azul",     texto: "Revisando docs" },
+        "necesita_correcciones":  { clase: "badge-amarillo", texto: "Necesita correcciones" },
+        "aprobada":               { clase: "badge-verde",    texto: "Aprobada" },
+        "rechazada":              { clase: "badge-rojo",     texto: "Rechazada" }
     };
     const info = mapa[estado] || { clase: "badge-azul", texto: estado };
     return `<span class="badge ${info.clase}">${info.texto}</span>`;
@@ -92,6 +94,14 @@ function actualizarNav() {
     if (!links) return;
 
     if (u) {
+        // Ocultar pestañas de estudiante cuando el usuario es admin
+        if (u.rol === "administrador") {
+            ["Postularme", "Mis Postulaciones"].forEach(texto => {
+                const a = [...links.querySelectorAll("a")].find(el => el.textContent.trim() === texto);
+                if (a) a.parentElement.remove();
+            });
+        }
+
         // Reemplazar "Iniciar Sesión" si existe
         const loginLink = [...links.querySelectorAll("a")]
             .find(a => a.textContent.trim() === "Iniciar Sesión");
@@ -122,6 +132,14 @@ document.addEventListener("DOMContentLoaded", () => {
 //  SISTEMA DE NOTIFICACIONES
 // =====================================================
 
+// Cache para admin (notificaciones vienen del backend)
+let _notifCache = null;
+
+function _esAdmin() {
+    const u = getUsuario();
+    return u && u.rol === "administrador";
+}
+
 function _claveNotif() {
     const u = getUsuario();
     return u ? `notificaciones_${u.email}` : null;
@@ -131,32 +149,50 @@ function guardarNotificacion(tipo, mensaje, destinatarioEmail) {
     const clave = `notificaciones_${destinatarioEmail}`;
     const lista = JSON.parse(localStorage.getItem(clave) || "[]");
     lista.unshift({ id: Date.now(), tipo, mensaje, leida: false, fecha: new Date().toISOString() });
-    // Máximo 30 notificaciones
     if (lista.length > 30) lista.pop();
     localStorage.setItem(clave, JSON.stringify(lista));
 }
 
 function obtenerNotificaciones() {
+    if (_esAdmin()) return _notifCache || [];
     const clave = _claveNotif();
     if (!clave) return [];
     return JSON.parse(localStorage.getItem(clave) || "[]");
 }
 
-function marcarTodasLeidas() {
-    const clave = _claveNotif();
-    if (!clave) return;
-    const lista = obtenerNotificaciones().map(n => ({ ...n, leida: true }));
-    localStorage.setItem(clave, JSON.stringify(lista));
+async function _cargarNotificacionesAdmin() {
+    try {
+        const data = await apiFetch("/api/admin/notificaciones", { headers: authHeaders() });
+        _notifCache = data || [];
+        actualizarContadorNotif();
+    } catch (_) { /* silencioso si la sesión expira */ }
+}
+
+async function marcarTodasLeidas() {
+    if (_esAdmin()) {
+        try {
+            await apiFetch("/api/admin/notificaciones/leidas", { method: "PUT", headers: authHeaders() });
+            if (_notifCache) _notifCache = _notifCache.map(n => ({ ...n, leida: true }));
+        } catch (_) {}
+    } else {
+        const clave = _claveNotif();
+        if (!clave) return;
+        const lista = obtenerNotificaciones().map(n => ({ ...n, leida: true }));
+        localStorage.setItem(clave, JSON.stringify(lista));
+    }
     actualizarContadorNotif();
 }
 
 function limpiarNotificaciones() {
-    const clave = _claveNotif();
-    if (!clave) return;
-    localStorage.removeItem(clave);
+    if (!_esAdmin()) {
+        const clave = _claveNotif();
+        if (!clave) return;
+        localStorage.removeItem(clave);
+        _notifCache = null;
+    }
     actualizarContadorNotif();
-    document.getElementById("notif-lista").innerHTML =
-        `<p style="color:#9ca3af;font-size:0.9rem;text-align:center;padding:1rem;">No tienes notificaciones.</p>`;
+    const lista = document.getElementById("notif-lista");
+    if (lista) lista.innerHTML = `<p style="color:#9ca3af;font-size:0.9rem;text-align:center;padding:1rem;">No tienes notificaciones.</p>`;
 }
 
 function actualizarContadorNotif() {
@@ -211,7 +247,6 @@ function iniciarNotificaciones() {
     const u = getUsuario();
     if (!u) return;
 
-    // Crear campana en la nav
     const nav = document.querySelector(".nav-links");
     if (!nav) return;
 
@@ -233,11 +268,15 @@ function iniciarNotificaciones() {
     `;
     nav.appendChild(li);
 
-    // Cerrar panel al hacer clic fuera
     document.addEventListener("click", () => {
         const panel = document.getElementById("notif-panel");
         if (panel) panel.style.display = "none";
     });
 
-    actualizarContadorNotif();
+    if (_esAdmin()) {
+        _cargarNotificacionesAdmin();
+        setInterval(_cargarNotificacionesAdmin, 30000);
+    } else {
+        actualizarContadorNotif();
+    }
 }

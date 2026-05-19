@@ -4,7 +4,7 @@ from typing import List
 import datetime
 
 from database import get_db
-from models import Usuario, Convocatoria, Postulacion, Documento
+from models import Usuario, Convocatoria, Postulacion, Documento, Notificacion
 from schemas import PostulacionRequest, PostulacionResponse
 from auth import obtener_usuario_actual
 
@@ -61,6 +61,16 @@ def postular(
     db.add(nueva)
     db.commit()
     db.refresh(nueva)
+
+    admins = db.query(Usuario).filter(Usuario.rol == "administrador").all()
+    for admin in admins:
+        db.add(Notificacion(
+            usuario_id=admin.id,
+            mensaje=f"Nueva postulación de {usuario.nombre} {usuario.apellido} para '{convocatoria.titulo}'",
+            tipo="postulacion"
+        ))
+    db.commit()
+
     return to_response(nueva)
 
 @router.post("/{id}/documentos", summary="Subir documentos PDF")

@@ -6,9 +6,9 @@ import os
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "").replace(
-    "postgresql://", "postgresql+psycopg://"
+    "postgresql://", "postgresql+psycopg2://"
 ).replace(
-    "postgres://", "postgresql+psycopg://"
+    "postgres://", "postgresql+psycopg2://"
 )
 
 engine = create_engine(DATABASE_URL)

@@ -2,17 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
 import datetime
-import os
-import shutil
 
 from database import get_db
-from models import Usuario, Convocatoria, Postulacion, Documento, TipoDocumento
+from models import Usuario, Convocatoria, Postulacion, Documento
 from schemas import PostulacionRequest, PostulacionResponse
 from auth import obtener_usuario_actual
 
 router = APIRouter(prefix="/api/postulaciones", tags=["Postulaciones"])
-
-UPLOAD_DIR = "uploads"
 
 def to_response(p: Postulacion) -> PostulacionResponse:
     programa = p.estudiante.programa.nombre if p.estudiante.programa else ""
@@ -40,7 +36,6 @@ def mis_postulaciones(
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(obtener_usuario_actual)
 ):
-    """Devuelve las postulaciones del estudiante autenticado."""
     postulaciones = (
         db.query(Postulacion)
         .filter(Postulacion.estudiante_id == usuario.id)
@@ -55,7 +50,6 @@ def postular(
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(obtener_usuario_actual)
 ):
-    """El estudiante se postula a una convocatoria activa."""
     convocatoria = db.query(Convocatoria).filter(Convocatoria.id == request.convocatoriaId).first()
     if not convocatoria:
         raise HTTPException(status_code=404, detail="Convocatoria no encontrada")
@@ -91,7 +85,6 @@ async def subir_documentos(
     certificado: UploadFile = File(None),
     paz_y_salvo: UploadFile = File(None)
 ):
-    """Sube los documentos PDF adjuntos a una postulación del estudiante."""
     postulacion = db.query(Postulacion).filter(
         Postulacion.id == id,
         Postulacion.estudiante_id == usuario.id
@@ -99,25 +92,16 @@ async def subir_documentos(
     if not postulacion:
         raise HTTPException(status_code=404, detail="Postulación no encontrada")
 
-    carpeta = os.path.join(UPLOAD_DIR, str(id))
-    os.makedirs(carpeta, exist_ok=True)
-
     archivos_subidos = []
-    pares = [
-        (certificado, "Certificado de notas", 1),
-        (paz_y_salvo, "Paz y salvo académico", 2)
-    ]
+    pares = [(certificado, 1), (paz_y_salvo, 2)]
 
-    for archivo, nombre_tipo, tipo_id in pares:
+    for archivo, tipo_id in pares:
         if archivo and archivo.filename:
             if not archivo.filename.lower().endswith(".pdf"):
-                raise HTTPException(status_code=400, detail=f"El archivo '{archivo.filename}' debe ser PDF")
+                raise HTTPException(status_code=400, detail=f"El archivo {archivo.filename} debe ser PDF")
 
-            ruta = os.path.join(carpeta, archivo.filename)
-            with open(ruta, "wb") as f:
-                shutil.copyfileobj(archivo.file, f)
+            contenido_binario = await archivo.read()
 
-            # Eliminar documento previo del mismo tipo si existe
             db.query(Documento).filter(
                 Documento.postulacion_id == id,
                 Documento.tipo_documento_id == tipo_id
@@ -127,11 +111,11 @@ async def subir_documentos(
                 postulacion_id=id,
                 nombre_archivo=archivo.filename,
                 tipo_documento_id=tipo_id,
-                ruta_archivo=ruta,
-                fecha_subida=datetime.datetime.now()
+                contenido_archivo=contenido_binario,
+                mimetype="application/pdf"
             )
             db.add(doc)
             archivos_subidos.append(archivo.filename)
 
     db.commit()
-    return {"mensaje": f"{len(archivos_subidos)} documento(s) subido(s) correctamente", "archivos": archivos_subidos}
+    return {"mensaje": "Documentos guardados en la BD", "archivos": archivos_subidos}

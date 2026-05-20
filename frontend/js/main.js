@@ -232,10 +232,14 @@ function iniciarNotificaciones() {
     nav.appendChild(li);
 
     // Cerrar panel al hacer clic fuera
-    document.addEventListener("click", () => {
+   // Cerrar panel al hacer clic fuera (pero no dentro del panel)
+    document.addEventListener("click", (e) => {
         const panel = document.getElementById("notif-panel");
-        if (panel) panel.style.display = "none";
+        const btn   = document.getElementById("notif-btn");
+        if (!panel) return;
+        if (panel.contains(e.target) || (btn && btn.contains(e.target))) return;
+        panel.style.display = "none";
     });
-
-    actualizarContadorNotif();
+     actualizarContadorNotif();
+    setInterval(() => { actualizarContadorNotif(); }, 3000);
 }

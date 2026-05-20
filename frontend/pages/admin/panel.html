@@ -269,11 +269,11 @@
         });
         if (p) p.comentarioAdmin = comentario;
         // Notificación al estudiante
-        if (comentario && p) {
+        if (comentario && p.estudianteEmail) {
           const emailEstudiante = p.cedula ? null : null; // usamos nombre como fallback
           guardarNotificacion("comentario",
             `💬 El administrador dejó un comentario en tu postulación a ${p.convocatoria}: "${comentario.slice(0, 80)}${comentario.length > 80 ? "..." : ""}"`,
-            p.estudianteEmail || p.estudiante
+            p.estudianteEmail
           );
         }
         filtrar("todas");
@@ -296,12 +296,12 @@
         if (p) { p.estado = nuevoEstado; if (comentario !== null) p.comentarioAdmin = comentario; }
 
         // Notificación al estudiante
-        if (p) {
+        if (p && p.estudianteEmail) {
           const emoji = nuevoEstado === "aprobada" ? "✅" : "❌";
           const textoEstado = nuevoEstado === "aprobada" ? "aprobada" : "rechazada";
           let msg = `${emoji} Tu postulación a ${p.convocatoria} fue ${textoEstado}.`;
           if (comentario) msg += ` Comentario: "${comentario.slice(0, 60)}${comentario.length > 60 ? "..." : ""}"`;
-          guardarNotificacion("estado", msg, p.estudianteEmail || p.estudiante);
+          guardarNotificacion("estado", msg, p.estudianteEmail);
         }
 
         actualizarStats(todasPostulaciones);
@@ -335,10 +335,10 @@
         });
         if (p) p.comentarioAdmin = comentario;
         // Notificación al estudiante
-        if (comentario && p) {
+        if (comentario && p.estudianteEmail) {
           guardarNotificacion("comentario",
             `💬 El administrador dejó un comentario en tu postulación a ${p.convocatoria}: "${comentario.slice(0, 80)}${comentario.length > 80 ? "..." : ""}"`,
-            p.estudianteEmail || p.estudiante
+           p.estudianteEmail
           );
         }
         filtrar("todas");

@@ -24,6 +24,7 @@ def to_response(p: Postulacion) -> PostulacionResponse:
         fechaPostulacion=p.fecha_postulacion,
         fechaActualizacion=p.fecha_actualizacion,
         estudiante=f"{p.estudiante.nombre} {p.estudiante.apellido}",
+        estudianteEmail=p.estudiante.email,
         cedula=p.estudiante.cedula,
         celular=p.estudiante.celular,
         programa=programa,
@@ -50,7 +51,6 @@ def postular(request: PostulacionRequest, db: Session = Depends(get_db), usuario
     db.refresh(nueva)
     return to_response(nueva)
 
-# ESTA ES LA FUNCIÓN QUE CAMBIAMOS COMPLETAMENTE
 @router.post("/{id}/documentos")
 async def subir_documentos(
     id: int,
@@ -71,13 +71,9 @@ async def subir_documentos(
             if not archivo.filename.lower().endswith(".pdf"):
                 raise HTTPException(status_code=400, detail=f"El archivo {archivo.filename} debe ser PDF")
 
-            # Leemos los bytes del archivo
             contenido_binario = await archivo.read()
-
-            # Limpiamos si ya existía uno de ese tipo
             db.query(Documento).filter(Documento.postulacion_id == id, Documento.tipo_documento_id == tipo_id).delete()
 
-            # Guardamos en la base de datos (campo contenido_archivo)
             doc = Documento(
                 postulacion_id=id,
                 nombre_archivo=archivo.filename,

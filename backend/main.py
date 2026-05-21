@@ -8,6 +8,7 @@ from schemas import LoginRequest, LoginResponse, RegistroRequest, VerificarCodig
 from auth import verificar_contrasena, hashear_contrasena, generar_token
 from email_service import generar_y_guardar_codigo, enviar_codigo, verificar_codigo
 from routers import convocatorias, postulaciones, admin
+from routers import notificaciones
 
 app = FastAPI(
     title="API Intercambios Académicos",
@@ -103,3 +104,4 @@ def registro(request: RegistroRequest, db: Session = Depends(get_db)):
 app.include_router(convocatorias.router)
 app.include_router(postulaciones.router)
 app.include_router(admin.router)
+app.include_router(notificaciones.router)

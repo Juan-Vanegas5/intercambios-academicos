@@ -4,17 +4,32 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from database import get_db
-from models import Usuario, Postulacion, Convocatoria, Documento, Universidad
+from models import Usuario, Postulacion, Convocatoria, Documento, Universidad, Notificacion
 from schemas import EstadoRequest, PostulacionResponse, DocumentoResponse, ConvocatoriaCreate
 from auth import solo_admin
 from routers.postulaciones import to_response
 
 router = APIRouter(prefix="/api/admin", tags=["Administración"])
 
+
+# ── utilidad interna ────────────────────────────────────────────────
+def _notificar(db: Session, usuario_id: int, mensaje: str, tipo: str, url: str = None):
+    """Inserta una notificación sin hacer commit (el llamador decide cuándo commitear)."""
+    db.add(Notificacion(
+        usuario_id=usuario_id,
+        mensaje=mensaje,
+        leida=False,
+        tipo=tipo,
+        url=url,
+    ))
+
+
+# ── endpoints ───────────────────────────────────────────────────────
 @router.get("/postulaciones", response_model=List[PostulacionResponse],
             summary="Ver todas las postulaciones")
 def todas(db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
     return [to_response(p) for p in db.query(Postulacion).all()]
+
 
 @router.get("/estadisticas", summary="Estadísticas generales")
 def estadisticas(db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
@@ -23,6 +38,7 @@ def estadisticas(db: Session = Depends(get_db), admin: Usuario = Depends(solo_ad
     rechazadas = db.query(Postulacion).filter(Postulacion.estado == "rechazada").count()
     revision   = db.query(Postulacion).filter(Postulacion.estado == "en_revision").count()
     return {"total": total, "aprobadas": aprobadas, "rechazadas": rechazadas, "en_revision": revision}
+
 
 @router.get("/postulaciones/{id}/documentos", response_model=List[DocumentoResponse],
             summary="Listar documentos de una postulación")
@@ -39,6 +55,7 @@ def ver_documentos(id: int, db: Session = Depends(get_db), admin: Usuario = Depe
             fecha_subida=d.fecha_subida
         ) for d in docs
     ]
+
 
 @router.get("/documentos/{doc_id}/descargar", summary="Descargar documento (binario desde BD)")
 def descargar_documento(doc_id: int, token: str = None, db: Session = Depends(get_db)):
@@ -62,22 +79,70 @@ def descargar_documento(doc_id: int, token: str = None, db: Session = Depends(ge
         headers={"Content-Disposition": f'attachment; filename="{doc.nombre_archivo}"'}
     )
 
+
 @router.put("/postulaciones/{id}/estado", response_model=PostulacionResponse,
-            summary="Aprobar o rechazar postulación")
+            summary="Aprobar, rechazar o comentar postulación")
 def actualizar_estado(
     id: int, request: EstadoRequest,
     db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)
 ):
     if request.estado not in ["aprobada", "rechazada", "en_revision"]:
         raise HTTPException(status_code=400, detail="Estado inválido")
+
     postulacion = db.query(Postulacion).filter(Postulacion.id == id).first()
     if not postulacion:
         raise HTTPException(status_code=404, detail="Postulación no encontrada")
+
+    estado_anterior = postulacion.estado
+    comentario_anterior = postulacion.comentario_admin or ""
     postulacion.estado = request.estado
     postulacion.comentario_admin = request.comentario
+
+    # ── Notificación al estudiante ──────────────────────────────────
+    conv_titulo = postulacion.convocatoria.titulo if postulacion.convocatoria else f"#{id}"
+    url_seguimiento = "../../pages/seguimiento.html"  # ruta relativa desde admin/
+
+    if request.estado != estado_anterior:
+        if request.estado == "aprobada":
+            msg_est = f"🎉 ¡Tu postulación a «{conv_titulo}» fue APROBADA!"
+            if request.comentario:
+                msg_est += f" Comentario del administrador: {request.comentario}"
+        elif request.estado == "rechazada":
+            msg_est = f"❌ Tu postulación a «{conv_titulo}» fue rechazada."
+            if request.comentario:
+                msg_est += f" Motivo: {request.comentario}"
+        else:
+            msg_est = f"🔄 Tu postulación a «{conv_titulo}» volvió a estado «En revisión»."
+            if request.comentario:
+                msg_est += f" Nota: {request.comentario}"
+
+        _notificar(db, postulacion.estudiante_id, msg_est,
+                   tipo="estado_postulacion", url="seguimiento.html")
+
+    elif request.comentario and request.comentario != comentario_anterior:
+        # Sólo cambió el comentario, no el estado
+        msg_est = f"💬 El administrador dejó un comentario en tu postulación a «{conv_titulo}»: {request.comentario}"
+        _notificar(db, postulacion.estudiante_id, msg_est,
+                   tipo="comentario", url="seguimiento.html")
+
+    # ── Notificación al admin que hizo la acción (retroalimentación) ─
+    if request.estado != estado_anterior:
+        if request.estado == "aprobada":
+            msg_adm = f"✔ Postulación #{id} de {postulacion.estudiante.nombre} {postulacion.estudiante.apellido} marcada como APROBADA."
+        elif request.estado == "rechazada":
+            msg_adm = f"✘ Postulación #{id} de {postulacion.estudiante.nombre} {postulacion.estudiante.apellido} marcada como RECHAZADA."
+        else:
+            msg_adm = f"🔄 Postulación #{id} de {postulacion.estudiante.nombre} {postulacion.estudiante.apellido} regresada a EN REVISIÓN."
+        _notificar(db, admin.id, msg_adm, tipo="accion_admin", url="panel.html")
+
+    elif request.comentario:
+        msg_adm = f"💬 Comentario guardado en postulación #{id} de {postulacion.estudiante.nombre} {postulacion.estudiante.apellido}."
+        _notificar(db, admin.id, msg_adm, tipo="accion_admin", url="panel.html")
+
     db.commit()
     db.refresh(postulacion)
     return to_response(postulacion)
+
 
 @router.post("/convocatorias", summary="Crear convocatoria")
 def crear_convocatoria(request: ConvocatoriaCreate, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
@@ -99,6 +164,7 @@ def crear_convocatoria(request: ConvocatoriaCreate, db: Session = Depends(get_db
     db.commit()
     db.refresh(nueva)
     return {"id": nueva.id, "titulo": nueva.titulo}
+
 
 @router.delete("/convocatorias/{id}", summary="Eliminar convocatoria")
 def eliminar_convocatoria(id: int, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):

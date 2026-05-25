@@ -35,6 +35,7 @@ def estadisticas(db: Session = Depends(get_db)):
         "en_revision": revision + revisando + correcciones
     }
 
+
 @router.get("/postulaciones/{id}/documentos", response_model=List[DocumentoResponse],
             summary="Listar documentos de una postulación", dependencies=[Depends(solo_admin)])
 def ver_documentos(id: int, db: Session = Depends(get_db)):
@@ -50,6 +51,7 @@ def ver_documentos(id: int, db: Session = Depends(get_db)):
             fecha_subida=d.fecha_subida
         ) for d in docs
     ]
+
 
 @router.get("/documentos/{doc_id}/descargar", summary="Descargar documento (binario desde BD)")
 def descargar_documento(doc_id: int, token: str = None, db: Session = Depends(get_db)):
@@ -73,6 +75,7 @@ def descargar_documento(doc_id: int, token: str = None, db: Session = Depends(ge
         headers={"Content-Disposition": f'attachment; filename="{doc.nombre_archivo}"'}
     )
 
+
 @router.put("/postulaciones/{id}/estado", response_model=PostulacionResponse,
             summary="Cambiar estado de postulación")
 def actualizar_estado(
@@ -81,11 +84,57 @@ def actualizar_estado(
 ):
     if request.estado not in ESTADOS_VALIDOS:
         raise HTTPException(status_code=400, detail="Estado inválido")
+
     postulacion = db.query(Postulacion).filter(Postulacion.id == id).first()
     if not postulacion:
         raise HTTPException(status_code=404, detail="Postulación no encontrada")
+
+    estado_anterior = postulacion.estado
+    comentario_anterior = postulacion.comentario_admin or ""
     postulacion.estado = request.estado
     postulacion.comentario_admin = request.comentario
+
+    # ── Notificación al estudiante ──────────────────────────────────
+    conv_titulo = postulacion.convocatoria.titulo if postulacion.convocatoria else f"#{id}"
+    url_seguimiento = "../../pages/seguimiento.html"  # ruta relativa desde admin/
+
+    if request.estado != estado_anterior:
+        if request.estado == "aprobada":
+            msg_est = f"🎉 ¡Tu postulación a «{conv_titulo}» fue APROBADA!"
+            if request.comentario:
+                msg_est += f" Comentario del administrador: {request.comentario}"
+        elif request.estado == "rechazada":
+            msg_est = f"❌ Tu postulación a «{conv_titulo}» fue rechazada."
+            if request.comentario:
+                msg_est += f" Motivo: {request.comentario}"
+        else:
+            msg_est = f"🔄 Tu postulación a «{conv_titulo}» volvió a estado «En revisión»."
+            if request.comentario:
+                msg_est += f" Nota: {request.comentario}"
+
+        _notificar(db, postulacion.estudiante_id, msg_est,
+                   tipo="estado_postulacion", url="seguimiento.html")
+
+    elif request.comentario and request.comentario != comentario_anterior:
+        # Sólo cambió el comentario, no el estado
+        msg_est = f"💬 El administrador dejó un comentario en tu postulación a «{conv_titulo}»: {request.comentario}"
+        _notificar(db, postulacion.estudiante_id, msg_est,
+                   tipo="comentario", url="seguimiento.html")
+
+    # ── Notificación al admin que hizo la acción (retroalimentación) ─
+    if request.estado != estado_anterior:
+        if request.estado == "aprobada":
+            msg_adm = f"✔ Postulación #{id} de {postulacion.estudiante.nombre} {postulacion.estudiante.apellido} marcada como APROBADA."
+        elif request.estado == "rechazada":
+            msg_adm = f"✘ Postulación #{id} de {postulacion.estudiante.nombre} {postulacion.estudiante.apellido} marcada como RECHAZADA."
+        else:
+            msg_adm = f"🔄 Postulación #{id} de {postulacion.estudiante.nombre} {postulacion.estudiante.apellido} regresada a EN REVISIÓN."
+        _notificar(db, admin.id, msg_adm, tipo="accion_admin", url="panel.html")
+
+    elif request.comentario:
+        msg_adm = f"💬 Comentario guardado en postulación #{id} de {postulacion.estudiante.nombre} {postulacion.estudiante.apellido}."
+        _notificar(db, admin.id, msg_adm, tipo="accion_admin", url="panel.html")
+
     db.commit()
     db.refresh(postulacion)
     return to_response(postulacion)

@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey, LargeBinary
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import BOOLEAN
 from database import Base
 import datetime
 
@@ -69,6 +70,18 @@ class Postulacion(Base):
     convocatoria = relationship("Convocatoria", lazy="joined")
     documentos   = relationship("Documento", lazy="select")
 
+class Notificacion(Base):
+    __tablename__ = "notificaciones"
+    id         = Column(Integer, primary_key=True)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
+    mensaje    = Column(Text, nullable=False)
+    leida      = Column(BOOLEAN, default=False)
+    tipo       = Column(String(30), default="general")
+    url        = Column(String(300), nullable=True)
+    fecha      = Column(DateTime, default=datetime.datetime.now)
+
+    usuario = relationship("Usuario", lazy="joined")
+
 class Documento(Base):
     __tablename__ = "documentos"
     id                = Column(Integer, primary_key=True)
@@ -80,14 +93,3 @@ class Documento(Base):
     fecha_subida      = Column(DateTime, default=datetime.datetime.now)
 
     tipo_documento = relationship("TipoDocumento", lazy="joined")
-
-from sqlalchemy import Boolean
-
-class Notificacion(Base):
-    __tablename__ = "notificaciones"
-    id         = Column(Integer, primary_key=True)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
-    mensaje    = Column(Text, nullable=False)
-    leida      = Column(Boolean, default=False)
-    fecha      = Column(DateTime, default=datetime.datetime.now)
-    tipo       = Column(String(50), default="postulacion")

@@ -2,9 +2,7 @@
 //  CONFIGURACIÓN Y UTILIDADES - Intercambios Académicos
 // =====================================================
 
-const BASE_URL = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-  ? "http://localhost:8001"
-  : "";
+const BASE_URL = "http://18.191.193.192:8001";
 
 // ---- Manejo de sesión ----
 function getToken()   { return localStorage.getItem("token"); }

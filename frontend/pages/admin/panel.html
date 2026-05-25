@@ -395,8 +395,7 @@
                 <div style="font-weight:600; font-size:0.9rem;">${d.tipo || "Documento"}</div>
                 <div style="font-size:0.8rem; color:#6b7280;">${d.nombre_archivo}</div>
               </div>
-              <a href="${BASE_URL}/api/admin/documentos/${d.id}/descargar?token=${getToken()}" target="_blank"
-                 class="btn btn-secundario btn-sm">⬇ Descargar</a>
+              <button class="btn btn-secundario btn-sm" onclick="descargarDoc(${d.id})">⬇ Descargar</button>
             </div>
           `).join("");
         }
@@ -632,6 +631,25 @@
       alerta.className = `alerta alerta-${tipo} mb-3`;
       alerta.style.display = "block";
       alerta.textContent = msg;
+    }
+
+    // ── Descarga de documentos S3 ──────────────────────────────────────────
+
+    async function descargarDoc(docId) {
+      try {
+        const data = await apiFetch(`/api/admin/documentos/${docId}/descargar?token=${getToken()}`, {});
+        if (data && data.url) {
+          const link = document.createElement("a");
+          link.href = data.url;
+          link.download = data.nombre_archivo || "documento.pdf";
+          link.target = "_blank";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      } catch (err) {
+        mostrarAlertaAdmin("No se pudo descargar el documento: " + err.message, "error");
+      }
     }
 
     // ── Init ───────────────────────────────────────────────────────────────

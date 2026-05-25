@@ -1,6 +1,10 @@
+import os
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from database import get_db
 from models import Usuario, ProgramaAcademico
@@ -10,6 +14,11 @@ from email_service import generar_y_guardar_codigo, enviar_codigo, verificar_cod
 from routers import convocatorias, postulaciones, admin
 from routers import notificaciones
 
+# En producción define ALLOWED_ORIGINS con la URL real del frontend.
+# Ejemplo: ALLOWED_ORIGINS=http://18.226.50.4,https://intercambios.upc.edu.co
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "")
+ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",") if o.strip()] or ["*"]
+
 app = FastAPI(
     title="API Intercambios Académicos",
     description="API REST para la gestión de intercambios académicos — Universidad Piloto de Colombia",
@@ -18,7 +27,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -8,6 +7,7 @@ from models import Usuario, Postulacion, Convocatoria, Documento, Universidad, N
 from schemas import EstadoRequest, PostulacionResponse, DocumentoResponse, ConvocatoriaCreate, NotificacionResponse
 from auth import solo_admin
 from routers.postulaciones import to_response
+from s3_service import generar_url_descarga
 
 router = APIRouter(prefix="/api/admin", tags=["Administración"])
 
@@ -53,8 +53,12 @@ def ver_documentos(id: int, db: Session = Depends(get_db)):
     ]
 
 
-@router.get("/documentos/{doc_id}/descargar", summary="Descargar documento (binario desde BD)")
+@router.get("/documentos/{doc_id}/descargar", summary="Obtener URL de descarga desde S3")
 def descargar_documento(doc_id: int, token: str = None, db: Session = Depends(get_db)):
+    """
+    Devuelve una URL prefirmada de S3 válida por 5 minutos.
+    El navegador del admin descarga el PDF directamente desde S3, sin pasar por el backend.
+    """
     from jose import jwt, JWTError
     from auth import JWT_SECRET, ALGORITHM
     if not token:
@@ -67,13 +71,10 @@ def descargar_documento(doc_id: int, token: str = None, db: Session = Depends(ge
     if rol != "administrador":
         raise HTTPException(status_code=403, detail="Solo administradores")
     doc = db.query(Documento).filter(Documento.id == doc_id).first()
-    if not doc or not doc.contenido_archivo:
+    if not doc or not doc.s3_key:
         raise HTTPException(status_code=404, detail="Documento no encontrado")
-    return Response(
-        content=doc.contenido_archivo,
-        media_type=doc.mimetype or "application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{doc.nombre_archivo}"'}
-    )
+    url = generar_url_descarga(doc.s3_key, expira_segundos=300)
+    return {"url": url, "nombre_archivo": doc.nombre_archivo}
 
 
 @router.put("/postulaciones/{id}/estado", response_model=PostulacionResponse,

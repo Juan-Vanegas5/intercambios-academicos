@@ -6,3 +6,4 @@ python-jose[cryptography]
 bcrypt
 python-dotenv
 python-multipart
+boto3

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey, LargeBinary
+from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import BOOLEAN
 from database import Base
@@ -88,7 +88,8 @@ class Documento(Base):
     postulacion_id    = Column(Integer, ForeignKey("postulaciones.id"), nullable=False)
     nombre_archivo    = Column(String(255), nullable=False)
     tipo_documento_id = Column(Integer, ForeignKey("tipos_documentos.id"))
-    contenido_archivo = Column(LargeBinary, nullable=False)
+    # S3: en vez de guardar el binario en BD, guardamos la clave del objeto en S3
+    s3_key            = Column(String(500), nullable=False)
     mimetype          = Column(String(50), default="application/pdf")
     fecha_subida      = Column(DateTime, default=datetime.datetime.now)
 

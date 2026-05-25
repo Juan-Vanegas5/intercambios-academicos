@@ -2,11 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
 import datetime
+import uuid
 
 from database import get_db
 from models import Usuario, Convocatoria, Postulacion, Documento, Notificacion
 from schemas import PostulacionRequest, PostulacionResponse
 from auth import obtener_usuario_actual
+from s3_service import subir_documento, eliminar_documento
 
 router = APIRouter(prefix="/api/postulaciones", tags=["Postulaciones"])
 
@@ -98,20 +100,29 @@ async def subir_documentos(
 
             contenido_binario = await archivo.read()
 
-            db.query(Documento).filter(
+            # Eliminar documento anterior de S3 y BD si existe
+            doc_anterior = db.query(Documento).filter(
                 Documento.postulacion_id == id,
                 Documento.tipo_documento_id == tipo_id
-            ).delete()
+            ).first()
+            if doc_anterior:
+                eliminar_documento(doc_anterior.s3_key)
+                db.delete(doc_anterior)
+                db.flush()
+
+            # Subir nuevo archivo a S3
+            s3_key = f"postulaciones/{id}/tipo_{tipo_id}/{uuid.uuid4().hex}_{archivo.filename}"
+            subir_documento(contenido_binario, s3_key, mimetype="application/pdf")
 
             doc = Documento(
                 postulacion_id=id,
                 nombre_archivo=archivo.filename,
                 tipo_documento_id=tipo_id,
-                contenido_archivo=contenido_binario,
+                s3_key=s3_key,
                 mimetype="application/pdf"
             )
             db.add(doc)
             archivos_subidos.append(archivo.filename)
 
     db.commit()
-    return {"mensaje": "Documentos guardados en la BD", "archivos": archivos_subidos}
+    return {"mensaje": "Documentos subidos a S3", "archivos": archivos_subidos}

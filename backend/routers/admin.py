@@ -13,6 +13,9 @@ router = APIRouter(prefix="/api/admin", tags=["Administración"])
 
 ESTADOS_VALIDOS = ["aprobada", "rechazada", "en_revision", "revisando_documentos", "necesita_correcciones"]
 
+def _notificar(db: Session, usuario_id: int, mensaje: str, tipo: str = "general", url: str = None):
+    db.add(Notificacion(usuario_id=usuario_id, mensaje=mensaje, tipo=tipo, url=url))
+
 # ── Postulaciones ─────────────────────────────────────────────────────────────
 
 @router.get("/postulaciones", response_model=List[PostulacionResponse],

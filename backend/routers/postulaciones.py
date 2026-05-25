@@ -26,6 +26,7 @@ def to_response(p: Postulacion) -> PostulacionResponse:
         fechaPostulacion=p.fecha_postulacion,
         fechaActualizacion=p.fecha_actualizacion,
         estudiante=f"{p.estudiante.nombre} {p.estudiante.apellido}",
+        estudianteEmail=p.estudiante.email,
         cedula=p.estudiante.cedula,
         celular=p.estudiante.celular,
         programa=programa,

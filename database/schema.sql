@@ -31,17 +31,19 @@ CREATE TABLE tipos_documentos (
 
 
 CREATE TABLE usuarios (
-    id              SERIAL PRIMARY KEY,
-    nombre          VARCHAR(100) NOT NULL,
-    apellido        VARCHAR(100) NOT NULL,
-    email           VARCHAR(150) NOT NULL UNIQUE,
-    contrasena      VARCHAR(255) NOT NULL,
-    rol             VARCHAR(20)  NOT NULL CHECK (rol IN ('estudiante', 'administrador')),
-    codigo          VARCHAR(20),
-    cedula          VARCHAR(20),
-    celular         VARCHAR(20),
-    programa_id     INT REFERENCES programas_academicos(id),
-    fecha_registro  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id                    SERIAL PRIMARY KEY,
+    nombre                VARCHAR(100) NOT NULL,
+    apellido              VARCHAR(100) NOT NULL,
+    email                 VARCHAR(150) NOT NULL UNIQUE,
+    contrasena            VARCHAR(255) NOT NULL,
+    rol                   VARCHAR(20)  NOT NULL CHECK (rol IN ('estudiante', 'administrador')),
+    codigo                VARCHAR(20),
+    cedula                VARCHAR(20),
+    celular               VARCHAR(20),
+    programa_id           INT REFERENCES programas_academicos(id),
+    fecha_registro        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    verificacion_codigo   VARCHAR(10),
+    verificacion_expira   TIMESTAMP
 );
 
 
@@ -69,7 +71,7 @@ CREATE TABLE postulaciones (
     semestre            INT,
     carta_intencion     TEXT,
     estado              VARCHAR(20) NOT NULL DEFAULT 'en_revision'
-                            CHECK (estado IN ('en_revision', 'aprobada', 'rechazada')),
+                            CHECK (estado IN ('en_revision', 'aprobada', 'rechazada', 'revisando_documentos', 'necesita_correcciones')),
     comentario_admin    TEXT,
     fecha_postulacion   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -80,15 +82,10 @@ CREATE TABLE postulaciones (
 CREATE TABLE documentos (
     id                SERIAL PRIMARY KEY,
     postulacion_id    INT NOT NULL REFERENCES postulaciones(id),
-    nombre_archivo    VARCHAR(255) NOT NULL, -- Ej: "diploma.pdf"
+    nombre_archivo    VARCHAR(255) NOT NULL,
     tipo_documento_id INT REFERENCES tipos_documentos(id),
-    
-    -- CAMBIO CLAVE: Guardamos el archivo real aquí
-    contenido_archivo BYTEA NOT NULL, 
-    
-    -- Metadatos útiles para la Opción 1
-    mimetype          VARCHAR(50) DEFAULT 'application/pdf', -- Para saber qué tipo de archivo es al extraerlo
-    tamano_bytes      BIGINT, -- Para control de cuotas de almacenamiento
+    s3_key            VARCHAR(500) NOT NULL,
+    mimetype          VARCHAR(50) DEFAULT 'application/pdf',
     fecha_subida      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -99,6 +96,8 @@ CREATE TABLE notificaciones (
     usuario_id   INT NOT NULL REFERENCES usuarios(id),
     mensaje      TEXT NOT NULL,
     leida        BOOLEAN DEFAULT FALSE,
+    tipo         VARCHAR(30) DEFAULT 'general',
+    url          VARCHAR(300),
     fecha        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

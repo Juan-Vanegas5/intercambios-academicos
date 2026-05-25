@@ -2,7 +2,7 @@
 //  CONFIGURACIÓN Y UTILIDADES - Intercambios Académicos
 // =====================================================
 
-const BASE_URL = "http://18.226.50.4:8001";
+const BASE_URL = "http://18.217.178.92:8001";
 
 // ---- Manejo de sesión ----
 function getToken()   { return localStorage.getItem("token"); }

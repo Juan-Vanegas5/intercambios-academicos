@@ -61,7 +61,9 @@ function getBadge(estado) {
         "revisando_documentos":   { clase: "badge-azul",     texto: "Revisando docs" },
         "necesita_correcciones":  { clase: "badge-amarillo", texto: "Necesita correcciones" },
         "aprobada":               { clase: "badge-verde",    texto: "Aprobada" },
-        "rechazada":              { clase: "badge-rojo",     texto: "Rechazada" }
+        "rechazada":              { clase: "badge-rojo",     texto: "Rechazada" },
+        "docs_pendientes":        { clase: "badge-azul",     texto: "Docs. pendientes" },
+        "completada":             { clase: "badge-verde",    texto: "✅ Completada" }
     };
     const info = mapa[estado] || { clase: "badge-azul", texto: estado };
     return `<span class="badge ${info.clase}">${info.texto}</span>`;

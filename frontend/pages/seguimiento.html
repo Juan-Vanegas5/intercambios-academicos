@@ -5,6 +5,108 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mis Postulaciones - Intercambios UPC</title>
   <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    /* ── Stepper ── */
+    .stepper {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+    .step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      min-width: 120px;
+    }
+    .step::before {
+      content: "";
+      position: absolute;
+      top: 20px;
+      left: -50%;
+      right: 50%;
+      height: 3px;
+      background: #e5e7eb;
+      z-index: 0;
+    }
+    .step:first-child::before { display: none; }
+    .step.activo::before,
+    .step.completado::before { background: #2563eb; }
+    .step-circle {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 3px solid #e5e7eb;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #9ca3af;
+      z-index: 1;
+      position: relative;
+      transition: all .3s;
+    }
+    .step.activo .step-circle {
+      border-color: #2563eb;
+      background: #2563eb;
+      color: #fff;
+      box-shadow: 0 0 0 4px rgba(37,99,235,.18);
+    }
+    .step.advertencia .step-circle {
+      border-color: #f59e0b;
+      background: #f59e0b;
+      color: #fff;
+      box-shadow: 0 0 0 4px rgba(245,158,11,.18);
+    }
+    .step.completado .step-circle {
+      border-color: #16a34a;
+      background: #16a34a;
+      color: #fff;
+    }
+    .step.bloqueado .step-circle {
+      border-color: #d1d5db;
+      background: #f3f4f6;
+      color: #d1d5db;
+    }
+    .step-label {
+      margin-top: 0.5rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-align: center;
+      color: #9ca3af;
+      line-height: 1.3;
+    }
+    .step.activo .step-label     { color: #2563eb; }
+    .step.advertencia .step-label { color: #f59e0b; }
+    .step.completado .step-label { color: #16a34a; }
+
+    .panel-editar {
+      background: #fffbeb;
+      border: 2px dashed #f59e0b;
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+    }
+    .panel-editar h4 { color: #92400e; margin: 0 0 0.75rem; font-size: 0.95rem; }
+    .doc-estado-fila {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .cards-estado { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap:1rem; margin-top:1.5rem; }
+  </style>
 </head>
 <body>
 
@@ -21,15 +123,14 @@
   <main>
     <div class="page-header">
       <h1>Mis Postulaciones</h1>
-      <p>Aquí puedes ver el estado de cada una de tus postulaciones</p>
+      <p>Sigue el estado de tu proceso de intercambio</p>
     </div>
 
-    <div id="alerta-notif" class="alerta alerta-info mb-3" style="display:none;"></div>
-    <div id="alerta-error" class="alerta alerta-error mb-3" style="display:none;"></div>
+    <div id="alerta-global" class="alerta mb-3" style="display:none;"></div>
 
     <div class="card">
       <div class="tabla-container">
-        <table id="tabla-postulaciones">
+        <table>
           <thead>
             <tr>
               <th>Convocatoria</th>
@@ -37,47 +138,169 @@
               <th>País</th>
               <th>Fecha postulación</th>
               <th>Estado</th>
-              <th>Documentos</th>
-              <th>Comentario</th>
+              <th>Docs. subidos</th>
+              <th>Comentario admin</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="cuerpo-tabla">
             <tr>
-              <td colspan="7" style="text-align:center; color:#6b7280; padding:2rem;">
-                Cargando postulaciones...
-              </td>
+              <td colspan="8" style="text-align:center; color:#6b7280; padding:2rem;">Cargando postulaciones...</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
+    <!-- Detalle -->
+    <div id="seccion-detalle" style="display:none; margin-top:2rem;">
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+        <h2 style="color:#1a3a6b; font-size:1.1rem; margin:0;">
+          📋 Detalle: <span id="detalle-titulo" style="font-weight:400;"></span>
+        </h2>
+        <button onclick="cerrarDetalle()" style="background:none; border:1px solid #d1d5db; border-radius:6px; padding:0.35rem 0.9rem; cursor:pointer; color:#6b7280; font-size:0.85rem;">✕ Cerrar</button>
+      </div>
+
+      <!-- Stepper -->
+      <div class="stepper">
+        <div class="step" id="step-1">
+          <div class="step-circle" id="sc-1">1</div>
+          <div class="step-label">Postulación<br>enviada</div>
+        </div>
+        <div class="step" id="step-2">
+          <div class="step-circle" id="sc-2">2</div>
+          <div class="step-label">Revisión<br>admin</div>
+        </div>
+        <div class="step" id="step-3">
+          <div class="step-circle" id="sc-3">✈️</div>
+          <div class="step-label">Documentos<br>de viaje</div>
+        </div>
+      </div>
+
+      <!-- Panel paso 1 — En revisión / necesita correcciones -->
+      <div id="panel-paso1" style="display:none;">
+        <div class="card" id="card-paso1" style="border:2px solid #f59e0b;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+            <span style="font-size:1.8rem;" id="icono-paso1">📝</span>
+            <div>
+              <h3 id="titulo-paso1" style="color:#92400e; margin:0; font-size:1rem;">Tu postulación está en revisión</h3>
+              <p id="subtitulo-paso1" style="color:#6b7280; font-size:0.85rem; margin:0;">Mientras el administrador revisa, puedes actualizar tus documentos.</p>
+            </div>
+          </div>
+          <div id="alerta-paso1" class="alerta mb-2" style="display:none;"></div>
+          <div id="lista-docs-postulacion" style="margin-bottom:1rem;"></div>
+          <div class="panel-editar">
+            <h4>📤 Subir / reemplazar documentos (PDF)</h4>
+            <p style="font-size:0.82rem; color:#78350f; margin:0 0 0.75rem;">Solo sube el que quieras actualizar. Los demás quedan igual.</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+              <div class="form-group" style="margin:0;">
+                <label style="font-size:0.85rem;">📄 Certificado de notas</label>
+                <input type="file" id="edit-certificado" accept=".pdf" />
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label style="font-size:0.85rem;">📄 Paz y salvo académico</label>
+                <input type="file" id="edit-paz_y_salvo" accept=".pdf" />
+              </div>
+            </div>
+            <div id="progreso-editar" class="alerta alerta-info mt-2" style="display:none;">⏳ Actualizando...</div>
+            <button onclick="guardarEdicionDocs()" class="btn btn-primario" id="btn-guardar-docs" style="margin-top:0.75rem;">💾 Guardar cambios</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel paso 2 — Revisando documentos -->
+      <div id="panel-paso2-info" style="display:none;">
+        <div class="card" style="border:2px solid #2563eb; text-align:center; padding:2rem;">
+          <span style="font-size:2.5rem;" id="icono-paso2">🔍</span>
+          <h3 id="titulo-paso2" style="color:#1a3a6b; margin:0.5rem 0;">El administrador está revisando tu postulación</h3>
+          <p id="subtitulo-paso2" style="color:#6b7280; font-size:0.9rem;">Te notificaremos aquí cuando haya una decisión.</p>
+        </div>
+      </div>
+
+      <!-- Panel rechazada -->
+      <div id="panel-rechazada" style="display:none;">
+        <div class="card" style="border:2px solid #dc2626; text-align:center; padding:2rem;">
+          <span style="font-size:2.5rem;">❌</span>
+          <h3 style="color:#dc2626; margin:0.5rem 0;">Postulación rechazada</h3>
+          <p id="comentario-rechazo" style="color:#6b7280; font-size:0.9rem;"></p>
+          <a href="postulacion.html" class="btn btn-primario" style="margin-top:0.75rem; display:inline-block;">Ver otras convocatorias</a>
+        </div>
+      </div>
+
+      <!-- Panel paso 3 — Documentos de viaje -->
+      <div id="panel-paso3" style="display:none;">
+        <div class="card" style="border:2px solid #2563eb;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem; flex-wrap:wrap;">
+            <span style="font-size:1.8rem;">✈️</span>
+            <div style="flex:1;">
+              <h3 style="color:#1a3a6b; margin:0; font-size:1rem;">Paso 3 — Documentos de viaje</h3>
+              <p style="color:#6b7280; font-size:0.85rem; margin:0;">¡Tu postulación fue aprobada! Sube los documentos para el intercambio.</p>
+            </div>
+            <span id="badge-paso3"></span>
+          </div>
+          <div id="alerta-viaje" class="alerta mb-3" style="display:none;"></div>
+          <div id="lista-docs-viaje" style="margin-bottom:1.5rem;"></div>
+          <form id="form-docs-viaje" onsubmit="subirDocsViaje(event)">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+              <div class="form-group">
+                <label>🛂 Pasaporte (PDF)</label>
+                <input type="file" id="doc-pasaporte" accept=".pdf" />
+              </div>
+              <div class="form-group">
+                <label>🏥 Seguro médico internacional (PDF)</label>
+                <input type="file" id="doc-seguro_medico" accept=".pdf" />
+              </div>
+              <div class="form-group">
+                <label>🪪 Visa de estudiante (PDF) <span style="color:#6b7280;font-size:0.8rem;">opcional</span></label>
+                <input type="file" id="doc-visa" accept=".pdf" />
+              </div>
+              <div class="form-group">
+                <label>📜 Carta de aceptación (PDF)</label>
+                <input type="file" id="doc-carta_aceptacion" accept=".pdf" />
+              </div>
+            </div>
+            <div id="progreso-viaje" class="alerta alerta-info mb-2" style="display:none;">⏳ Subiendo documentos...</div>
+            <button type="submit" class="btn btn-primario" id="btn-subir-viaje" style="margin-top:0.5rem;">📤 Subir documentos de viaje</button>
+          </form>
+        </div>
+      </div>
+
+    </div><!-- /seccion-detalle -->
+
+    <!-- Guía -->
     <div style="margin-top:2rem;">
-      <h2 style="color:#1a3a6b; font-size:1.1rem; margin-bottom:1rem;">¿Qué significa cada estado?</h2>
-      <div class="cards-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+      <h2 style="color:#1a3a6b; font-size:1rem; margin-bottom:1rem;">¿Qué significa cada estado?</h2>
+      <div class="cards-estado">
         <div class="card text-center">
-          <span class="badge badge-amarillo mb-1" style="font-size:0.95rem;">En revisión</span>
-          <p style="font-size:0.85rem; color:#6b7280; margin-top:0.5rem;">
-            Tu postulación fue recibida y está siendo evaluada por el equipo de intercambios.
-          </p>
+          <span class="badge badge-amarillo mb-1">En revisión</span>
+          <p style="font-size:0.82rem; color:#6b7280; margin-top:0.5rem;">Tu postulación fue recibida. Puedes editar tus documentos.</p>
         </div>
         <div class="card text-center">
-          <span class="badge badge-verde mb-1" style="font-size:0.95rem;">Aprobada</span>
-          <p style="font-size:0.85rem; color:#6b7280; margin-top:0.5rem;">
-            ¡Felicitaciones! Fuiste seleccionado. Revisa tu correo para los siguientes pasos.
-          </p>
+          <span class="badge badge-azul mb-1">Revisando docs</span>
+          <p style="font-size:0.82rem; color:#6b7280; margin-top:0.5rem;">El administrador está revisando tus documentos.</p>
         </div>
         <div class="card text-center">
-          <span class="badge badge-rojo mb-1" style="font-size:0.95rem;">Rechazada</span>
-          <p style="font-size:0.85rem; color:#6b7280; margin-top:0.5rem;">
-            Tu postulación no fue aprobada esta vez. Puedes aplicar a otras convocatorias.
-          </p>
+          <span class="badge badge-amarillo mb-1">Necesita correcciones</span>
+          <p style="font-size:0.82rem; color:#6b7280; margin-top:0.5rem;">Debes corregir o reemplazar algún documento.</p>
+        </div>
+        <div class="card text-center">
+          <span class="badge badge-verde mb-1">Aprobada</span>
+          <p style="font-size:0.82rem; color:#6b7280; margin-top:0.5rem;">¡Felicitaciones! Sube tus documentos de viaje.</p>
+        </div>
+        <div class="card text-center">
+          <span class="badge badge-rojo mb-1">Rechazada</span>
+          <p style="font-size:0.82rem; color:#6b7280; margin-top:0.5rem;">Tu postulación no fue aprobada esta vez.</p>
+        </div>
+        <div class="card text-center">
+          <span class="badge badge-verde mb-1">✅ Completada</span>
+          <p style="font-size:0.82rem; color:#6b7280; margin-top:0.5rem;">¡Todo listo! El admin verificó tus documentos.</p>
         </div>
       </div>
     </div>
 
     <div style="margin-top:1.5rem; display:flex; gap:1rem;">
-      <a href="index.html" class="btn btn-primario">Ver más convocatorias</a>
+      <a href="index.html" class="btn btn-primario">Ver convocatorias</a>
       <a href="postulacion.html" class="btn btn-secundario">Nueva postulación</a>
     </div>
   </main>
@@ -89,35 +312,17 @@
   <script src="../js/main.js"></script>
   <script>
     requireAuth();
+    let postulacionActiva = null;
 
     async function cargarMisPostulaciones() {
       const cuerpo = document.getElementById("cuerpo-tabla");
-      const alertaNotif = document.getElementById("alerta-notif");
-      const alertaError = document.getElementById("alerta-error");
-
       try {
-        const postulaciones = await apiFetch("/api/postulaciones/mis", {
-          headers: authHeaders()
-        });
-
-        const enRevision = postulaciones.filter(p => p.estado === "en_revision").length;
-        if (enRevision > 0) {
-          alertaNotif.style.display = "block";
-          alertaNotif.innerHTML = `🔔 Tienes <strong>${enRevision} postulación${enRevision > 1 ? "es" : ""} en revisión</strong>. Te notificaremos por correo cuando haya cambios.`;
-        }
-
-        if (postulaciones.length === 0) {
-          cuerpo.innerHTML = `
-            <tr>
-              <td colspan="7" style="text-align:center; color:#6b7280; padding:2rem;">
-                No tienes postulaciones registradas.
-                <a href="postulacion.html" style="color:#2563eb; margin-left:0.5rem;">Postúlate ahora →</a>
-              </td>
-            </tr>
-          `;
+        const postulaciones = await apiFetch("/api/postulaciones/mis", { headers: authHeaders() });
+        if (!postulaciones || postulaciones.length === 0) {
+          cuerpo.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#6b7280;padding:2rem;">
+            No tienes postulaciones. <a href="postulacion.html" style="color:#2563eb;">Postúlate ahora →</a></td></tr>`;
           return;
         }
-
         cuerpo.innerHTML = postulaciones.map(p => `
           <tr>
             <td><strong>${p.convocatoria}</strong></td>
@@ -125,22 +330,206 @@
             <td>${p.pais}</td>
             <td>${formatFecha(p.fechaPostulacion)}</td>
             <td>${getBadge(p.estado)}</td>
-            <td style="text-align:center;">
-              ${p.documentos > 0
-                ? `<span style="color:#16a34a; font-weight:600;">📎 ${p.documentos}</span>`
-                : `<span style="color:#9ca3af; font-size:0.85rem;">Sin adjuntos</span>`}
+            <td style="text-align:center;">${p.documentos > 0 ? `<span style="color:#16a34a;font-weight:600;">📎 ${p.documentos}</span>` : `<span style="color:#9ca3af;font-size:0.85rem;">Sin adjuntos</span>`}</td>
+            <td style="color:#6b7280;font-size:0.85rem;max-width:160px;">${p.comentarioAdmin || "—"}</td>
+            <td>
+              <button class="btn btn-secundario" style="font-size:0.8rem;padding:0.3rem 0.75rem;"
+                onclick="abrirDetalle(${JSON.stringify(p).replace(/"/g, '&quot;')})">Ver detalle</button>
             </td>
-            <td style="color:#6b7280; font-size:0.85rem;">
-              ${p.comentarioAdmin || "—"}
-            </td>
-          </tr>
-        `).join("");
-
+          </tr>`).join("");
       } catch (err) {
-        alertaError.style.display = "block";
-        alertaError.textContent = "No se pudieron cargar las postulaciones: " + err.message;
-        cuerpo.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#6b7280; padding:2rem;">Error al cargar datos.</td></tr>`;
+        cuerpo.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#dc2626;padding:2rem;">Error: ${err.message}</td></tr>`;
       }
+    }
+
+    async function abrirDetalle(p) {
+      postulacionActiva = p;
+      document.getElementById("detalle-titulo").textContent = p.convocatoria + " — " + p.universidad;
+      document.getElementById("seccion-detalle").style.display = "block";
+      document.getElementById("seccion-detalle").scrollIntoView({ behavior: "smooth", block: "start" });
+      actualizarStepper(p.estado);
+      ocultarTodosPaneles();
+
+      if (p.estado === "en_revision" || p.estado === "necesita_correcciones") {
+        if (p.estado === "necesita_correcciones") {
+          document.getElementById("icono-paso1").textContent = "⚠️";
+          document.getElementById("titulo-paso1").textContent = "Necesitas corregir tus documentos";
+          document.getElementById("subtitulo-paso1").textContent =
+            p.comentarioAdmin ? `El administrador indicó: ${p.comentarioAdmin}` : "Corrige o reemplaza algún documento.";
+        } else {
+          document.getElementById("icono-paso1").textContent = "📝";
+          document.getElementById("titulo-paso1").textContent = "Tu postulación está en revisión";
+          document.getElementById("subtitulo-paso1").textContent = "Mientras el administrador revisa, puedes actualizar tus documentos.";
+        }
+        document.getElementById("panel-paso1").style.display = "block";
+        await cargarDocsPostulacion(p.id);
+
+      } else if (p.estado === "revisando_documentos") {
+        document.getElementById("icono-paso2").textContent = "🔍";
+        document.getElementById("titulo-paso2").textContent = "El administrador está revisando tus documentos";
+        document.getElementById("subtitulo-paso2").textContent = "Te notificaremos cuando haya una decisión.";
+        document.getElementById("panel-paso2-info").style.display = "block";
+
+      } else if (p.estado === "rechazada") {
+        document.getElementById("panel-rechazada").style.display = "block";
+        document.getElementById("comentario-rechazo").textContent =
+          p.comentarioAdmin ? `Motivo: ${p.comentarioAdmin}` : "No se proporcionó motivo.";
+
+      } else if (["aprobada", "docs_pendientes", "completada"].includes(p.estado)) {
+        document.getElementById("panel-paso3").style.display = "block";
+        document.getElementById("badge-paso3").innerHTML = getBadge(p.estado);
+        if (p.estado === "completada") {
+          document.getElementById("form-docs-viaje").style.display = "none";
+          mostrarAlertaViaje("✅ ¡El administrador verificó tus documentos. Tu proceso está completo!", "exito");
+        }
+        await cargarDocsViaje(p.id);
+      }
+    }
+
+    function cerrarDetalle() {
+      document.getElementById("seccion-detalle").style.display = "none";
+      postulacionActiva = null;
+    }
+
+    function ocultarTodosPaneles() {
+      ["panel-paso1","panel-paso2-info","panel-rechazada","panel-paso3"].forEach(id =>
+        document.getElementById(id).style.display = "none");
+      document.getElementById("form-docs-viaje").style.display = "";
+      document.getElementById("alerta-viaje").style.display = "none";
+      document.getElementById("alerta-paso1").style.display = "none";
+    }
+
+    function actualizarStepper(estado) {
+      [1,2,3].forEach(n => { document.getElementById("step-"+n).className = "step"; });
+      const cfg = {
+        "en_revision":           [["activo","1"],    ["bloqueado","2"],    ["bloqueado","✈️"]],
+        "necesita_correcciones": [["advertencia","⚠️"],["bloqueado","2"],  ["bloqueado","✈️"]],
+        "revisando_documentos":  [["completado","✓"],["activo","🔍"],      ["bloqueado","✈️"]],
+        "rechazada":             [["completado","✓"],["activo","❌"],       ["bloqueado","✈️"]],
+        "aprobada":              [["completado","✓"],["completado","✓"],   ["activo","✈️"]],
+        "docs_pendientes":       [["completado","✓"],["completado","✓"],   ["activo","📋"]],
+        "completada":            [["completado","✓"],["completado","✓"],   ["completado","✓"]],
+      };
+      (cfg[estado] || cfg["en_revision"]).forEach(([clase, icono], i) => {
+        document.getElementById("step-"+(i+1)).className = "step "+clase;
+        document.getElementById("sc-"+(i+1)).textContent = icono;
+      });
+    }
+
+    async function cargarDocsPostulacion(id) {
+      try {
+        const docs = await apiFetch(`/api/postulaciones/${id}/documentos-postulacion`, { headers: authHeaders() });
+        const subidos = docs.filter(d => d.subido).length;
+        document.getElementById("lista-docs-postulacion").innerHTML = `
+          <p style="font-size:0.85rem;color:#6b7280;margin-bottom:0.5rem;">Documentos subidos: <strong style="color:#1a3a6b;">${subidos} / ${docs.length}</strong></p>
+          ${docs.map(d => `<div class="doc-estado-fila">
+            <span>${d.subido?"✅":"⏳"}</span>
+            <span style="flex:1;font-weight:600;color:#1a3a6b;">${d.nombre}</span>
+            ${d.subido ? `<span style="color:#16a34a;font-size:0.78rem;">📎 ${d.nombre_archivo}</span>` : `<span style="color:#9ca3af;font-size:0.78rem;">Pendiente</span>`}
+          </div>`).join("")}`;
+      } catch(e) {
+        document.getElementById("lista-docs-postulacion").innerHTML = '<p style="color:#6b7280;font-size:0.85rem;">No se pudo cargar.</p>';
+      }
+    }
+
+    async function guardarEdicionDocs() {
+      if (!postulacionActiva) return;
+      const btn = document.getElementById("btn-guardar-docs");
+      const alerta = document.getElementById("alerta-paso1");
+      const certificado = document.getElementById("edit-certificado").files[0];
+      const pazSalvo    = document.getElementById("edit-paz_y_salvo").files[0];
+
+      if (!certificado && !pazSalvo) {
+        alerta.style.display="block"; alerta.className="alerta alerta-error mb-2";
+        alerta.textContent="Selecciona al menos un archivo."; return;
+      }
+      for (const f of [certificado, pazSalvo].filter(Boolean)) {
+        if (!f.name.toLowerCase().endsWith(".pdf")) {
+          alerta.style.display="block"; alerta.className="alerta alerta-error mb-2";
+          alerta.textContent=`${f.name} debe ser PDF.`; return;
+        }
+      }
+      btn.disabled=true; btn.textContent="Guardando...";
+      alerta.style.display="none";
+      document.getElementById("progreso-editar").style.display="block";
+      try {
+        const fd = new FormData();
+        if (certificado) fd.append("certificado", certificado);
+        if (pazSalvo)    fd.append("paz_y_salvo", pazSalvo);
+        const res = await fetch(`${BASE_URL}/api/postulaciones/${postulacionActiva.id}/documentos`, {
+          method:"PUT", headers:{"Authorization":`Bearer ${getToken()}`}, body:fd
+        });
+        if (!res.ok) { const e=await res.json(); throw new Error(e.detail||"Error"); }
+        document.getElementById("progreso-editar").style.display="none";
+        alerta.style.display="block"; alerta.className="alerta alerta-exito mb-2";
+        alerta.textContent="✅ Documentos actualizados.";
+        document.getElementById("edit-certificado").value="";
+        document.getElementById("edit-paz_y_salvo").value="";
+        await cargarDocsPostulacion(postulacionActiva.id);
+        await cargarMisPostulaciones();
+      } catch(err) {
+        document.getElementById("progreso-editar").style.display="none";
+        alerta.style.display="block"; alerta.className="alerta alerta-error mb-2";
+        alerta.textContent="Error: "+err.message;
+      } finally { btn.disabled=false; btn.textContent="💾 Guardar cambios"; }
+    }
+
+    async function cargarDocsViaje(id) {
+      try {
+        const docs = await apiFetch(`/api/postulaciones/${id}/documentos-viaje`, { headers: authHeaders() });
+        const subidos = docs.filter(d => d.subido).length;
+        document.getElementById("lista-docs-viaje").innerHTML = `
+          <p style="font-size:0.85rem;color:#6b7280;margin-bottom:0.75rem;">Documentos subidos: <strong style="color:#1a3a6b;">${subidos} / ${docs.length}</strong></p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:0.75rem;margin-bottom:1rem;">
+            ${docs.map(d=>`<div style="padding:0.75rem;border-radius:8px;border:1px solid ${d.subido?"#16a34a":"#e5e7eb"};background:${d.subido?"#f0fdf4":"#f9fafb"};">
+              <div style="font-size:1.2rem;margin-bottom:0.25rem;">${d.subido?"✅":"⏳"}</div>
+              <div style="font-size:0.85rem;font-weight:600;color:#1a3a6b;">${d.nombre}</div>
+              ${d.subido?`<div style="font-size:0.75rem;color:#16a34a;margin-top:0.25rem;">📎 ${d.nombre_archivo}</div>`:`<div style="font-size:0.75rem;color:#9ca3af;margin-top:0.25rem;">Pendiente</div>`}
+            </div>`).join("")}
+          </div>`;
+      } catch(e) {
+        document.getElementById("lista-docs-viaje").innerHTML='<p style="color:#6b7280;font-size:0.85rem;">No se pudo cargar.</p>';
+      }
+    }
+
+    function mostrarAlertaViaje(msg, tipo) {
+      const el=document.getElementById("alerta-viaje");
+      el.style.display="block"; el.className=`alerta alerta-${tipo} mb-3`; el.textContent=msg;
+    }
+
+    async function subirDocsViaje(e) {
+      e.preventDefault();
+      if (!postulacionActiva) return;
+      const btn=document.getElementById("btn-subir-viaje");
+      const campos=["pasaporte","seguro_medico","visa","carta_aceptacion"];
+      const fd=new FormData();
+      let hayArchivos=false;
+      for (const campo of campos) {
+        const input=document.getElementById(`doc-${campo}`);
+        if (input && input.files[0]) {
+          const f=input.files[0];
+          if (!f.name.toLowerCase().endsWith(".pdf")) { mostrarAlertaViaje(`${f.name} debe ser PDF.`,"error"); return; }
+          fd.append(campo,f); hayArchivos=true;
+        }
+      }
+      if (!hayArchivos) { mostrarAlertaViaje("Selecciona al menos un documento.","error"); return; }
+      btn.disabled=true; btn.textContent="Subiendo...";
+      document.getElementById("alerta-viaje").style.display="none";
+      document.getElementById("progreso-viaje").style.display="block";
+      try {
+        const res=await fetch(`${BASE_URL}/api/postulaciones/${postulacionActiva.id}/documentos-viaje`,{
+          method:"POST", headers:{"Authorization":`Bearer ${getToken()}`}, body:fd
+        });
+        if (!res.ok) { const er=await res.json(); throw new Error(er.detail||"Error"); }
+        document.getElementById("progreso-viaje").style.display="none";
+        mostrarAlertaViaje("✅ Documentos subidos. El administrador los revisará pronto.","exito");
+        campos.forEach(c=>{ const el=document.getElementById(`doc-${c}`); if(el) el.value=""; });
+        await cargarDocsViaje(postulacionActiva.id);
+        await cargarMisPostulaciones();
+      } catch(err) {
+        document.getElementById("progreso-viaje").style.display="none";
+        mostrarAlertaViaje("Error: "+err.message,"error");
+      } finally { btn.disabled=false; btn.textContent="📤 Subir documentos de viaje"; }
     }
 
     cargarMisPostulaciones();

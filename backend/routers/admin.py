@@ -11,7 +11,7 @@ from s3_service import generar_url_descarga
 
 router = APIRouter(prefix="/api/admin", tags=["Administración"])
 
-ESTADOS_VALIDOS = ["aprobada", "rechazada", "en_revision", "revisando_documentos", "necesita_correcciones"]
+ESTADOS_VALIDOS = ["aprobada", "rechazada", "en_revision", "revisando_documentos", "necesita_correcciones", "docs_pendientes", "completada"]
 
 def _notificar(db: Session, usuario_id: int, mensaje: str, tipo: str = "general", url: str = None):
     db.add(Notificacion(usuario_id=usuario_id, mensaje=mensaje, tipo=tipo, url=url))

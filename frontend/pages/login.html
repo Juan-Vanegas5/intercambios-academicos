@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Iniciar Sesión - Intercambios UPC</title>
-  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
 
@@ -86,12 +86,12 @@
     <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
   </footer>
 
-  <script src="../js/main.js"></script>
+  <script src="js/main.js"></script>
   <script>
     // Si ya hay sesión activa, redirigir directamente
     (function() {
       const u = getUsuario();
-      if (u) window.location.href = u.rol === "administrador" ? "admin/panel.html" : "index.html";
+      if (u) window.location.href = u.rol === "administrador" ? "admin/panel.html" : "seguimiento.html";
     })();
 
     let emailPendiente = "";

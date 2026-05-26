@@ -7,7 +7,8 @@ from models import Usuario, Postulacion, Convocatoria, Documento, Universidad, N
 from schemas import EstadoRequest, PostulacionResponse, DocumentoResponse, ConvocatoriaCreate, NotificacionResponse
 from auth import solo_admin
 from routers.postulaciones import to_response
-from s3_service import generar_url_descarga
+from s3_service import generar_url_descarga, eliminar_documento
+from email_service import enviar_aprobacion
 
 router = APIRouter(prefix="/api/admin", tags=["Administración"])
 
@@ -37,6 +38,31 @@ def estadisticas(db: Session = Depends(get_db)):
         "rechazadas": rechazadas,
         "en_revision": revision + revisando + correcciones
     }
+
+
+@router.delete("/postulaciones/{id}", summary="Eliminar postulación de un estudiante",
+               dependencies=[Depends(solo_admin)])
+def eliminar_postulacion(id: int, db: Session = Depends(get_db)):
+    postulacion = db.query(Postulacion).filter(Postulacion.id == id).first()
+    if not postulacion:
+        raise HTTPException(status_code=404, detail="Postulación no encontrada")
+
+    # Eliminar documentos de S3 antes de borrar de BD
+    for doc in postulacion.documentos:
+        try:
+            eliminar_documento(doc.s3_key)
+        except Exception:
+            pass
+        db.delete(doc)
+
+    # Eliminar notificaciones asociadas al estudiante de esta postulación
+    db.query(Notificacion).filter(
+        Notificacion.usuario_id == postulacion.estudiante_id
+    ).delete()
+
+    db.delete(postulacion)
+    db.commit()
+    return {"mensaje": "Postulación eliminada correctamente"}
 
 
 @router.get("/postulaciones/{id}/documentos", response_model=List[DocumentoResponse],
@@ -107,6 +133,13 @@ def actualizar_estado(
             msg_est = f"🎉 ¡Tu postulación a «{conv_titulo}» fue APROBADA!"
             if request.comentario:
                 msg_est += f" Comentario del administrador: {request.comentario}"
+            # Enviar email al estudiante
+            enviar_aprobacion(
+                email=postulacion.estudiante.email,
+                nombre=postulacion.estudiante.nombre,
+                convocatoria=conv_titulo,
+                comentario=request.comentario
+            )
         elif request.estado == "rechazada":
             msg_est = f"❌ Tu postulación a «{conv_titulo}» fue rechazada."
             if request.comentario:

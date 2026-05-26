@@ -71,7 +71,7 @@ CREATE TABLE postulaciones (
     semestre            INT,
     carta_intencion     TEXT,
     estado              VARCHAR(20) NOT NULL DEFAULT 'en_revision'
-                            CHECK (estado IN ('en_revision', 'aprobada', 'rechazada', 'revisando_documentos', 'necesita_correcciones')),
+                            CHECK (estado IN ('en_revision', 'aprobada', 'rechazada', 'revisando_documentos', 'necesita_correcciones', 'docs_pendientes', 'completada')),
     comentario_admin    TEXT,
     fecha_postulacion   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

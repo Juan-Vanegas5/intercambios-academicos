@@ -198,9 +198,9 @@
         <textarea id="comentario-detalle" rows="3" placeholder="Ej: Documentos aprobados. Se le notificará por correo..."></textarea>
       </div>
 
-      <!-- Acciones de proceso -->
-      <div style="margin-bottom:0.75rem;">
-        <p style="font-size:0.85rem;color:#6b7280;margin:0 0 0.5rem;">Actualizar proceso de revisión:</p>
+      <!-- Acciones de proceso (Etapa 1: revisión inicial) -->
+      <div style="margin-bottom:0.75rem;" id="acciones-etapa1">
+        <p style="font-size:0.85rem;color:#6b7280;margin:0 0 0.5rem;">📋 Etapa 1 — Revisión de postulación:</p>
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
           <button class="btn btn-secundario btn-sm" onclick="accionDetalle('en_revision')" title="Volver a En revisión">📥 En revisión</button>
           <button class="btn btn-secundario btn-sm" onclick="accionDetalle('revisando_documentos')" title="Indicar que se están revisando los documentos" style="color:#2563eb;border-color:#2563eb;">🔍 Revisando docs</button>
@@ -208,11 +208,17 @@
         </div>
       </div>
 
+      <!-- Acciones Etapa 2: docs de viaje (solo cuando docs_pendientes) -->
+      <div style="margin-bottom:0.75rem;display:none;" id="acciones-etapa2">
+        <p style="font-size:0.85rem;font-weight:600;color:#16a34a;margin:0 0 0.5rem;">✈️ Etapa 2 — Documentos de viaje recibidos:</p>
+        <button class="btn btn-exito" onclick="accionDetalle('completada')" style="width:100%;">✅ Verificar docs y Completar proceso</button>
+      </div>
+
       <!-- Acciones finales -->
       <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
         <button class="btn btn-secundario" onclick="cerrarDetalle()">Cerrar</button>
         <button class="btn btn-primario" onclick="soloComentario()" style="flex:1;">💬 Guardar comentario</button>
-        <button class="btn btn-exito" onclick="accionDetalle('aprobada')" style="flex:1;">✔ Aprobar</button>
+        <button class="btn btn-exito" onclick="accionDetalle('aprobada')" style="flex:1;" id="btn-aprobar-detalle">✔ Aprobar</button>
         <button class="btn btn-danger" onclick="accionDetalle('rechazada')" style="flex:1;">✘ Rechazar</button>
       </div>
     </div>
@@ -354,6 +360,8 @@
             <button class="btn btn-exito btn-sm"      onclick="cambiarEstado(${p.id}, 'aprobada')" title="Aprobar">✔</button>
             <button class="btn btn-danger btn-sm"     onclick="cambiarEstado(${p.id}, 'rechazada')" title="Rechazar">✘</button>
             <button class="btn btn-secundario btn-sm" onclick="abrirModal(${p.id}, '${(p.comentarioAdmin || "").replace(/'/g, "\\'")}')">💬</button>
+            ${p.estado === "docs_pendientes" ? `<button class="btn btn-exito btn-sm" onclick="cambiarEstado(${p.id}, 'completada')" title="Documentos de viaje verificados — Completar proceso" style="background:#16a34a;">✅</button>` : ""}
+            <button class="btn btn-danger btn-sm" onclick="confirmarEliminar(${p.id})" title="Eliminar postulación" style="background:#fff;color:#dc2626;border:1px solid #dc2626;">🗑</button>
           </td>
         </tr>
       `).join("");
@@ -364,6 +372,21 @@
         ? todasPostulaciones
         : todasPostulaciones.filter(p => p.estado === estado);
       renderTabla(lista);
+    }
+
+    async function confirmarEliminar(id) {
+      const p = todasPostulaciones.find(x => x.id === id);
+      if (!p) return;
+      if (!confirm(`¿Eliminar la postulación de ${p.estudiante} a "${p.convocatoria}"?\nEsta acción no se puede deshacer.`)) return;
+      try {
+        await apiFetch(`/api/admin/postulaciones/${id}`, { method: "DELETE", headers: authHeaders() });
+        todasPostulaciones = todasPostulaciones.filter(x => x.id !== id);
+        actualizarStats(todasPostulaciones);
+        filtrar("todas");
+        mostrarAlertaAdmin("Postulación eliminada.", "exito");
+      } catch (err) {
+        mostrarAlertaAdmin("Error al eliminar: " + err.message, "error");
+      }
     }
 
     async function abrirDetalle(id) {
@@ -381,6 +404,13 @@
       document.getElementById("d-estado-badge").innerHTML   = getBadge(p.estado);
       document.getElementById("comentario-detalle").value   = p.comentarioAdmin || "";
       document.getElementById("d-documentos").innerHTML     = '<p style="color:#9ca3af;font-size:0.9rem;">Cargando...</p>';
+
+      // Mostrar/ocultar secciones según etapa
+      const eDocsViaje = p.estado === "docs_pendientes";
+      document.getElementById("acciones-etapa1").style.display = eDocsViaje ? "none" : "block";
+      document.getElementById("acciones-etapa2").style.display = eDocsViaje ? "block" : "none";
+      document.getElementById("btn-aprobar-detalle").style.display = ["aprobada","docs_pendientes","completada"].includes(p.estado) ? "none" : "inline-block";
+
       document.getElementById("modal-detalle").style.display = "flex";
 
       try {

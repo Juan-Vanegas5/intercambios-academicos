@@ -22,8 +22,12 @@ AWS_REGION    = os.getenv("AWS_REGION", "us-east-2")
 
 
 def _client():
-    """Devuelve un cliente S3. En EC2 usa el IAM Role automáticamente."""
-    return boto3.client("s3", region_name=AWS_REGION)
+    """Devuelve un cliente S3. endpoint_url regional evita SignatureDoesNotMatch con IAM Role en EC2."""
+    return boto3.client(
+        "s3",
+        region_name=AWS_REGION,
+        endpoint_url=f"https://s3.{AWS_REGION}.amazonaws.com"
+    )
 
 
 def subir_documento(contenido: bytes, s3_key: str, mimetype: str = "application/pdf") -> str:

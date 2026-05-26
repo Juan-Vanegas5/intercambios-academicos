@@ -132,7 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
 //  SISTEMA DE NOTIFICACIONES
 // =====================================================
 
-// Cache para admin (notificaciones vienen del backend)
 let _notifCache = null;
 
 function _esAdmin() {
@@ -140,59 +139,35 @@ function _esAdmin() {
     return u && u.rol === "administrador";
 }
 
-function _claveNotif() {
-    const u = getUsuario();
-    return u ? `notificaciones_${u.email}` : null;
-}
-
-function guardarNotificacion(tipo, mensaje, destinatarioEmail) {
-    const clave = `notificaciones_${destinatarioEmail}`;
-    const lista = JSON.parse(localStorage.getItem(clave) || "[]");
-    lista.unshift({ id: Date.now(), tipo, mensaje, leida: false, fecha: new Date().toISOString() });
-    if (lista.length > 30) lista.pop();
-    localStorage.setItem(clave, JSON.stringify(lista));
-}
-
 function obtenerNotificaciones() {
-    if (_esAdmin()) return _notifCache || [];
-    const clave = _claveNotif();
-    if (!clave) return [];
-    return JSON.parse(localStorage.getItem(clave) || "[]");
+    return _notifCache || [];
 }
 
-async function _cargarNotificacionesAdmin() {
+async function _cargarNotificaciones() {
+    const u = getUsuario();
+    if (!u) return;
     try {
-        const data = await apiFetch("/api/admin/notificaciones", { headers: authHeaders() });
+        const endpoint = _esAdmin() ? "/api/admin/notificaciones" : "/api/notificaciones";
+        const data = await apiFetch(endpoint, { headers: authHeaders() });
         _notifCache = data || [];
         actualizarContadorNotif();
-    } catch (_) { /* silencioso si la sesión expira */ }
+    } catch (_) {}
 }
 
 async function marcarTodasLeidas() {
-    if (_esAdmin()) {
-        try {
-            await apiFetch("/api/admin/notificaciones/leidas", { method: "PUT", headers: authHeaders() });
-            if (_notifCache) _notifCache = _notifCache.map(n => ({ ...n, leida: true }));
-        } catch (_) {}
-    } else {
-        const clave = _claveNotif();
-        if (!clave) return;
-        const lista = obtenerNotificaciones().map(n => ({ ...n, leida: true }));
-        localStorage.setItem(clave, JSON.stringify(lista));
-    }
+    const u = getUsuario();
+    if (!u) return;
+    try {
+        const endpoint = _esAdmin() ? "/api/admin/notificaciones/leidas" : "/api/notificaciones/leer-todas";
+        await apiFetch(endpoint, { method: "PUT", headers: authHeaders() });
+        if (_notifCache) _notifCache = _notifCache.map(n => ({ ...n, leida: true }));
+    } catch (_) {}
     actualizarContadorNotif();
 }
 
 function limpiarNotificaciones() {
-    if (!_esAdmin()) {
-        const clave = _claveNotif();
-        if (!clave) return;
-        localStorage.removeItem(clave);
-        _notifCache = null;
-    }
-    actualizarContadorNotif();
-    const lista = document.getElementById("notif-lista");
-    if (lista) lista.innerHTML = `<p style="color:#9ca3af;font-size:0.9rem;text-align:center;padding:1rem;">No tienes notificaciones.</p>`;
+    const contenedor = document.getElementById("notif-lista");
+    if (contenedor) contenedor.innerHTML = `<p style="color:#9ca3af;font-size:0.9rem;text-align:center;padding:1rem;">No tienes notificaciones.</p>`;
 }
 
 function actualizarContadorNotif() {
@@ -205,6 +180,20 @@ function actualizarContadorNotif() {
     } else {
         badge.style.display = "none";
     }
+}
+
+function _resolverUrl(url) {
+    if (!url) return null;
+    // Si ya es una URL absoluta, devolverla tal cual
+    if (url.startsWith("http")) return url;
+    // Determinar si estamos en /admin/ o en la raíz
+    const enAdmin = window.location.pathname.includes("/admin/");
+    if (enAdmin) {
+        // admin/panel.html → panel.html (mismo nivel), seguimiento.html → ../seguimiento.html
+        if (url === "panel.html") return "panel.html";
+        return "../" + url;
+    }
+    return url;
 }
 
 function togglePanelNotif(e) {
@@ -230,17 +219,26 @@ function renderNotificaciones() {
         return;
     }
 
-    const iconos = { postulacion: "📋", documento: "📎", comentario: "💬", estado: "🔔" };
+    const iconos = {
+        postulacion: "📋", documento: "📎", comentario: "💬",
+        estado_postulacion: "🔔", accion_admin: "✅", general: "🔔"
+    };
 
-    contenedor.innerHTML = lista.map(n => `
-        <div style="display:flex;gap:0.6rem;padding:0.75rem 0;border-bottom:1px solid #f3f4f6;${!n.leida ? 'background:#eff6ff;margin:0 -1rem;padding:0.75rem 1rem;' : ''}">
+    contenedor.innerHTML = lista.map(n => {
+        const url = _resolverUrl(n.url);
+        const cursor = url ? "pointer" : "default";
+        const onclick = url ? `onclick="window.location.href='${url}'"` : "";
+        const fondo = !n.leida ? "background:#eff6ff;margin:0 -1rem;padding:0.75rem 1rem;" : "";
+        return `
+        <div ${onclick} style="display:flex;gap:0.6rem;padding:0.75rem 0;border-bottom:1px solid #f3f4f6;cursor:${cursor};${fondo}">
             <span style="font-size:1.2rem;">${iconos[n.tipo] || "🔔"}</span>
             <div style="flex:1;">
                 <p style="margin:0;font-size:0.88rem;color:#374151;">${n.mensaje}</p>
                 <span style="font-size:0.75rem;color:#9ca3af;">${formatFecha(n.fecha)}</span>
             </div>
-        </div>
-    `).join("");
+            ${url ? '<span style="color:#2563eb;font-size:0.8rem;align-self:center;">→</span>' : ""}
+        </div>`;
+    }).join("");
 }
 
 function iniciarNotificaciones() {
@@ -258,12 +256,12 @@ function iniciarNotificaciones() {
             🔔
             <span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#dc2626;color:white;border-radius:50%;width:18px;height:18px;font-size:0.65rem;font-weight:700;align-items:center;justify-content:center;">0</span>
         </button>
-        <div id="notif-panel" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:320px;background:white;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:999;border:1px solid #e5e7eb;">
+        <div id="notif-panel" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:340px;background:white;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:999;border:1px solid #e5e7eb;">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:0.85rem 1rem;border-bottom:1px solid #e5e7eb;">
                 <strong style="color:#1a3a6b;font-size:0.95rem;">Notificaciones</strong>
                 <button onclick="limpiarNotificaciones()" style="background:none;border:none;font-size:0.75rem;color:#9ca3af;cursor:pointer;">Limpiar</button>
             </div>
-            <div id="notif-lista" style="max-height:340px;overflow-y:auto;padding:0 1rem;"></div>
+            <div id="notif-lista" style="max-height:360px;overflow-y:auto;padding:0 1rem;"></div>
         </div>
     `;
     nav.appendChild(li);
@@ -273,10 +271,6 @@ function iniciarNotificaciones() {
         if (panel) panel.style.display = "none";
     });
 
-    if (_esAdmin()) {
-        _cargarNotificacionesAdmin();
-        setInterval(_cargarNotificacionesAdmin, 30000);
-    } else {
-        actualizarContadorNotif();
-    }
+    _cargarNotificaciones();
+    setInterval(_cargarNotificaciones, 30000);
 }

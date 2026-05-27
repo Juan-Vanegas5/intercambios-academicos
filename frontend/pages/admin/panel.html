@@ -71,6 +71,7 @@
         <button class="btn btn-secundario btn-sm" onclick="filtrar('necesita_correcciones')">Necesita correcciones</button>
         <button class="btn btn-exito btn-sm"    onclick="filtrar('aprobada')">Aprobadas</button>
         <button class="btn btn-danger btn-sm"   onclick="filtrar('rechazada')">Rechazadas</button>
+        <button class="btn btn-sm" onclick="filtrar('completada')" style="background:#16a34a;color:white;border-color:#16a34a;">✅ Completadas</button>
       </div>
 
       <div id="alerta-admin" class="alerta mb-3" style="display:none;"></div>
@@ -368,7 +369,7 @@
 
     function filtrar(estado) {
       const lista = estado === "todas"
-        ? todasPostulaciones
+        ? todasPostulaciones.filter(p => p.estado !== "completada")
         : todasPostulaciones.filter(p => p.estado === estado);
       renderTabla(lista);
     }

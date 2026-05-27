@@ -177,6 +177,24 @@
       // Validación nombre y apellido
       aplicarValidacionTexto(inputNombre, alerta);
       aplicarValidacionTexto(inputApellido, alerta);
+
+      // Cédula: solo números
+      const inputCedula = document.getElementById('cedula');
+      inputCedula.addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '');
+      });
+
+      // Celular: solo números y +
+      const inputCelular = document.getElementById('celular');
+      inputCelular.addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9+]/g, '');
+      });
+
+      // Código estudiantil: solo números
+      const inputCodigo = document.getElementById('codigo');
+      inputCodigo.addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '');
+      });
     });
 
     async function registrar(e) {

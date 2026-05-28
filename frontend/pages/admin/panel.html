@@ -35,6 +35,10 @@
         style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
         📣 Convocatorias
       </button>
+      <button id="tab-usuarios" onclick="mostrarTab('usuarios')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        👥 Usuarios
+      </button>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
@@ -136,6 +140,44 @@
             <tbody id="cuerpo-conv">
               <tr>
                 <td colspan="9" style="text-align:center;color:#6b7280;padding:2rem;">Cargando...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SECCIÓN: USUARIOS                                                   -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div id="seccion-usuarios" style="display:none;">
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h2 style="margin:0;color:#1a3a6b;">Gestión de Usuarios</h2>
+        <span style="font-size:0.85rem;color:#6b7280;background:#fef3c7;border:1px solid #fbbf24;padding:0.4rem 0.8rem;border-radius:6px;">
+          🔒 El último administrador no puede ser eliminado ni degradado
+        </span>
+      </div>
+
+      <div id="alerta-usuarios" class="alerta mb-3" style="display:none;"></div>
+
+      <div class="card">
+        <div class="tabla-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Programa</th>
+                <th>Rol</th>
+                <th>Verificado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-usuarios">
+              <tr>
+                <td colspan="7" style="text-align:center;color:#6b7280;padding:2rem;">Cargando usuarios...</td>
               </tr>
             </tbody>
           </table>
@@ -315,7 +357,7 @@
     // ── Pestañas ───────────────────────────────────────────────────────────
 
     function mostrarTab(tab) {
-      const tabs = ["postulaciones", "convocatorias"];
+      const tabs = ["postulaciones", "convocatorias", "usuarios"];
       tabs.forEach(t => {
         document.getElementById(`seccion-${t}`).style.display = t === tab ? "block" : "none";
         const btn = document.getElementById(`tab-${t}`);
@@ -323,6 +365,7 @@
         btn.style.borderBottomColor = t === tab ? "#1a3a6b" : "transparent";
       });
       if (tab === "convocatorias") cargarConvocatorias();
+      if (tab === "usuarios") cargarUsuarios();
     }
 
     // ── Postulaciones ──────────────────────────────────────────────────────
@@ -661,6 +704,96 @@
       alerta.className = `alerta alerta-${tipo} mb-3`;
       alerta.style.display = "block";
       alerta.textContent = msg;
+    }
+
+    // ── Gestión de Usuarios ────────────────────────────────────────────────
+
+    let todosUsuarios = [];
+
+    async function cargarUsuarios() {
+      try {
+        todosUsuarios = await apiFetch("/api/admin/usuarios", { headers: authHeaders() });
+        renderTablaUsuarios(todosUsuarios);
+      } catch (err) {
+        mostrarAlertaUsuarios("Error al cargar usuarios: " + err.message, "error");
+      }
+    }
+
+    function renderTablaUsuarios(lista) {
+      const tbody = document.getElementById("cuerpo-usuarios");
+      if (!lista || lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:2rem;">No hay usuarios registrados.</td></tr>`;
+        return;
+      }
+      const totalAdmins = lista.filter(u => u.rol === "administrador").length;
+      tbody.innerHTML = lista.map(u => {
+        const esUnicoAdmin = u.rol === "administrador" && totalAdmins <= 1;
+        const rolBadge = u.rol === "administrador"
+          ? `<span class="badge badge-azul">Administrador</span>`
+          : `<span class="badge" style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;">Estudiante</span>`;
+        const verificado = u.email_verificado
+          ? `<span style="color:#16a34a;font-size:0.85rem;">✔ Verificado</span>`
+          : `<span style="color:#d97706;font-size:0.85rem;">⏳ Pendiente</span>`;
+        const btnCambiarRol = esUnicoAdmin
+          ? `<button class="btn btn-secundario btn-sm" disabled title="No puedes degradar al único administrador" style="opacity:0.4;cursor:not-allowed;">⚠ Único admin</button>`
+          : (u.rol === "administrador"
+              ? `<button class="btn btn-secundario btn-sm" onclick="cambiarRolUsuario(${u.id},'estudiante')" title="Cambiar a estudiante">↓ Estudiante</button>`
+              : `<button class="btn btn-secundario btn-sm" onclick="cambiarRolUsuario(${u.id},'administrador')" title="Promover a administrador" style="color:#1a3a6b;border-color:#1a3a6b;">↑ Admin</button>`);
+        const btnEliminar = esUnicoAdmin
+          ? `<button class="btn btn-danger btn-sm" disabled title="No puedes eliminar al único administrador" style="opacity:0.4;cursor:not-allowed;">🔒</button>`
+          : `<button class="btn btn-danger btn-sm" onclick="confirmarEliminarUsuario(${u.id})" title="Eliminar usuario">🗑</button>`;
+        return `
+          <tr>
+            <td>${u.id}</td>
+            <td><strong>${u.nombre} ${u.apellido}</strong></td>
+            <td style="font-size:0.85rem;">${u.email}</td>
+            <td style="font-size:0.85rem;">${u.programa || "—"}</td>
+            <td>${rolBadge}</td>
+            <td>${verificado}</td>
+            <td style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+              ${btnCambiarRol}
+              ${btnEliminar}
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function cambiarRolUsuario(id, nuevoRol) {
+      const u = todosUsuarios.find(x => x.id === id);
+      const nombre = u ? `${u.nombre} ${u.apellido}` : `#${id}`;
+      if (!confirm(`¿Cambiar el rol de ${nombre} a "${nuevoRol}"?`)) return;
+      try {
+        await apiFetch(`/api/admin/usuarios/${id}/rol`, {
+          method: "PUT", headers: authHeaders(),
+          body: JSON.stringify({ rol: nuevoRol })
+        });
+        mostrarAlertaUsuarios(`Rol de ${nombre} actualizado a "${nuevoRol}".`, "exito");
+        await cargarUsuarios();
+      } catch (err) {
+        mostrarAlertaUsuarios("Error: " + err.message, "error");
+      }
+    }
+
+    async function confirmarEliminarUsuario(id) {
+      const u = todosUsuarios.find(x => x.id === id);
+      const nombre = u ? `${u.nombre} ${u.apellido}` : `#${id}`;
+      if (!confirm(`¿Eliminar permanentemente a ${nombre}?\nSe borrarán todas sus postulaciones y documentos. Esta acción no se puede deshacer.`)) return;
+      try {
+        await apiFetch(`/api/admin/usuarios/${id}`, { method: "DELETE", headers: authHeaders() });
+        mostrarAlertaUsuarios(`Usuario ${nombre} eliminado correctamente.`, "exito");
+        await cargarUsuarios();
+      } catch (err) {
+        mostrarAlertaUsuarios("Error: " + err.message, "error");
+      }
+    }
+
+    function mostrarAlertaUsuarios(msg, tipo = "error") {
+      const alerta = document.getElementById("alerta-usuarios");
+      alerta.className = `alerta alerta-${tipo} mb-3`;
+      alerta.style.display = "block";
+      alerta.textContent = msg;
+      setTimeout(() => { alerta.style.display = "none"; }, 6000);
     }
 
     // ── Descarga de documentos S3 ──────────────────────────────────────────

@@ -37,7 +37,8 @@ class Usuario(Base):
     verificacion_expira   = Column(DateTime, nullable=True)
     email_verificado      = Column(BOOLEAN, default=False, nullable=False)
 
-    programa = relationship("ProgramaAcademico", lazy="joined")
+    programa      = relationship("ProgramaAcademico", lazy="joined")
+    postulaciones = relationship("Postulacion", foreign_keys="[Postulacion.estudiante_id]", lazy="select")
 
 class Convocatoria(Base):
     __tablename__ = "convocatorias"

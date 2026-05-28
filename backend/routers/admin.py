@@ -279,3 +279,87 @@ def marcar_leidas(db: Session = Depends(get_db), admin: Usuario = Depends(solo_a
      .update({"leida": True}))
     db.commit()
     return {"mensaje": "Notificaciones marcadas como leídas"}
+
+# ── Gestión de usuarios ───────────────────────────────────────────────────────
+
+@router.get("/usuarios", summary="Listar todos los usuarios", dependencies=[Depends(solo_admin)])
+def listar_usuarios(db: Session = Depends(get_db)):
+    """Devuelve todos los usuarios registrados con su rol y estado de verificación."""
+    usuarios = db.query(Usuario).order_by(Usuario.rol, Usuario.nombre).all()
+    return [
+        {
+            "id": u.id,
+            "nombre": u.nombre,
+            "apellido": u.apellido,
+            "email": u.email,
+            "rol": u.rol,
+            "email_verificado": u.email_verificado,
+            "programa": u.programa.nombre if u.programa else None,
+        }
+        for u in usuarios
+    ]
+
+
+@router.put("/usuarios/{id}/rol", summary="Cambiar rol de un usuario", dependencies=[Depends(solo_admin)])
+def cambiar_rol(id: int, body: dict, db: Session = Depends(get_db)):
+    """
+    Cambia el rol de un usuario entre 'estudiante' y 'administrador'.
+    No se puede degradar al último administrador.
+    """
+    nuevo_rol = body.get("rol", "").strip()
+    if nuevo_rol not in ("estudiante", "administrador"):
+        raise HTTPException(status_code=400, detail="Rol inválido. Usa 'estudiante' o 'administrador'.")
+
+    usuario = db.query(Usuario).filter(Usuario.id == id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    # Regla de negocio: no degradar al único administrador
+    if usuario.rol == "administrador" and nuevo_rol != "administrador":
+        total_admins = db.query(Usuario).filter(Usuario.rol == "administrador").count()
+        if total_admins <= 1:
+            raise HTTPException(
+                status_code=409,
+                detail="No puedes cambiar el rol del único administrador del sistema. Primero asigna otro administrador."
+            )
+
+    usuario.rol = nuevo_rol
+    db.commit()
+    return {"mensaje": f"Rol actualizado a '{nuevo_rol}' correctamente", "id": id, "rol": nuevo_rol}
+
+
+@router.delete("/usuarios/{id}", summary="Eliminar un usuario del sistema", dependencies=[Depends(solo_admin)])
+def eliminar_usuario(id: int, db: Session = Depends(get_db)):
+    """
+    Elimina un usuario y todos sus datos asociados.
+    REGLA DE NEGOCIO: no se puede eliminar al último administrador del sistema.
+    """
+    usuario = db.query(Usuario).filter(Usuario.id == id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    # Regla de negocio: proteger el último administrador
+    if usuario.rol == "administrador":
+        total_admins = db.query(Usuario).filter(Usuario.rol == "administrador").count()
+        if total_admins <= 1:
+            raise HTTPException(
+                status_code=409,
+                detail="No puedes eliminar al único administrador del sistema. Primero crea o asigna otro administrador."
+            )
+
+    # Eliminar documentos de S3 de todas sus postulaciones
+    for postulacion in usuario.postulaciones:
+        for doc in postulacion.documentos:
+            try:
+                eliminar_documento(doc.s3_key)
+            except Exception:
+                pass
+            db.delete(doc)
+        db.delete(postulacion)
+
+    # Eliminar notificaciones
+    db.query(Notificacion).filter(Notificacion.usuario_id == id).delete()
+
+    db.delete(usuario)
+    db.commit()
+    return {"mensaje": f"Usuario '{usuario.nombre} {usuario.apellido}' eliminado correctamente"}

@@ -38,8 +38,10 @@ class Usuario(Base):
     fecha_registro        = Column(DateTime, default=datetime.datetime.now)
     verificacion_codigo   = Column(String(10), nullable=True)
     verificacion_expira   = Column(DateTime, nullable=True)
+    email_verificado      = Column(BOOLEAN, default=False, nullable=False)
 
-    programa = relationship("ProgramaAcademico", lazy="joined")
+    programa      = relationship("ProgramaAcademico", lazy="joined")
+    postulaciones = relationship("Postulacion", foreign_keys="[Postulacion.estudiante_id]", lazy="select")
 
 class Convocatoria(Base):
     __tablename__ = "convocatorias"

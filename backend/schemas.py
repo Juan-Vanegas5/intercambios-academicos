@@ -84,6 +84,13 @@ class VerificarCodigoRequest(BaseModel):
     email: str
     codigo: str
 
+class ConfirmarRegistroRequest(BaseModel):
+    email: str
+    codigo: str
+
+class ReenviarVerificacionRequest(BaseModel):
+    email: str
+
 class EstadoRequest(BaseModel):
     estado: str
     comentario: Optional[str] = None

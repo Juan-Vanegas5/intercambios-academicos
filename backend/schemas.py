@@ -84,6 +84,15 @@ class VerificarCodigoRequest(BaseModel):
     email: str
     codigo: str
 
+class ConfirmarRegistroRequest(BaseModel):
+    """Paso 2 del registro: el usuario ingresa el código de 6 dígitos recibido."""
+    email: str
+    codigo: str
+
+class ReenviarVerificacionRequest(BaseModel):
+    """Solicitud para reenviar el código de verificación de registro."""
+    email: str
+
 class EstadoRequest(BaseModel):
     estado: str
     comentario: Optional[str] = None

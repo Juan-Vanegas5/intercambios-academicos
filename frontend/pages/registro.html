@@ -22,83 +22,138 @@
     <div class="form-container" style="max-width:560px;">
       <div class="card">
 
-        <div class="text-center mb-3">
-          <div style="font-size:2.5rem; margin-bottom:0.5rem;">📝</div>
-          <h1 style="font-size:1.5rem; color:#1a3a6b; margin-bottom:0.3rem;">Crear cuenta</h1>
-          <p style="color:#6b7280; font-size:0.9rem;">Regístrate para postularte a intercambios académicos</p>
-        </div>
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- PASO 1 — Formulario de registro                -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <div id="paso-1">
 
-        <form id="form-registro" onsubmit="registrar(event)">
-
-          <div class="form-fila">
-            <div class="form-group">
-              <label for="nombre">Nombre</label>
-              <input type="text" id="nombre" placeholder="Ej: Juan Andrés" required />
-            </div>
-            <div class="form-group">
-              <label for="apellido">Apellido</label>
-              <input type="text" id="apellido" placeholder="Ej: Vanegas" required />
-            </div>
+          <div class="text-center mb-3">
+            <div style="font-size:2.5rem; margin-bottom:0.5rem;">📝</div>
+            <h1 style="font-size:1.5rem; color:#1a3a6b; margin-bottom:0.3rem;">Crear cuenta</h1>
+            <p style="color:#6b7280; font-size:0.9rem;">Regístrate para postularte a intercambios académicos</p>
           </div>
 
-          <div class="form-group">
-            <label for="email">Correo institucional</label>
-            <input type="email" id="email" placeholder="ejemplo@upc.edu.co" required />
+          <form id="form-registro" onsubmit="registrar(event)">
+
+            <div class="form-fila">
+              <div class="form-group">
+                <label for="nombre">Nombre</label>
+                <input type="text" id="nombre" placeholder="Ej: Juan Andrés" required />
+              </div>
+              <div class="form-group">
+                <label for="apellido">Apellido</label>
+                <input type="text" id="apellido" placeholder="Ej: Vanegas" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Correo institucional</label>
+              <input type="email" id="email" placeholder="ejemplo@upc.edu.co" required />
+            </div>
+
+            <div class="form-fila">
+              <div class="form-group">
+                <label for="cedula">Cédula de ciudadanía</label>
+                <input type="text" id="cedula" placeholder="Ej: 1234567890" required />
+              </div>
+              <div class="form-group">
+                <label for="celular">Número celular</label>
+                <input type="tel" id="celular" placeholder="Ej: 3001234567" required />
+              </div>
+            </div>
+
+            <div class="form-fila">
+              <div class="form-group">
+                <label for="codigo">Código estudiantil</label>
+                <input type="text" id="codigo" placeholder="Ej: 201923456" required />
+              </div>
+              <div class="form-group">
+                <label for="programa">Programa académico</label>
+                <select id="programa" required>
+                  <option value="">Seleccionar...</option>
+                  <option>Ingeniería de Sistemas</option>
+                  <option>Ingeniería Civil</option>
+                  <option>Arquitectura</option>
+                  <option>Administración de Empresas</option>
+                  <option>Derecho</option>
+                  <option>Psicología</option>
+                  <option>Medicina</option>
+                  <option>Otro</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-fila">
+              <div class="form-group">
+                <label for="contrasena">Contraseña</label>
+                <input type="password" id="contrasena" placeholder="Mínimo 6 caracteres" required minlength="6" />
+              </div>
+              <div class="form-group">
+                <label for="confirmar">Confirmar contraseña</label>
+                <input type="password" id="confirmar" placeholder="Repite tu contraseña" required />
+              </div>
+            </div>
+
+            <div id="alerta-registro"></div>
+
+            <button type="submit" class="btn btn-primario btn-bloque btn-submit">
+              Crear cuenta
+            </button>
+          </form>
+
+          <div class="form-pie mt-2">
+            ¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a>
           </div>
 
-          <div class="form-fila">
-            <div class="form-group">
-              <label for="cedula">Cédula de ciudadanía</label>
-              <input type="text" id="cedula" placeholder="Ej: 1234567890" required />
-            </div>
-            <div class="form-group">
-              <label for="celular">Número celular</label>
-              <input type="tel" id="celular" placeholder="Ej: 3001234567" required />
-            </div>
+        </div><!-- /paso-1 -->
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- PASO 2 — Verificación de correo (MFA)          -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <div id="paso-2" style="display:none;">
+
+          <div class="text-center mb-3">
+            <div style="font-size:2.5rem; margin-bottom:0.5rem;">✉️</div>
+            <h1 style="font-size:1.5rem; color:#1a3a6b; margin-bottom:0.3rem;">Verifica tu correo</h1>
+            <p style="color:#6b7280; font-size:0.9rem;">
+              Te enviamos un código de 6 dígitos a <strong id="email-destino-registro"></strong>
+            </p>
           </div>
 
-          <div class="form-fila">
-            <div class="form-group">
-              <label for="codigo">Código estudiantil</label>
-              <input type="text" id="codigo" placeholder="Ej: 201923456" required />
+          <form id="form-verificar-registro" onsubmit="confirmarRegistro(event)">
+
+            <div class="form-group text-center">
+              <label for="codigo-verificacion-registro" style="display:block; margin-bottom:0.5rem;">
+                Código de verificación
+              </label>
+              <input
+                type="text"
+                id="codigo-verificacion-registro"
+                maxlength="6"
+                placeholder="000000"
+                autocomplete="one-time-code"
+                style="font-size:1.8rem; letter-spacing:0.5rem; text-align:center; width:220px;"
+                required
+              />
             </div>
-            <div class="form-group">
-              <label for="programa">Programa académico</label>
-              <select id="programa" required>
-                <option value="">Seleccionar...</option>
-                <option>Ingeniería de Sistemas</option>
-                <option>Ingeniería Civil</option>
-                <option>Arquitectura</option>
-                <option>Administración de Empresas</option>
-                <option>Derecho</option>
-                <option>Psicología</option>
-                <option>Medicina</option>
-                <option>Otro</option>
-              </select>
-            </div>
+
+            <div id="alerta-verificacion-registro"></div>
+
+            <button type="submit" class="btn btn-primario btn-bloque btn-submit">
+              Verificar y crear cuenta
+            </button>
+
+          </form>
+
+          <div class="form-pie mt-2" style="text-align:center;">
+            <button
+              onclick="reenviarCodigoRegistro()"
+              style="background:none; border:none; color:#2563eb; cursor:pointer; font-size:0.9rem; text-decoration:underline;">
+              ¿No recibiste el código? Reenviar
+            </button>
           </div>
 
-          <div class="form-fila">
-            <div class="form-group">
-              <label for="contrasena">Contraseña</label>
-              <input type="password" id="contrasena" placeholder="Mínimo 6 caracteres" required minlength="6" />
-            </div>
-            <div class="form-group">
-              <label for="confirmar">Confirmar contraseña</label>
-              <input type="password" id="confirmar" placeholder="Repite tu contraseña" required />
-            </div>
-          </div>
-
-          <div id="alerta-registro"></div>
-
-          <button type="submit" class="btn btn-primario btn-bloque btn-submit">
-            Crear cuenta
-          </button>
-        </form>
-
-        <div class="form-pie mt-2">
-          ¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a>
-        </div>
+        </div><!-- /paso-2 -->
 
       </div>
     </div>
@@ -110,13 +165,12 @@
 
   <script src="js/main.js"></script>
   <script>
+    // ── Utilidades de validación ─────────────────────────────────────────────
     function validarEmail(email) {
-      const regex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
-      return regex.test(email.trim());
+      return /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email.trim());
     }
 
     function validarSoloLetras(valor) {
-      // Permite letras, tildes, ñ y espacios — no números ni símbolos
       return /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/.test(valor.trim());
     }
 
@@ -145,14 +199,13 @@
       });
     }
 
-    // Validación en tiempo real
+    // ── Validaciones en tiempo real ──────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function () {
-      const inputEmail   = document.getElementById('email');
-      const inputNombre  = document.getElementById('nombre');
+      const inputEmail    = document.getElementById('email');
+      const inputNombre   = document.getElementById('nombre');
       const inputApellido = document.getElementById('apellido');
-      const alerta = document.getElementById('alerta-registro');
+      const alerta        = document.getElementById('alerta-registro');
 
-      // Validación email
       inputEmail.addEventListener('blur', function () {
         const val = inputEmail.value.trim();
         if (val && !validarEmail(val)) {
@@ -174,29 +227,24 @@
         }
       });
 
-      // Validación nombre y apellido
       aplicarValidacionTexto(inputNombre, alerta);
       aplicarValidacionTexto(inputApellido, alerta);
 
-      // Cédula: solo números
-      const inputCedula = document.getElementById('cedula');
-      inputCedula.addEventListener('input', function () {
+      document.getElementById('cedula').addEventListener('input', function () {
         this.value = this.value.replace(/[^0-9]/g, '');
       });
-
-      // Celular: solo números y +
-      const inputCelular = document.getElementById('celular');
-      inputCelular.addEventListener('input', function () {
+      document.getElementById('celular').addEventListener('input', function () {
         this.value = this.value.replace(/[^0-9+]/g, '');
       });
-
-      // Código estudiantil: solo números
-      const inputCodigo = document.getElementById('codigo');
-      inputCodigo.addEventListener('input', function () {
+      document.getElementById('codigo').addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '');
+      });
+      document.getElementById('codigo-verificacion-registro').addEventListener('input', function () {
         this.value = this.value.replace(/[^0-9]/g, '');
       });
     });
 
+    // ── PASO 1: Enviar formulario de registro ────────────────────────────────
     async function registrar(e) {
       e.preventDefault();
       const contrasena = document.getElementById('contrasena').value;
@@ -242,13 +290,13 @@
       btn.textContent = 'Creando cuenta...';
 
       try {
-        const data = await apiFetch('/api/auth/registro', {
+        await apiFetch('/api/auth/registro', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            nombre:     document.getElementById('nombre').value.trim(),
-            apellido:   document.getElementById('apellido').value.trim(),
-            email:      document.getElementById('email').value.trim(),
+            nombre:     nombre,
+            apellido:   apellido,
+            email:      email,
             contrasena: contrasena,
             cedula:     document.getElementById('cedula').value.trim(),
             celular:    document.getElementById('celular').value.trim(),
@@ -256,16 +304,70 @@
             programa:   document.getElementById('programa').value
           })
         });
-        setSession(data.token, {
-          nombre: data.nombre, apellido: data.apellido,
-          email: data.email, rol: data.rol
-        });
-        window.location.href = 'index.html';
+
+        // Guardamos el email para usarlo en paso 2
+        document.getElementById('email-destino-registro').textContent = email;
+        document.getElementById('paso-1').style.display = 'none';
+        document.getElementById('paso-2').style.display = 'block';
+        document.getElementById('codigo-verificacion-registro').focus();
+
       } catch (err) {
         alerta.className = 'alerta alerta-error';
         alerta.textContent = err.message || 'Error al crear la cuenta.';
         btn.disabled    = false;
         btn.textContent = 'Crear cuenta';
+      }
+    }
+
+    // ── PASO 2: Confirmar código de verificación ─────────────────────────────
+    async function confirmarRegistro(e) {
+      e.preventDefault();
+      const email  = document.getElementById('email-destino-registro').textContent;
+      const codigo = document.getElementById('codigo-verificacion-registro').value.trim();
+      const alerta = document.getElementById('alerta-verificacion-registro');
+      const btn    = document.querySelector('#form-verificar-registro button[type="submit"]');
+
+      alerta.textContent = '';
+      btn.disabled    = true;
+      btn.textContent = 'Verificando...';
+
+      try {
+        const data = await apiFetch('/api/auth/confirmar-registro', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, codigo })
+        });
+
+        setSession(data.token, {
+          nombre: data.nombre, apellido: data.apellido,
+          email: data.email, rol: data.rol
+        });
+        window.location.href = 'index.html';
+
+      } catch (err) {
+        alerta.className = 'alerta alerta-error';
+        alerta.textContent = err.message || 'Código incorrecto o expirado.';
+        btn.disabled    = false;
+        btn.textContent = 'Verificar y crear cuenta';
+      }
+    }
+
+    // ── Reenviar código ──────────────────────────────────────────────────────
+    async function reenviarCodigoRegistro() {
+      const email = document.getElementById('email-destino-registro').textContent;
+      const alerta = document.getElementById('alerta-verificacion-registro');
+      try {
+        // Llamamos de nuevo al paso 1 solo con el email para reenviar el código
+        await apiFetch('/api/auth/reenviar-verificacion', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        alerta.className = 'alerta alerta-exito';
+        alerta.textContent = 'Código reenviado. Revisa tu bandeja de entrada.';
+      } catch (err) {
+        alerta.className = 'alerta alerta-error';
+        alerta.textContent = err.message || 'No se pudo reenviar el código.';
       }
     }
   </script>

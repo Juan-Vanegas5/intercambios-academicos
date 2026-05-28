@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import BOOLEAN
 from database import Base
@@ -11,9 +11,12 @@ class ProgramaAcademico(Base):
 
 class Universidad(Base):
     __tablename__ = "universidades"
-    id      = Column(Integer, primary_key=True)
-    nombre  = Column(String(200), nullable=False)
-    pais    = Column(String(100), nullable=False)
+    id       = Column(Integer, primary_key=True)
+    nombre   = Column(String(200), nullable=False)
+    pais     = Column(String(100), nullable=False)
+    ciudad   = Column(String(150), nullable=True)
+    latitud  = Column(Float, nullable=True)
+    longitud = Column(Float, nullable=True)
 
 class TipoDocumento(Base):
     __tablename__ = "tipos_documentos"
@@ -35,10 +38,8 @@ class Usuario(Base):
     fecha_registro        = Column(DateTime, default=datetime.datetime.now)
     verificacion_codigo   = Column(String(10), nullable=True)
     verificacion_expira   = Column(DateTime, nullable=True)
-    email_verificado      = Column(BOOLEAN, default=False, nullable=False)
 
-    programa      = relationship("ProgramaAcademico", lazy="joined")
-    postulaciones = relationship("Postulacion", foreign_keys="[Postulacion.estudiante_id]", lazy="select")
+    programa = relationship("ProgramaAcademico", lazy="joined")
 
 class Convocatoria(Base):
     __tablename__ = "convocatorias"

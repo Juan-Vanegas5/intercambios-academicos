@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Intercambios Académicos - Inicio</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <style>
+    .mapa-convocatoria {
+      height: 180px;
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+      border: 1px solid #e5e7eb;
+      z-index: 0;
+    }
+    /* evitar que Leaflet quede por encima de modales */
+    .leaflet-pane { z-index: 1 !important; }
+    .leaflet-top, .leaflet-bottom { z-index: 2 !important; }
+  </style>
 </head>
 <body>
 
@@ -47,21 +61,99 @@
     </div>
   </main>
 
+  <!-- Modal mapa ampliado -->
+  <div id="modal-mapa" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:12px; width:90%; max-width:700px; padding:1.5rem; position:relative;">
+      <button onclick="cerrarModalMapa()" style="position:absolute;top:0.75rem;right:0.75rem;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#6b7280;">✕</button>
+      <h3 id="modal-mapa-titulo" style="color:#1a3a6b; margin:0 0 1rem;"></h3>
+      <div id="modal-mapa-contenedor" style="height:400px; border-radius:8px; border:1px solid #e5e7eb;"></div>
+      <p id="modal-mapa-info" style="margin-top:0.75rem; font-size:0.9rem; color:#6b7280; text-align:center;"></p>
+    </div>
+  </div>
+
   <footer>
     <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
   </footer>
 
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="js/main.js"></script>
   <script>
     let todasConvocatorias = [];
+    const mapasInstancias = {}; // id → instancia Leaflet
+    let modalMapaInstancia = null;
 
+    // ── Mapa pequeño en tarjeta ──────────────────────────────────────────
+    function iniciarMapaTarjeta(convId, lat, lng, nombre, pais) {
+      const divId = `mapa-${convId}`;
+      // evitar doble inicialización
+      if (mapasInstancias[convId]) return;
+      const map = L.map(divId, {
+        center: [lat, lng],
+        zoom: 5,
+        zoomControl: false,
+        scrollWheelZoom: false,
+        dragging: false,
+        doubleClickZoom: false,
+        attributionControl: false
+      });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      L.marker([lat, lng])
+        .addTo(map)
+        .bindPopup(`<b>${nombre}</b><br>${pais}`);
+      mapasInstancias[convId] = { map, lat, lng, nombre, pais };
+    }
+
+    // ── Modal mapa ampliado ──────────────────────────────────────────────
+    function abrirModalMapa(convId, nombre, ciudad, pais) {
+      const instancia = mapasInstancias[convId];
+      if (!instancia) return;
+      const { lat, lng } = instancia;
+
+      document.getElementById("modal-mapa-titulo").textContent = `📍 ${nombre}`;
+      document.getElementById("modal-mapa-info").textContent =
+        `${ciudad ? ciudad + ', ' : ''}${pais}`;
+      document.getElementById("modal-mapa").style.display = "flex";
+
+      setTimeout(() => {
+        if (modalMapaInstancia) {
+          modalMapaInstancia.remove();
+          modalMapaInstancia = null;
+        }
+        modalMapaInstancia = L.map("modal-mapa-contenedor", {
+          center: [lat, lng],
+          zoom: 12,
+          attributionControl: false
+        });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(modalMapaInstancia);
+        L.marker([lat, lng])
+          .addTo(modalMapaInstancia)
+          .bindPopup(`<b>${nombre}</b><br>${ciudad || ''}${ciudad ? ', ' : ''}${pais}`)
+          .openPopup();
+      }, 50);
+    }
+
+    function cerrarModalMapa() {
+      document.getElementById("modal-mapa").style.display = "none";
+      if (modalMapaInstancia) {
+        modalMapaInstancia.remove();
+        modalMapaInstancia = null;
+      }
+    }
+
+    // ── Render tarjetas ──────────────────────────────────────────────────
     function renderConvocatorias(lista) {
       const contenedor = document.getElementById("lista-convocatorias");
       if (lista.length === 0) {
         contenedor.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#6b7280;">No hay convocatorias para mostrar.</p>';
         return;
       }
-      contenedor.innerHTML = lista.map(c => `
+      contenedor.innerHTML = lista.map(c => {
+        const tieneUbicacion = c.latitud && c.longitud;
+        const ocupacion = c.totalPostulaciones !== undefined
+          ? `<span title="Postulantes actuales">👥 ${c.totalPostulaciones} postulante(s)</span>`
+          : '';
+        return `
         <div class="card">
           <div class="card-header">
             <div>
@@ -70,10 +162,19 @@
             </div>
             ${getBadge(c.estado)}
           </div>
+          ${tieneUbicacion
+            ? `<div id="mapa-${c.id}" class="mapa-convocatoria"></div>
+               <button onclick="abrirModalMapa(${c.id}, '${c.universidad.replace(/'/g,"\\'")}', '${(c.ciudad||'').replace(/'/g,"\\'")}', '${c.pais.replace(/'/g,"\\'")}')
+               " class="btn btn-secundario btn-sm" style="width:100%; margin-bottom:0.75rem; font-size:0.8rem;">
+                 🗺️ Ver ubicación en mapa
+               </button>`
+            : ''
+          }
           <p class="descripcion">${c.descripcion || ""}</p>
           <div class="info-row">
             <span>📅 Cierre: ${formatFecha(c.fechaCierre)}</span>
             <span>🪑 Cupos: ${c.cupos}</span>
+            ${ocupacion}
           </div>
           <p style="font-size:0.85rem; color:#6b7280; margin-bottom:1rem;">
             <strong>Requisitos:</strong> ${c.requisitos || ""}
@@ -83,7 +184,16 @@
             : `<button class="btn btn-secundario btn-sm" disabled>No disponible</button>`
           }
         </div>
-      `).join("");
+      `}).join("");
+
+      // Inicializar mapas después de que el DOM esté listo
+      setTimeout(() => {
+        lista.forEach(c => {
+          if (c.latitud && c.longitud) {
+            iniciarMapaTarjeta(c.id, c.latitud, c.longitud, c.universidad, c.pais);
+          }
+        });
+      }, 100);
     }
 
     function filtrar() {
@@ -101,12 +211,17 @@
       } catch (e) {
         document.getElementById("alerta-api").style.display = "block";
         document.getElementById("alerta-api").className = "alerta alerta-error mb-3";
-        document.getElementById("alerta-api").textContent = "No se pudo conectar con el servidor. Asegúrate de que el backend está corriendo.";
+        document.getElementById("alerta-api").textContent = "No se pudo conectar con el servidor.";
         document.getElementById("lista-convocatorias").innerHTML = "";
       }
     }
 
     cargar();
+
+    // Cerrar modal con Escape
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") cerrarModalMapa();
+    });
 
     // Botón hero dinámico según sesión
     (function() {

@@ -4,7 +4,7 @@ from typing import List
 
 from database import get_db
 from models import Usuario, Postulacion, Convocatoria, Documento, Universidad, Notificacion
-from schemas import EstadoRequest, PostulacionResponse, DocumentoResponse, ConvocatoriaCreate, NotificacionResponse
+from schemas import EstadoRequest, PostulacionResponse, DocumentoResponse, ConvocatoriaCreate, NotificacionResponse, SeleccionGanadoresRequest
 from auth import solo_admin
 from routers.postulaciones import to_response
 from s3_service import generar_url_descarga, eliminar_documento
@@ -37,6 +37,107 @@ def estadisticas(db: Session = Depends(get_db)):
         "aprobadas": aprobadas,
         "rechazadas": rechazadas,
         "en_revision": revision + revisando + correcciones
+    }
+
+# ── Selección de ganadores por cupos ─────────────────────────────────────────
+
+@router.get("/convocatorias/{id}/postulantes",
+            summary="Ver postulantes de una convocatoria con info de cupos",
+            dependencies=[Depends(solo_admin)])
+def ver_postulantes_convocatoria(id: int, db: Session = Depends(get_db)):
+    """
+    Devuelve todas las postulaciones de una convocatoria junto con
+    el total de cupos disponibles y cuántos ya han sido seleccionados.
+    """
+    conv = db.query(Convocatoria).filter(Convocatoria.id == id).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="Convocatoria no encontrada")
+
+    postulaciones = (db.query(Postulacion)
+                     .filter(Postulacion.convocatoria_id == id)
+                     .order_by(Postulacion.fecha_postulacion)
+                     .all())
+    seleccionados = sum(1 for p in postulaciones if p.estado == "aprobada")
+
+    return {
+        "convocatoria": {
+            "id": conv.id,
+            "titulo": conv.titulo,
+            "universidad": conv.universidad.nombre if conv.universidad else "",
+            "cupos": conv.cupos,
+            "seleccionados": seleccionados,
+            "cuposDisponibles": conv.cupos - seleccionados,
+        },
+        "postulaciones": [to_response(p) for p in postulaciones]
+    }
+
+@router.post("/convocatorias/{id}/seleccionar-ganadores",
+             summary="Seleccionar ganadores respetando cupos")
+def seleccionar_ganadores(
+    id: int,
+    request: SeleccionGanadoresRequest,
+    db: Session = Depends(get_db),
+    admin: Usuario = Depends(solo_admin)
+):
+    """
+    El admin envía la lista de IDs de postulaciones que quedan SELECCIONADAS.
+    - Las que están en la lista → estado 'aprobada'
+    - Las que NO están en la lista (y estaban en revisión) → estado 'rechazada'
+    - Se valida que no supere los cupos de la convocatoria.
+    """
+    conv = db.query(Convocatoria).filter(Convocatoria.id == id).first()
+    if not conv:
+        raise HTTPException(status_code=404, detail="Convocatoria no encontrada")
+
+    if len(request.ids_seleccionados) > conv.cupos:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Solo hay {conv.cupos} cupo(s) disponible(s) pero seleccionaste {len(request.ids_seleccionados)}."
+        )
+
+    # Todas las postulaciones de esta convocatoria
+    postulaciones = db.query(Postulacion).filter(Postulacion.convocatoria_id == id).all()
+    ids_set = set(request.ids_seleccionados)
+
+    for p in postulaciones:
+        nuevo_estado = "aprobada" if p.id in ids_set else "rechazada"
+        estado_anterior = p.estado
+
+        if nuevo_estado == estado_anterior:
+            continue
+
+        p.estado = nuevo_estado
+        conv_titulo = conv.titulo
+
+        if nuevo_estado == "aprobada":
+            msg = f"🎉 ¡Felicitaciones! Fuiste seleccionado(a) para el intercambio en «{conv_titulo}»."
+            if request.comentario:
+                msg += f" {request.comentario}"
+            enviar_aprobacion(
+                email=p.estudiante.email,
+                nombre=p.estudiante.nombre,
+                convocatoria=conv_titulo,
+                comentario=request.comentario
+            )
+        else:
+            msg = f"❌ Lo sentimos, no fuiste seleccionado(a) para «{conv_titulo}»."
+            if request.comentario:
+                msg += f" {request.comentario}"
+
+        _notificar(db, p.estudiante_id, msg, tipo="estado_postulacion", url="seguimiento.html")
+
+    # Notificar al admin
+    _notificar(
+        db, admin.id,
+        f"✅ Selección de {len(ids_set)} ganador(es) completada para «{conv.titulo}».",
+        tipo="accion_admin", url="panel.html"
+    )
+
+    db.commit()
+    return {
+        "mensaje": f"Selección completada: {len(ids_set)} aprobado(s), {len(postulaciones) - len(ids_set)} rechazado(s).",
+        "aprobados": len(ids_set),
+        "rechazados": len(postulaciones) - len(ids_set)
     }
 
 
@@ -185,6 +286,7 @@ def listar_universidades(db: Session = Depends(get_db)):
 
 @router.get("/convocatorias", summary="Listar todas las convocatorias (gestión)", dependencies=[Depends(solo_admin)])
 def listar_convocatorias_admin(db: Session = Depends(get_db)):
+    from models import Postulacion
     convs = db.query(Convocatoria).order_by(Convocatoria.fecha_creacion.desc()).all()
     return [
         {
@@ -192,6 +294,9 @@ def listar_convocatorias_admin(db: Session = Depends(get_db)):
             "titulo": c.titulo,
             "universidad": c.universidad.nombre if c.universidad else "—",
             "pais": c.universidad.pais if c.universidad else "—",
+            "ciudad": c.universidad.ciudad if c.universidad else None,
+            "latitud": c.universidad.latitud if c.universidad else None,
+            "longitud": c.universidad.longitud if c.universidad else None,
             "universidadId": c.universidad_id,
             "descripcion": c.descripcion,
             "requisitos": c.requisitos,
@@ -199,6 +304,7 @@ def listar_convocatorias_admin(db: Session = Depends(get_db)):
             "fechaCierre": str(c.fecha_cierre),
             "cupos": c.cupos,
             "estado": c.estado,
+            "totalPostulaciones": db.query(Postulacion).filter(Postulacion.convocatoria_id == c.id).count(),
         }
         for c in convs
     ]
@@ -279,87 +385,3 @@ def marcar_leidas(db: Session = Depends(get_db), admin: Usuario = Depends(solo_a
      .update({"leida": True}))
     db.commit()
     return {"mensaje": "Notificaciones marcadas como leídas"}
-
-# ── Gestión de usuarios ───────────────────────────────────────────────────────
-
-@router.get("/usuarios", summary="Listar todos los usuarios", dependencies=[Depends(solo_admin)])
-def listar_usuarios(db: Session = Depends(get_db)):
-    """Devuelve todos los usuarios registrados con su rol y estado de verificación."""
-    usuarios = db.query(Usuario).order_by(Usuario.rol, Usuario.nombre).all()
-    return [
-        {
-            "id": u.id,
-            "nombre": u.nombre,
-            "apellido": u.apellido,
-            "email": u.email,
-            "rol": u.rol,
-            "email_verificado": u.email_verificado,
-            "programa": u.programa.nombre if u.programa else None,
-        }
-        for u in usuarios
-    ]
-
-
-@router.put("/usuarios/{id}/rol", summary="Cambiar rol de un usuario", dependencies=[Depends(solo_admin)])
-def cambiar_rol(id: int, body: dict, db: Session = Depends(get_db)):
-    """
-    Cambia el rol de un usuario entre 'estudiante' y 'administrador'.
-    No se puede degradar al último administrador.
-    """
-    nuevo_rol = body.get("rol", "").strip()
-    if nuevo_rol not in ("estudiante", "administrador"):
-        raise HTTPException(status_code=400, detail="Rol inválido. Usa 'estudiante' o 'administrador'.")
-
-    usuario = db.query(Usuario).filter(Usuario.id == id).first()
-    if not usuario:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-    # Regla de negocio: no degradar al único administrador
-    if usuario.rol == "administrador" and nuevo_rol != "administrador":
-        total_admins = db.query(Usuario).filter(Usuario.rol == "administrador").count()
-        if total_admins <= 1:
-            raise HTTPException(
-                status_code=409,
-                detail="No puedes cambiar el rol del único administrador del sistema. Primero asigna otro administrador."
-            )
-
-    usuario.rol = nuevo_rol
-    db.commit()
-    return {"mensaje": f"Rol actualizado a '{nuevo_rol}' correctamente", "id": id, "rol": nuevo_rol}
-
-
-@router.delete("/usuarios/{id}", summary="Eliminar un usuario del sistema", dependencies=[Depends(solo_admin)])
-def eliminar_usuario(id: int, db: Session = Depends(get_db)):
-    """
-    Elimina un usuario y todos sus datos asociados.
-    REGLA DE NEGOCIO: no se puede eliminar al último administrador del sistema.
-    """
-    usuario = db.query(Usuario).filter(Usuario.id == id).first()
-    if not usuario:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-    # Regla de negocio: proteger el último administrador
-    if usuario.rol == "administrador":
-        total_admins = db.query(Usuario).filter(Usuario.rol == "administrador").count()
-        if total_admins <= 1:
-            raise HTTPException(
-                status_code=409,
-                detail="No puedes eliminar al único administrador del sistema. Primero crea o asigna otro administrador."
-            )
-
-    # Eliminar documentos de S3 de todas sus postulaciones
-    for postulacion in usuario.postulaciones:
-        for doc in postulacion.documentos:
-            try:
-                eliminar_documento(doc.s3_key)
-            except Exception:
-                pass
-            db.delete(doc)
-        db.delete(postulacion)
-
-    # Eliminar notificaciones
-    db.query(Notificacion).filter(Notificacion.usuario_id == id).delete()
-
-    db.delete(usuario)
-    db.commit()
-    return {"mensaje": f"Usuario '{usuario.nombre} {usuario.apellido}' eliminado correctamente"}

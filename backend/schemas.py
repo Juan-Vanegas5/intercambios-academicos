@@ -59,3 +59,7 @@ class VerificarCodigoRequest(BaseModel):
 class EstadoRequest(BaseModel):
     estado: str
     comentario: Optional[str] = None
+
+class SeleccionGanadoresRequest(BaseModel):
+    ids_seleccionados: List[int]
+    comentario: Optional[str] = None

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel Administrador - Intercambios UPC</title>
   <link rel="stylesheet" href="../../css/styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -26,6 +27,28 @@
       <span class="badge badge-azul" style="font-size:0.9rem;">Administrador</span>
     </div>
 
+    <!-- Pestañas de navegación -->
+    <div style="display:flex;gap:0;margin-bottom:1.5rem;border-bottom:2px solid #e5e7eb;">
+      <button id="tab-postulaciones" onclick="mostrarTab('postulaciones')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#1a3a6b;border-bottom:3px solid #1a3a6b;margin-bottom:-2px;">
+        📋 Postulaciones
+      </button>
+      <button id="tab-graficas" onclick="mostrarTab('graficas')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        📊 Estadísticas
+      </button>
+      <button id="tab-seleccion" onclick="mostrarTab('seleccion')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        🏆 Selección de Ganadores
+      </button>
+      <button id="tab-usuarios" onclick="mostrarTab('usuarios')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        👥 Usuarios
+      </button>
+    </div>
+
+    <!-- ═══ SECCIÓN: POSTULACIONES ═══ -->
+    <div id="seccion-postulaciones">
     <!-- Estadísticas -->
     <div class="cards-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom:2rem;">
       <div class="card text-center">
@@ -149,6 +172,102 @@
         </div>
       </div>
     </div>
+    </div><!-- fin seccion-postulaciones -->
+
+    <!-- ═══ SECCIÓN: ESTADÍSTICAS / GRÁFICAS ═══ -->
+    <div id="seccion-graficas" style="display:none;">
+      <h2 style="color:#1a3a6b;margin-bottom:1.5rem;">Estadísticas del Sistema</h2>
+
+      <!-- Cards resumen -->
+      <div class="cards-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:2rem;">
+        <div class="card text-center">
+          <div id="g-total" style="font-size:2rem;font-weight:700;color:#2563eb;">—</div>
+          <div style="font-size:0.85rem;color:#6b7280;">Total postulaciones</div>
+        </div>
+        <div class="card text-center">
+          <div id="g-revision" style="font-size:2rem;font-weight:700;color:#d97706;">—</div>
+          <div style="font-size:0.85rem;color:#6b7280;">En proceso</div>
+        </div>
+        <div class="card text-center">
+          <div id="g-aprobadas" style="font-size:2rem;font-weight:700;color:#16a34a;">—</div>
+          <div style="font-size:0.85rem;color:#6b7280;">Aprobadas</div>
+        </div>
+        <div class="card text-center">
+          <div id="g-rechazadas" style="font-size:2rem;font-weight:700;color:#dc2626;">—</div>
+          <div style="font-size:0.85rem;color:#6b7280;">Rechazadas</div>
+        </div>
+      </div>
+
+      <!-- Gráficas -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+        <div class="card">
+          <h3 style="color:#1a3a6b;margin-bottom:1rem;">Postulaciones por Programa</h3>
+          <canvas id="chart-programas" height="280"></canvas>
+        </div>
+        <div class="card">
+          <h3 style="color:#1a3a6b;margin-bottom:1rem;">Top 10 Convocatorias</h3>
+          <canvas id="chart-convocatorias" height="280"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECCIÓN: SELECCIÓN DE GANADORES ═══ -->
+    <div id="seccion-seleccion" style="display:none;">
+      <h2 style="color:#1a3a6b;margin-bottom:1.5rem;">Selección de Ganadores por Cupos</h2>
+
+      <div class="card mb-3">
+        <label style="font-weight:600;color:#1a3a6b;display:block;margin-bottom:0.5rem;">
+          Selecciona una convocatoria:
+        </label>
+        <select id="sel-convocatoria" onchange="cargarPostulantes()"
+          style="width:100%;padding:0.6rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.95rem;">
+          <option value="">-- Elige una convocatoria --</option>
+        </select>
+      </div>
+
+      <div id="panel-seleccion" style="display:none;">
+        <!-- Info cupos -->
+        <div id="info-cupos" class="card mb-3" style="background:#eff6ff;border:1px solid #bfdbfe;padding:1rem 1.25rem;">
+        </div>
+
+        <div id="alerta-seleccion" class="alerta mb-3" style="display:none;"></div>
+
+        <!-- Lista de postulantes -->
+        <div class="card mb-3">
+          <div id="lista-postulantes"></div>
+        </div>
+
+        <button class="btn btn-principal" onclick="confirmarSeleccion()">
+          ✅ Confirmar selección
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ SECCIÓN: USUARIOS ═══ -->
+    <div id="seccion-usuarios" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h2 style="margin:0;color:#1a3a6b;">Gestión de Usuarios</h2>
+        <span style="font-size:0.85rem;color:#6b7280;background:#fef3c7;border:1px solid #fbbf24;padding:0.4rem 0.8rem;border-radius:6px;">
+          🔒 El último administrador no puede ser eliminado ni degradado
+        </span>
+      </div>
+      <div id="alerta-usuarios" class="alerta mb-3" style="display:none;"></div>
+      <div class="card">
+        <div class="tabla-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Nombre</th><th>Correo</th><th>Programa</th><th>Rol</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-usuarios">
+              <tr><td colspan="6" style="text-align:center;color:#6b7280;padding:2rem;">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <footer>
@@ -344,6 +463,372 @@
 
     document.addEventListener("keydown", e => {
       if (e.key === "Escape") { cerrarModal(); cerrarDetalle(); }
+    });
+  </script>
+
+  <script>
+    // ── Configuración ──────────────────────────────────────────────────────────
+    const BASE_URL = "http://localhost:8001";
+    const token = localStorage.getItem("token");
+    const authHeaders = () => ({ "Authorization": "Bearer " + token, "Content-Type": "application/json" });
+
+    async function apiFetch(url, opts = {}) {
+      const res = await fetch(BASE_URL + url, opts);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || "Error " + res.status);
+      }
+      return res.json();
+    }
+
+    function cerrarSesion() {
+      localStorage.clear();
+      window.location.href = "../login.html";
+    }
+
+    // ── Sistema de pestañas ────────────────────────────────────────────────────
+    const TABS = ["postulaciones", "graficas", "seleccion", "usuarios"];
+
+    function mostrarTab(tab) {
+      TABS.forEach(t => {
+        const btn = document.getElementById("tab-" + t);
+        const sec = document.getElementById("seccion-" + t);
+        if (btn) {
+          btn.style.color = t === tab ? "#1a3a6b" : "#6b7280";
+          btn.style.borderBottom = t === tab ? "3px solid #1a3a6b" : "3px solid transparent";
+        }
+        if (sec) sec.style.display = t === tab ? "block" : "none";
+      });
+      if (tab === "graficas") cargarGraficas();
+      if (tab === "seleccion") cargarConvocatoriasSeleccion();
+      if (tab === "usuarios") cargarUsuarios();
+    }
+
+    // ── PESTAÑA: POSTULACIONES ─────────────────────────────────────────────────
+    let todasPostulaciones = [];
+
+    async function cargarAdmin() {
+      if (!token) { window.location.href = "../login.html"; return; }
+      try {
+        const stats = await apiFetch("/api/admin/estadisticas", { headers: authHeaders() });
+        document.getElementById("stat-total").textContent = stats.total;
+        document.getElementById("stat-revision").textContent = stats.en_revision;
+        document.getElementById("stat-aprobadas").textContent = stats.aprobadas;
+        document.getElementById("stat-rechazadas").textContent = stats.rechazadas;
+
+        todasPostulaciones = await apiFetch("/api/admin/postulaciones", { headers: authHeaders() });
+        renderTabla(todasPostulaciones);
+      } catch (err) {
+        document.getElementById("alerta-admin").style.display = "block";
+        document.getElementById("alerta-admin").textContent = "Error: " + err.message;
+      }
+    }
+
+    function filtrar(estado) {
+      const lista = estado === "todas"
+        ? todasPostulaciones
+        : todasPostulaciones.filter(p => p.estado === estado);
+      renderTabla(lista);
+    }
+
+    function renderTabla(lista) {
+      const tbody = document.getElementById("cuerpo-admin");
+      if (!lista.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#6b7280;padding:2rem;">No hay postulaciones.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = lista.map(p => `
+        <tr>
+          <td>${p.id}</td>
+          <td><strong>${p.estudiante || "—"}</strong><br><small style="color:#6b7280;">${p.estudianteEmail || ""}</small></td>
+          <td style="font-size:0.85rem;">${p.programa || "—"}</td>
+          <td style="font-size:0.85rem;">${p.convocatoria}</td>
+          <td>${p.semestre || "—"}</td>
+          <td>${p.documentos || 0}</td>
+          <td style="font-size:0.8rem;">${p.fechaPostulacion ? p.fechaPostulacion.slice(0,10) : "—"}</td>
+          <td>${badgeEstado(p.estado)}</td>
+          <td>
+            <button class="btn btn-secundario btn-sm" onclick="abrirDetalle(${p.id})">Ver</button>
+          </td>
+        </tr>`).join("");
+    }
+
+    function badgeEstado(estado) {
+      const colores = {
+        en_revision: "#d97706", aprobada: "#16a34a", rechazada: "#dc2626",
+        revisando_documentos: "#2563eb", necesita_correcciones: "#9333ea",
+        docs_pendientes: "#0891b2", completada: "#059669"
+      };
+      const color = colores[estado] || "#6b7280";
+      return `<span class="badge" style="background:${color}20;color:${color};border:1px solid ${color}40;">${estado.replace(/_/g," ")}</span>`;
+    }
+
+    async function abrirDetalle(id) {
+      const p = todasPostulaciones.find(x => x.id === id);
+      if (!p) return;
+      const nuevoEstado = prompt(
+        "Estudiante: " + p.estudiante + "
+Estado actual: " + p.estado +
+        "
+
+Nuevo estado (aprobada/rechazada/en_revision/revisando_documentos/necesita_correcciones/docs_pendientes/completada):"
+      );
+      if (!nuevoEstado) return;
+      const comentario = prompt("Comentario para el estudiante (opcional):");
+      try {
+        await apiFetch("/api/admin/postulaciones/" + id + "/estado", {
+          method: "PUT",
+          headers: authHeaders(),
+          body: JSON.stringify({ estado: nuevoEstado, comentario: comentario || null })
+        });
+        mostrarAlerta("Estado actualizado correctamente.", "exito");
+        await cargarAdmin();
+      } catch (err) {
+        mostrarAlerta("Error: " + err.message, "error");
+      }
+    }
+
+    function mostrarAlerta(msg, tipo) {
+      const el = document.getElementById("alerta-admin");
+      el.className = "alerta alerta-" + (tipo || "error") + " mb-3";
+      el.style.display = "block";
+      el.textContent = msg;
+      setTimeout(() => { el.style.display = "none"; }, 5000);
+    }
+
+    // ── PESTAÑA: ESTADÍSTICAS / GRÁFICAS ──────────────────────────────────────
+    let chartProgramas = null, chartConvocatorias = null;
+
+    async function cargarGraficas() {
+      try {
+        const [stats, porPrograma, porConv] = await Promise.all([
+          apiFetch("/api/admin/estadisticas", { headers: authHeaders() }),
+          apiFetch("/api/admin/estadisticas/por-programa", { headers: authHeaders() }),
+          apiFetch("/api/admin/estadisticas/por-convocatoria", { headers: authHeaders() })
+        ]);
+
+        document.getElementById("g-total").textContent = stats.total;
+        document.getElementById("g-revision").textContent = stats.en_revision;
+        document.getElementById("g-aprobadas").textContent = stats.aprobadas;
+        document.getElementById("g-rechazadas").textContent = stats.rechazadas;
+
+        // Gráfica barras — programas
+        if (chartProgramas) chartProgramas.destroy();
+        chartProgramas = new Chart(document.getElementById("chart-programas"), {
+          type: "bar",
+          data: {
+            labels: porPrograma.map(r => r.programa),
+            datasets: [{ label: "Postulaciones", data: porPrograma.map(r => r.total),
+              backgroundColor: "#2563eb99", borderColor: "#1a3a6b", borderWidth: 1 }]
+          },
+          options: { indexAxis: "y", responsive: true, plugins: { legend: { display: false } } }
+        });
+
+        // Gráfica dona — convocatorias
+        if (chartConvocatorias) chartConvocatorias.destroy();
+        const colores = ["#2563eb","#16a34a","#d97706","#dc2626","#9333ea","#0891b2","#059669","#f59e0b","#6366f1","#10b981"];
+        chartConvocatorias = new Chart(document.getElementById("chart-convocatorias"), {
+          type: "doughnut",
+          data: {
+            labels: porConv.map(r => r.convocatoria),
+            datasets: [{ data: porConv.map(r => r.total),
+              backgroundColor: colores.slice(0, porConv.length) }]
+          },
+          options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+        });
+      } catch (err) {
+        console.error("Error cargando gráficas:", err);
+      }
+    }
+
+    // ── PESTAÑA: SELECCIÓN DE GANADORES ───────────────────────────────────────
+    let idsSeleccionados = new Set();
+    let convActual = null;
+
+    async function cargarConvocatoriasSeleccion() {
+      try {
+        const convs = await apiFetch("/api/admin/convocatorias", { headers: authHeaders() });
+        const sel = document.getElementById("sel-convocatoria");
+        sel.innerHTML = '<option value="">-- Elige una convocatoria --</option>';
+        convs.forEach(c => {
+          sel.innerHTML += `<option value="${c.id}">${c.titulo} — ${c.universidad} (${c.cupos} cupos)</option>`;
+        });
+      } catch (err) {
+        console.error("Error cargando convocatorias:", err);
+      }
+    }
+
+    async function cargarPostulantes() {
+      const id = document.getElementById("sel-convocatoria").value;
+      if (!id) { document.getElementById("panel-seleccion").style.display = "none"; return; }
+
+      try {
+        const data = await apiFetch("/api/admin/convocatorias/" + id + "/postulantes", { headers: authHeaders() });
+        convActual = data.convocatoria;
+        idsSeleccionados = new Set(
+          data.postulaciones.filter(p => p.estado === "aprobada").map(p => p.id)
+        );
+
+        document.getElementById("info-cupos").innerHTML = `
+          <strong style="color:#1a3a6b;">${convActual.titulo}</strong> — ${convActual.universidad}<br>
+          <span style="font-size:0.9rem;">
+            Cupos totales: <strong>${convActual.cupos}</strong> &nbsp;|&nbsp;
+            Seleccionados: <strong id="cnt-sel">${idsSeleccionados.size}</strong> &nbsp;|&nbsp;
+            Disponibles: <strong id="cnt-disp">${convActual.cuposDisponibles}</strong>
+          </span>`;
+
+        renderPostulantes(data.postulaciones);
+        document.getElementById("panel-seleccion").style.display = "block";
+        document.getElementById("alerta-seleccion").style.display = "none";
+      } catch (err) {
+        console.error("Error:", err);
+      }
+    }
+
+    function renderPostulantes(lista) {
+      const div = document.getElementById("lista-postulantes");
+      if (!lista.length) { div.innerHTML = "<p style='color:#6b7280;padding:1rem;'>No hay postulantes.</p>"; return; }
+      div.innerHTML = lista.map(p => {
+        const sel = idsSeleccionados.has(p.id);
+        return `<div class="postulante-fila ${sel ? "seleccionado" : ""}" onclick="togglePostulante(${p.id})" id="fila-${p.id}" style="display:flex;align-items:center;gap:0.75rem;padding:0.7rem 1rem;border-radius:7px;cursor:pointer;transition:background 0.15s;margin-bottom:0.4rem;border:1.5px solid ${sel ? "#16a34a" : "#e5e7eb"};background:${sel ? "#f0fdf4" : "white"};">
+          <div style="width:22px;height:22px;border:2px solid ${sel ? "#16a34a" : "#d1d5db"};border-radius:5px;display:flex;align-items:center;justify-content:center;background:${sel ? "#16a34a" : "white"};color:white;font-size:0.85rem;flex-shrink:0;">${sel ? "✓" : ""}</div>
+          <div style="flex:1;">
+            <strong>${p.estudiante}</strong> <span style="font-size:0.8rem;color:#6b7280;">${p.programa || ""}</span><br>
+            <small style="color:#6b7280;">${p.convocatoria} &nbsp;|&nbsp; Sem. ${p.semestre || "—"} &nbsp;|&nbsp; Docs: ${p.documentos}</small>
+          </div>
+          <span style="font-size:0.8rem;">${badgeEstado(p.estado)}</span>
+        </div>`;
+      }).join("");
+    }
+
+    function togglePostulante(id) {
+      if (idsSeleccionados.has(id)) {
+        idsSeleccionados.delete(id);
+      } else {
+        if (idsSeleccionados.size >= convActual.cupos) {
+          mostrarAlertaSeleccion("Ya llegaste al límite de " + convActual.cupos + " cupo(s).", "error");
+          return;
+        }
+        idsSeleccionados.add(id);
+      }
+      document.getElementById("cnt-sel").textContent = idsSeleccionados.size;
+      document.getElementById("cnt-disp").textContent = convActual.cupos - idsSeleccionados.size;
+      // Actualizar visual de la fila
+      const fila = document.getElementById("fila-" + id);
+      const sel = idsSeleccionados.has(id);
+      fila.style.background = sel ? "#f0fdf4" : "white";
+      fila.style.border = "1.5px solid " + (sel ? "#16a34a" : "#e5e7eb");
+      fila.innerHTML = fila.innerHTML; // forzar re-render
+      cargarPostulantes(); // refresh visual completo
+    }
+
+    async function confirmarSeleccion() {
+      if (!convActual) return;
+      const n = idsSeleccionados.size;
+      if (!confirm("¿Confirmar selección de " + n + " ganador(es) para "" + convActual.titulo + ""?\nLos NO seleccionados quedarán como rechazados.")) return;
+      const comentario = prompt("Comentario para los estudiantes (opcional):");
+      try {
+        const res = await apiFetch("/api/admin/convocatorias/" + convActual.id + "/seleccionar-ganadores", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({ ids_seleccionados: Array.from(idsSeleccionados), comentario: comentario || null })
+        });
+        mostrarAlertaSeleccion(res.mensaje, "exito");
+        await cargarPostulantes();
+      } catch (err) {
+        mostrarAlertaSeleccion("Error: " + err.message, "error");
+      }
+    }
+
+    function mostrarAlertaSeleccion(msg, tipo) {
+      const el = document.getElementById("alerta-seleccion");
+      el.className = "alerta alerta-" + (tipo || "error") + " mb-3";
+      el.style.display = "block";
+      el.textContent = msg;
+      setTimeout(() => { el.style.display = "none"; }, 6000);
+    }
+
+    // ── PESTAÑA: USUARIOS ──────────────────────────────────────────────────────
+    let todosUsuarios = [];
+
+    async function cargarUsuarios() {
+      try {
+        todosUsuarios = await apiFetch("/api/admin/usuarios", { headers: authHeaders() });
+        renderTablaUsuarios(todosUsuarios);
+      } catch (err) {
+        mostrarAlertaUsuarios("Error al cargar usuarios: " + err.message, "error");
+      }
+    }
+
+    function renderTablaUsuarios(lista) {
+      const tbody = document.getElementById("cuerpo-usuarios");
+      if (!lista.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#6b7280;padding:2rem;">No hay usuarios.</td></tr>';
+        return;
+      }
+      const totalAdmins = lista.filter(u => u.rol === "administrador").length;
+      tbody.innerHTML = lista.map(u => {
+        const esUnico = u.rol === "administrador" && totalAdmins <= 1;
+        const rolBadge = u.rol === "administrador"
+          ? '<span class="badge badge-azul">Administrador</span>'
+          : '<span class="badge" style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;">Estudiante</span>';
+        const btnRol = esUnico
+          ? '<button class="btn btn-secundario btn-sm" disabled style="opacity:0.4;">&#x26A0; Único admin</button>'
+          : (u.rol === "administrador"
+              ? `<button class="btn btn-secundario btn-sm" onclick="cambiarRol(${u.id},'estudiante')">&#x2193; Estudiante</button>`
+              : `<button class="btn btn-secundario btn-sm" onclick="cambiarRol(${u.id},'administrador')" style="color:#1a3a6b;border-color:#1a3a6b;">&#x2191; Admin</button>`);
+        const btnDel = esUnico
+          ? '<button class="btn btn-danger btn-sm" disabled style="opacity:0.4;">&#x1F512;</button>'
+          : `<button class="btn btn-danger btn-sm" onclick="eliminarUsuario(${u.id})">&#x1F5D1;</button>`;
+        return `<tr>
+          <td>${u.id}</td>
+          <td><strong>${u.nombre} ${u.apellido}</strong></td>
+          <td style="font-size:0.85rem;">${u.email}</td>
+          <td style="font-size:0.85rem;">${u.programa || "—"}</td>
+          <td>${rolBadge}</td>
+          <td style="display:flex;gap:0.4rem;">${btnRol} ${btnDel}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    async function cambiarRol(id, nuevoRol) {
+      const u = todosUsuarios.find(x => x.id === id);
+      if (!confirm("¿Cambiar rol de " + u.nombre + " a "" + nuevoRol + ""?")) return;
+      try {
+        await apiFetch("/api/admin/usuarios/" + id + "/rol", {
+          method: "PUT", headers: authHeaders(), body: JSON.stringify({ rol: nuevoRol })
+        });
+        mostrarAlertaUsuarios("Rol actualizado.", "exito");
+        await cargarUsuarios();
+      } catch (err) {
+        mostrarAlertaUsuarios("Error: " + err.message, "error");
+      }
+    }
+
+    async function eliminarUsuario(id) {
+      const u = todosUsuarios.find(x => x.id === id);
+      if (!confirm("¿Eliminar permanentemente a " + u.nombre + " " + u.apellido + "?")) return;
+      try {
+        await apiFetch("/api/admin/usuarios/" + id, { method: "DELETE", headers: authHeaders() });
+        mostrarAlertaUsuarios("Usuario eliminado.", "exito");
+        await cargarUsuarios();
+      } catch (err) {
+        mostrarAlertaUsuarios("Error: " + err.message, "error");
+      }
+    }
+
+    function mostrarAlertaUsuarios(msg, tipo) {
+      const el = document.getElementById("alerta-usuarios");
+      el.className = "alerta alerta-" + (tipo || "error") + " mb-3";
+      el.style.display = "block";
+      el.textContent = msg;
+      setTimeout(() => { el.style.display = "none"; }, 6000);
+    }
+
+    // ── Inicio ─────────────────────────────────────────────────────────────────
+    document.addEventListener("DOMContentLoaded", function() {
+      cargarAdmin();
+      mostrarTab("postulaciones");
     });
   </script>
 </body>

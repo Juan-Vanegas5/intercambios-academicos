@@ -4,7 +4,7 @@ from sqlalchemy import func
 from typing import List
 
 from database import get_db
-from models import Usuario, Postulacion, Documento, Convocatoria, ProgramaAcademico
+from models import Usuario, Postulacion, Documento, Convocatoria, ProgramaAcademico, Notificacion
 from schemas import EstadoRequest, PostulacionResponse, DocumentoResponse, SeleccionGanadoresRequest
 from auth import solo_admin
 from routers.postulaciones import to_response
@@ -48,8 +48,31 @@ def actualizar_estado(id: int, request: EstadoRequest,
     postulacion = db.query(Postulacion).filter(Postulacion.id == id).first()
     if not postulacion:
         raise HTTPException(status_code=404, detail="Postulación no encontrada")
+    estado_anterior = postulacion.estado
     postulacion.estado = request.estado
     postulacion.comentario_admin = request.comentario
+
+    # Generar notificación automática al estudiante
+    if request.estado != estado_anterior:
+        mensajes = {
+            "aprobada": "¡Felicitaciones! Tu postulación a {conv} fue APROBADA.",
+            "rechazada": "Tu postulación a {conv} fue rechazada.",
+            "revisando_documentos": "Estamos revisando los documentos de tu postulación a {conv}.",
+            "necesita_correcciones": "Tu postulación a {conv} necesita correcciones.",
+            "docs_pendientes": "Faltan documentos en tu postulación a {conv}.",
+            "completada": "Tu postulación a {conv} ha sido completada.",
+        }
+        msg = mensajes.get(request.estado)
+        if msg:
+            conv_titulo = postulacion.convocatoria.titulo if postulacion.convocatoria else "la convocatoria"
+            texto = msg.format(conv=conv_titulo)
+            if request.comentario:
+                texto += f" Comentario: {request.comentario}"
+            db.add(Notificacion(
+                usuario_id=postulacion.estudiante_id,
+                mensaje=texto
+            ))
+
     db.commit()
     db.refresh(postulacion)
     return to_response(postulacion)
@@ -166,6 +189,14 @@ def seleccionar_ganadores(id: int, request: SeleccionGanadoresRequest,
             p.estado = nuevo_estado
             if request.comentario:
                 p.comentario_admin = request.comentario
+            # Notificación automática
+            if nuevo_estado == "aprobada":
+                msg = f"¡Felicitaciones! Fuiste seleccionado(a) para {conv.titulo}."
+            else:
+                msg = f"Tu postulación a {conv.titulo} no fue seleccionada esta vez."
+            if request.comentario:
+                msg += f" Comentario: {request.comentario}"
+            db.add(Notificacion(usuario_id=p.estudiante_id, mensaje=msg))
 
     db.commit()
     return {

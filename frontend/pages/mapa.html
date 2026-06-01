@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapa de Universidades Aliadas - Intercambios UPC</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <style>
+    #mapa-container {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      margin-bottom: 2rem;
+    }
+
+    #mapa {
+      height: 540px;
+      width: 100%;
+      z-index: 1;
+    }
+
+    /* leyenda flotante */
+    .mapa-leyenda {
+      position: absolute;
+      bottom: 24px;
+      right: 12px;
+      background: white;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      z-index: 999;
+      font-size: 0.82rem;
+      min-width: 160px;
+    }
+
+    .mapa-leyenda h4 {
+      margin-bottom: 0.5rem;
+      font-size: 0.82rem;
+      color: #1a3a6b;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .leyenda-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .leyenda-dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid rgba(0,0,0,0.15);
+    }
+
+    /* filtros por región */
+    .mapa-filtros {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.2rem;
+      align-items: center;
+    }
+
+    .mapa-filtros span {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a3a6b;
+      margin-right: 0.25rem;
+    }
+
+    .filtro-btn {
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+      border: 1.5px solid #d1d5db;
+      background: white;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: #374151;
+    }
+
+    .filtro-btn:hover { border-color: #2563eb; color: #2563eb; }
+    .filtro-btn.activo { background: #2563eb; color: white; border-color: #2563eb; }
+
+    /* tarjetas resumen */
+    .paises-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .pais-card {
+      background: white;
+      border-radius: 10px;
+      padding: 1rem;
+      border: 1.5px solid #e5e7eb;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .pais-card:hover {
+      border-color: #2563eb;
+      box-shadow: 0 2px 10px rgba(37,99,235,0.12);
+      transform: translateY(-2px);
+    }
+
+    .pais-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .pais-flag { font-size: 1.4rem; }
+
+    .pais-nombre {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #1a3a6b;
+    }
+
+    .pais-count {
+      font-size: 0.78rem;
+      color: #6b7280;
+      margin-top: 0.1rem;
+    }
+
+    .pais-unis {
+      font-size: 0.78rem;
+      color: #374151;
+      line-height: 1.5;
+    }
+
+    /* popup custom Leaflet */
+    .leaflet-popup-content-wrapper {
+      border-radius: 10px !important;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+      padding: 0 !important;
+    }
+
+    .leaflet-popup-content {
+      margin: 0 !important;
+      min-width: 220px;
+    }
+
+    .popup-header {
+      background: linear-gradient(135deg, #1a3a6b, #2563eb);
+      color: white;
+      padding: 0.7rem 1rem;
+      border-radius: 10px 10px 0 0;
+    }
+
+    .popup-header .flag { font-size: 1.2rem; margin-right: 0.3rem; }
+    .popup-header .pais-title { font-size: 0.9rem; font-weight: 700; }
+    .popup-uni-list { padding: 0.6rem 1rem 0.8rem; }
+    .popup-uni-item {
+      font-size: 0.82rem;
+      color: #374151;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.4rem;
+    }
+    .popup-uni-item:last-child { border-bottom: none; }
+    .popup-uni-item::before { content: "🎓"; font-size: 0.75rem; margin-top: 0.1rem; flex-shrink: 0; }
+
+    /* stat bar */
+    .stat-bar {
+      background: white;
+      border-radius: 10px;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      border: 1.5px solid #e5e7eb;
+      margin-bottom: 1.5rem;
+    }
+    .stat-item { text-align: center; }
+    .stat-num { font-size: 1.8rem; font-weight: 700; color: #2563eb; line-height: 1; }
+    .stat-label { font-size: 0.78rem; color: #6b7280; margin-top: 0.15rem; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">🎓 Intercambios UPC</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Convocatorias</a></li>
+      <li><a href="mapa.html" class="activo">Mapa Global</a></li>
+      <li><a href="postulacion.html">Postularme</a></li>
+      <li><a href="seguimiento.html">Mis Postulaciones</a></li>
+      <li><a href="login.html" id="nav-auth-link">Iniciar Sesión</a></li>
+    </ul>
+  </nav>
+
+  <div class="hero" style="padding:2rem;">
+    <h1 style="font-size:1.8rem;">🌍 Red Global de Universidades Aliadas</h1>
+    <p style="margin-bottom:0;">
+      Explora las <strong id="total-unis-hero">42</strong> universidades y organizaciones con las que la
+      Universidad Piloto de Colombia tiene convenios de intercambio académico
+    </p>
+  </div>
+
+  <main>
+
+    <!-- Estadísticas rápidas -->
+    <div class="stat-bar">
+      <div class="stat-item">
+        <div class="stat-num" id="total-unis">42</div>
+        <div class="stat-label">Instituciones aliadas</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="total-paises">17</div>
+        <div class="stat-label">Países</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">5</div>
+        <div class="stat-label">Continentes</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">🌎🌍🌏</div>
+        <div class="stat-label">Cobertura global</div>
+      </div>
+    </div>
+
+    <!-- Filtros de región -->
+    <div class="mapa-filtros">
+      <span>Filtrar:</span>
+      <button class="filtro-btn activo" onclick="filtrarRegion('todas', this)">Todas</button>
+      <button class="filtro-btn" onclick="filtrarRegion('América Latina', this)">🌎 América Latina</button>
+      <button class="filtro-btn" onclick="filtrarRegion('Norteamérica', this)">🇺🇸🇨🇦 Norteamérica</button>
+      <button class="filtro-btn" onclick="filtrarRegion('Europa', this)">🌍 Europa</button>
+      <button class="filtro-btn" onclick="filtrarRegion('Asia', this)">🌏 Asia</button>
+    </div>
+
+    <!-- Mapa -->
+    <div id="mapa-container">
+      <div id="mapa"></div>
+      <div class="mapa-leyenda">
+        <h4>Región</h4>
+        <div class="leyenda-item"><div class="leyenda-dot" style="background:#e84393;"></div><span>América Latina</span></div>
+        <div class="leyenda-item"><div class="leyenda-dot" style="background:#2563eb;"></div><span>Norteamérica</span></div>
+        <div class="leyenda-item"><div class="leyenda-dot" style="background:#16a34a;"></div><span>Europa</span></div>
+        <div class="leyenda-item"><div class="leyenda-dot" style="background:#d97706;"></div><span>Asia / Medio Oriente</span></div>
+      </div>
+    </div>
+
+    <!-- Tarjetas por país -->
+    <div class="page-header flex-between" style="margin-bottom:1rem;">
+      <div>
+        <h2 style="color:#1a3a6b;">Instituciones por país</h2>
+        <p style="color:#6b7280; font-size:0.9rem;">Haz clic en una tarjeta para centrar el mapa</p>
+      </div>
+    </div>
+    <div class="paises-grid" id="paises-grid"></div>
+
+  </main>
+
+  <footer>
+    <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script>
+    // ── Datos de universidades aliadas ────────────────────────────────────────
+    const UNIVERSIDADES = [
+      // Argentina
+      {
+        pais: "Argentina", bandera: "🇦🇷", region: "América Latina",
+        lat: -31.6107, lng: -60.6970, color: "#e84393",
+        nombre: "Universidad Nacional del Litoral"
+      },
+      // Brasil
+      {
+        pais: "Brasil", bandera: "🇧🇷", region: "América Latina",
+        lat: -12.9714, lng: -38.5014, color: "#e84393",
+        nombre: "Universidade Federal da Bahia"
+      },
+      {
+        pais: "Brasil", bandera: "🇧🇷", region: "América Latina",
+        lat: -28.2400, lng: -48.6450, color: "#e84393",
+        nombre: "University of South Santa Catarina"
+      },
+      // Canadá
+      {
+        pais: "Canadá", bandera: "🇨🇦", region: "Norteamérica",
+        lat: 45.4215, lng: -75.6972, color: "#2563eb",
+        nombre: "Canada Research Chair in Architecture, Competitions and Quality"
+      },
+      // Chile
+      {
+        pais: "Chile", bandera: "🇨🇱", region: "América Latina",
+        lat: -33.4489, lng: -70.6693, color: "#e84393",
+        nombre: "Universidad Central de Chile"
+      },
+      {
+        pais: "Chile", bandera: "🇨🇱", region: "América Latina",
+        lat: -33.4128, lng: -70.5808, color: "#e84393",
+        nombre: "Universidad Mayor"
+      },
+      {
+        pais: "Chile", bandera: "🇨🇱", region: "América Latina",
+        lat: -33.4680, lng: -70.6417, color: "#e84393",
+        nombre: "Universidad Andrés Bello"
+      },
+      // España
+      {
+        pais: "España", bandera: "🇪🇸", region: "Europa",
+        lat: 42.4600, lng: -2.4448, color: "#16a34a",
+        nombre: "Universidad Internacional de La Rioja"
+      },
+      {
+        pais: "España", bandera: "🇪🇸", region: "Europa",
+        lat: 37.3891, lng: -5.9845, color: "#16a34a",
+        nombre: "Universidad de Sevilla"
+      },
+      {
+        pais: "España", bandera: "🇪🇸", region: "Europa",
+        lat: 42.3439, lng: -3.6969, color: "#16a34a",
+        nombre: "Universidad Isabel I"
+      },
+      // Estados Unidos
+      {
+        pais: "Estados Unidos", bandera: "🇺🇸", region: "Norteamérica",
+        lat: 37.7749, lng: -122.4194, color: "#2563eb",
+        nombre: "Universidad de San Francisco"
+      },
+      // Italia
+      {
+        pais: "Italia", bandera: "🇮🇹", region: "Europa",
+        lat: 45.4654, lng: 9.1859, color: "#16a34a",
+        nombre: "Instituto Marangoni"
+      },
+      // México – coordenadas separadas para visualizar bien los puntos
+      {
+        pais: "México", bandera: "🇲🇽", region: "América Latina",
+        lat: 19.4978, lng: -99.1478, color: "#e84393",
+        nombre: "Instituto Politécnico Nacional (IPN)"
+      },
+      {
+        pais: "México", bandera: "🇲🇽", region: "América Latina",
+        lat: 19.3320, lng: -99.1876, color: "#e84393",
+        nombre: "Universidad Nacional Autónoma de México (UNAM)"
+      },
+      {
+        pais: "México", bandera: "🇲🇽", region: "América Latina",
+        lat: 25.6866, lng: -100.3161, color: "#e84393",
+        nombre: "Universidad de Monterrey"
+      },
+      {
+        pais: "México", bandera: "🇲🇽", region: "América Latina",
+        lat: 19.0500, lng: -104.3200, color: "#e84393",
+        nombre: "Universidad Tecnológica de Manzanillo"
+      },
+      {
+        pais: "México", bandera: "🇲🇽", region: "América Latina",
+        lat: 19.3900, lng: -99.0700, color: "#e84393",
+        nombre: "Universidad Autónoma Metropolitana"
+      },
+      {
+        pais: "México", bandera: "🇲🇽", region: "América Latina",
+        lat: 19.2904, lng: -99.6534, color: "#e84393",
+        nombre: "Universidad Autónoma del Estado de México"
+      },
+      {
+        pais: "México", bandera: "🇲🇽", region: "América Latina",
+        lat: 20.6597, lng: -103.3496, color: "#e84393",
+        nombre: "Universidad de Guadalajara"
+      },
+      {
+        pais: "México", bandera: "🇲🇽", region: "América Latina",
+        lat: 21.0191, lng: -101.2574, color: "#e84393",
+        nombre: "Universidad de Guanajuato"
+      },
+      {
+        pais: "México", bandera: "🇲🇽", region: "América Latina",
+        lat: 22.7709, lng: -102.5832, color: "#e84393",
+        nombre: "Universidad Autónoma de Zacatecas"
+      },
+      {
+        pais: "México", bandera: "🇲🇽", region: "América Latina",
+        lat: 20.5200, lng: -100.8100, color: "#e84393",
+        nombre: "Universidad de Celaya"
+      },
+      {
+        pais: "México", bandera: "🇲🇽", region: "América Latina",
+        lat: 19.4320, lng: -99.1350, color: "#e84393",
+        nombre: "Universidad Ducens"
+      },
+      {
+        pais: "México", bandera: "🇲🇽", region: "América Latina",
+        lat: 19.4680, lng: -99.1780, color: "#e84393",
+        nombre: "Universidad INQBA Escuela de Negocios"
+      },
+      // Panamá
+      {
+        pais: "Panamá", bandera: "🇵🇦", region: "América Latina",
+        lat: 8.9936, lng: -79.5197, color: "#e84393",
+        nombre: "ISTHMUS Escuela de Arquitectura y Diseño"
+      },
+      {
+        pais: "Panamá", bandera: "🇵🇦", region: "América Latina",
+        lat: 8.9800, lng: -79.5100, color: "#e84393",
+        nombre: "Escuela Empresarial ESEM"
+      },
+      // Perú
+      {
+        pais: "Perú", bandera: "🇵🇪", region: "América Latina",
+        lat: -12.0464, lng: -77.0428, color: "#e84393",
+        nombre: "Pontificia Universidad Católica del Perú"
+      },
+      {
+        pais: "Perú", bandera: "🇵🇪", region: "América Latina",
+        lat: -12.0688, lng: -77.0590, color: "#e84393",
+        nombre: "Universidad Ricardo Palma"
+      },
+      {
+        pais: "Perú", bandera: "🇵🇪", region: "América Latina",
+        lat: -12.0847, lng: -76.9506, color: "#e84393",
+        nombre: "Universidad Peruana de Ciencias Aplicadas"
+      },
+      {
+        pais: "Perú", bandera: "🇵🇪", region: "América Latina",
+        lat: -12.1559, lng: -76.9728, color: "#e84393",
+        nombre: "Universidad Autónoma del Perú"
+      },
+      {
+        pais: "Perú", bandera: "🇵🇪", region: "América Latina",
+        lat: -12.0585, lng: -77.0783, color: "#e84393",
+        nombre: "Universidad Nacional Mayor de San Marcos"
+      },
+      {
+        pais: "Perú", bandera: "🇵🇪", region: "América Latina",
+        lat: -15.8402, lng: -70.0219, color: "#e84393",
+        nombre: "Universidad Nacional del Altiplano"
+      },
+      // República Dominicana
+      {
+        pais: "República Dominicana", bandera: "🇩🇴", region: "América Latina",
+        lat: 18.4801, lng: -69.9407, color: "#e84393",
+        nombre: "Universidad Iberoamericana (UNIBE)"
+      },
+      // Taiwán
+      {
+        pais: "Taiwán", bandera: "🇹🇼", region: "Asia",
+        lat: 24.2308, lng: 120.6806, color: "#d97706",
+        nombre: "Providence University"
+      },
+      // Israel
+      {
+        pais: "Israel", bandera: "🇮🇱", region: "Asia",
+        lat: 32.0853, lng: 34.7818, color: "#d97706",
+        nombre: "Check Point Software Technologies — Secure Academy"
+      },
+      // Portugal
+      {
+        pais: "Portugal", bandera: "🇵🇹", region: "Europa",
+        lat: 40.2033, lng: -8.4103, color: "#16a34a",
+        nombre: "Polytechnic Institute of Coimbra"
+      },
+      // Venezuela
+      {
+        pais: "Venezuela", bandera: "🇻🇪", region: "América Latina",
+        lat: 10.4806, lng: -66.9036, color: "#e84393",
+        nombre: "Universidad Católica Andrés Bello"
+      },
+    ];
+
+    // ── Agrupar por país ──────────────────────────────────────────────────────
+    function agruparPorPais(lista) {
+      const mapa = {};
+      lista.forEach(u => {
+        if (!mapa[u.pais]) mapa[u.pais] = { ...u, universidades: [] };
+        mapa[u.pais].universidades.push(u.nombre);
+      });
+      return Object.values(mapa);
+    }
+
+    // ── Crear icono SVG personalizado ─────────────────────────────────────────
+    function crearIcono(color, count) {
+      const size = count > 1 ? 38 : 30;
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size + 8}" viewBox="0 0 ${size} ${size + 8}">
+          <circle cx="${size/2}" cy="${size/2}" r="${size/2 - 2}" fill="${color}" stroke="white" stroke-width="2.5" opacity="0.92"/>
+          <polygon points="${size/2 - 5},${size - 4} ${size/2 + 5},${size - 4} ${size/2},${size + 6}" fill="${color}" opacity="0.92"/>
+          <text x="${size/2}" y="${size/2 + 5}" text-anchor="middle" fill="white" font-size="${count > 9 ? 11 : 13}" font-weight="700" font-family="sans-serif">${count}</text>
+        </svg>`;
+      return L.divIcon({
+        html: svg,
+        className: '',
+        iconSize: [size, size + 8],
+        iconAnchor: [size / 2, size + 8],
+        popupAnchor: [0, -(size + 8)]
+      });
+    }
+
+    // ── Inicializar mapa ──────────────────────────────────────────────────────
+    const map = L.map('mapa', {
+      center: [15, -30],
+      zoom: 2,
+      minZoom: 2,
+      maxZoom: 12,
+      zoomControl: true
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | © <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    let marcadoresActivos = [];
+
+    function renderMarcadores(lista) {
+      // Limpiar marcadores previos
+      marcadoresActivos.forEach(m => map.removeLayer(m));
+      marcadoresActivos = [];
+
+      const grupos = agruparPorPais(lista);
+
+      grupos.forEach(grupo => {
+        const marker = L.marker([grupo.lat, grupo.lng], {
+          icon: crearIcono(grupo.color, grupo.universidades.length)
+        });
+
+        const unisHtml = grupo.universidades.map(u =>
+          `<div class="popup-uni-item">${u}</div>`
+        ).join('');
+
+        marker.bindPopup(`
+          <div class="popup-header">
+            <span class="flag">${grupo.bandera}</span>
+            <span class="pais-title">${grupo.pais}</span>
+            <span style="float:right;background:rgba(255,255,255,0.25);padding:0.15rem 0.5rem;border-radius:999px;font-size:0.75rem;">
+              ${grupo.universidades.length} institución${grupo.universidades.length > 1 ? 'es' : ''}
+            </span>
+          </div>
+          <div class="popup-uni-list">${unisHtml}</div>
+        `, { maxWidth: 280 });
+
+        marker.addTo(map);
+        marcadoresActivos.push(marker);
+      });
+    }
+
+    // ── Renderizar tarjetas por país ──────────────────────────────────────────
+    function renderTarjetas(lista) {
+      const grupos = agruparPorPais(lista);
+      const grid = document.getElementById('paises-grid');
+      grid.innerHTML = grupos.map(g => `
+        <div class="pais-card" onclick="centrarPais(${g.lat}, ${g.lng}, '${g.pais}')">
+          <div class="pais-card-header">
+            <span class="pais-flag">${g.bandera}</span>
+            <div>
+              <div class="pais-nombre">${g.pais}</div>
+              <div class="pais-count">${g.universidades.length} institución${g.universidades.length > 1 ? 'es' : ''}</div>
+            </div>
+          </div>
+          <div class="pais-unis">${g.universidades.join('<br>')}</div>
+        </div>
+      `).join('');
+    }
+
+    function centrarPais(lat, lng, pais) {
+      map.setView([lat, lng], 6, { animate: true, duration: 1 });
+      // Abrir popup del marcador correspondiente
+      marcadoresActivos.forEach(m => {
+        if (Math.abs(m.getLatLng().lat - lat) < 0.1 && Math.abs(m.getLatLng().lng - lng) < 0.1) {
+          m.openPopup();
+        }
+      });
+      window.scrollTo({ top: document.getElementById('mapa').getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
+    }
+
+    // ── Filtro por región ─────────────────────────────────────────────────────
+    let regionActiva = 'todas';
+
+    function filtrarRegion(region, btn) {
+      regionActiva = region;
+      document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+      btn.classList.add('activo');
+
+      const filtradas = region === 'todas'
+        ? UNIVERSIDADES
+        : UNIVERSIDADES.filter(u => u.region === region);
+
+      renderMarcadores(filtradas);
+      renderTarjetas(filtradas);
+
+      // Actualizar contadores
+      const grupos = agruparPorPais(filtradas);
+      document.getElementById('total-unis').textContent = filtradas.length;
+      document.getElementById('total-paises').textContent = grupos.length;
+
+      // Ajustar vista
+      if (region === 'todas') {
+        map.setView([15, -30], 2, { animate: true });
+      } else {
+        const bounds = filtradas.map(u => [u.lat, u.lng]);
+        if (bounds.length) map.fitBounds(bounds, { padding: [60, 60], maxZoom: 5 });
+      }
+    }
+
+    // ── Arrancar ─────────────────────────────────────────────────────────────
+    renderMarcadores(UNIVERSIDADES);
+    renderTarjetas(UNIVERSIDADES);
+
+    // Actualizar nav según sesión
+    (function() {
+      const u = getUsuario();
+      const authLink = document.getElementById('nav-auth-link');
+      if (u) {
+        authLink.textContent = 'Cerrar Sesión';
+        authLink.onclick = cerrarSesion;
+      }
+    })();
+  </script>
+</body>
+</html>

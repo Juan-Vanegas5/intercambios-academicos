@@ -78,3 +78,11 @@ class Documento(Base):
     fecha_subida      = Column(DateTime, default=datetime.datetime.now)
 
     tipo_documento = relationship("TipoDocumento", lazy="joined")
+
+class Notificacion(Base):
+    __tablename__ = "notificaciones"
+    id          = Column(Integer, primary_key=True)
+    usuario_id  = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
+    mensaje     = Column(Text, nullable=False)
+    leida       = Column(Boolean, default=False)
+    fecha       = Column(DateTime, default=datetime.datetime.now)

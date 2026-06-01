@@ -14,7 +14,7 @@ from models import Usuario, ProgramaAcademico
 from schemas import (LoginRequest, LoginResponse, RegistroRequest,
                      TOTPSetupResponse, TOTPVerifyRequest, TOTPConfirmSetupRequest)
 from auth import verificar_contrasena, hashear_contrasena, generar_token
-from routers import convocatorias, postulaciones, admin
+from routers import convocatorias, postulaciones, admin, notificaciones
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -183,5 +183,6 @@ def registro(request: RegistroRequest, db: Session = Depends(get_db)):
 app.include_router(convocatorias.router)
 app.include_router(postulaciones.router)
 app.include_router(admin.router)
+app.include_router(notificaciones.router)
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

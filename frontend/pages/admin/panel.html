@@ -467,25 +467,6 @@
   </script>
 
   <script>
-    // ── Configuración ──────────────────────────────────────────────────────────
-    const BASE_URL = "http://localhost:8001";
-    const token = localStorage.getItem("token");
-    const authHeaders = () => ({ "Authorization": "Bearer " + token, "Content-Type": "application/json" });
-
-    async function apiFetch(url, opts = {}) {
-      const res = await fetch(BASE_URL + url, opts);
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || "Error " + res.status);
-      }
-      return res.json();
-    }
-
-    function cerrarSesion() {
-      localStorage.clear();
-      window.location.href = "../login.html";
-    }
-
     // ── Sistema de pestañas ────────────────────────────────────────────────────
     const TABS = ["postulaciones", "graficas", "seleccion", "usuarios"];
 
@@ -504,55 +485,6 @@
       if (tab === "usuarios") cargarUsuarios();
     }
 
-    // ── PESTAÑA: POSTULACIONES ─────────────────────────────────────────────────
-    let todasPostulaciones = [];
-
-    async function cargarAdmin() {
-      if (!token) { window.location.href = "../login.html"; return; }
-      try {
-        const stats = await apiFetch("/api/admin/estadisticas", { headers: authHeaders() });
-        document.getElementById("stat-total").textContent = stats.total;
-        document.getElementById("stat-revision").textContent = stats.en_revision;
-        document.getElementById("stat-aprobadas").textContent = stats.aprobadas;
-        document.getElementById("stat-rechazadas").textContent = stats.rechazadas;
-
-        todasPostulaciones = await apiFetch("/api/admin/postulaciones", { headers: authHeaders() });
-        renderTabla(todasPostulaciones);
-      } catch (err) {
-        document.getElementById("alerta-admin").style.display = "block";
-        document.getElementById("alerta-admin").textContent = "Error: " + err.message;
-      }
-    }
-
-    function filtrar(estado) {
-      const lista = estado === "todas"
-        ? todasPostulaciones
-        : todasPostulaciones.filter(p => p.estado === estado);
-      renderTabla(lista);
-    }
-
-    function renderTabla(lista) {
-      const tbody = document.getElementById("cuerpo-admin");
-      if (!lista.length) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#6b7280;padding:2rem;">No hay postulaciones.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = lista.map(p => `
-        <tr>
-          <td>${p.id}</td>
-          <td><strong>${p.estudiante || "—"}</strong><br><small style="color:#6b7280;">${p.estudianteEmail || ""}</small></td>
-          <td style="font-size:0.85rem;">${p.programa || "—"}</td>
-          <td style="font-size:0.85rem;">${p.convocatoria}</td>
-          <td>${p.semestre || "—"}</td>
-          <td>${p.documentos || 0}</td>
-          <td style="font-size:0.8rem;">${p.fechaPostulacion ? p.fechaPostulacion.slice(0,10) : "—"}</td>
-          <td>${badgeEstado(p.estado)}</td>
-          <td>
-            <button class="btn btn-secundario btn-sm" onclick="abrirDetalle(${p.id})">Ver</button>
-          </td>
-        </tr>`).join("");
-    }
-
     function badgeEstado(estado) {
       const colores = {
         en_revision: "#d97706", aprobada: "#16a34a", rechazada: "#dc2626",
@@ -561,39 +493,6 @@
       };
       const color = colores[estado] || "#6b7280";
       return `<span class="badge" style="background:${color}20;color:${color};border:1px solid ${color}40;">${estado.replace(/_/g," ")}</span>`;
-    }
-
-    async function abrirDetalle(id) {
-      const p = todasPostulaciones.find(x => x.id === id);
-      if (!p) return;
-      const nuevoEstado = prompt(
-        "Estudiante: " + p.estudiante + "
-Estado actual: " + p.estado +
-        "
-
-Nuevo estado (aprobada/rechazada/en_revision/revisando_documentos/necesita_correcciones/docs_pendientes/completada):"
-      );
-      if (!nuevoEstado) return;
-      const comentario = prompt("Comentario para el estudiante (opcional):");
-      try {
-        await apiFetch("/api/admin/postulaciones/" + id + "/estado", {
-          method: "PUT",
-          headers: authHeaders(),
-          body: JSON.stringify({ estado: nuevoEstado, comentario: comentario || null })
-        });
-        mostrarAlerta("Estado actualizado correctamente.", "exito");
-        await cargarAdmin();
-      } catch (err) {
-        mostrarAlerta("Error: " + err.message, "error");
-      }
-    }
-
-    function mostrarAlerta(msg, tipo) {
-      const el = document.getElementById("alerta-admin");
-      el.className = "alerta alerta-" + (tipo || "error") + " mb-3";
-      el.style.display = "block";
-      el.textContent = msg;
-      setTimeout(() => { el.style.display = "none"; }, 5000);
     }
 
     // ── PESTAÑA: ESTADÍSTICAS / GRÁFICAS ──────────────────────────────────────
@@ -612,7 +511,6 @@ Nuevo estado (aprobada/rechazada/en_revision/revisando_documentos/necesita_corre
         document.getElementById("g-aprobadas").textContent = stats.aprobadas;
         document.getElementById("g-rechazadas").textContent = stats.rechazadas;
 
-        // Gráfica barras — programas
         if (chartProgramas) chartProgramas.destroy();
         chartProgramas = new Chart(document.getElementById("chart-programas"), {
           type: "bar",
@@ -624,7 +522,6 @@ Nuevo estado (aprobada/rechazada/en_revision/revisando_documentos/necesita_corre
           options: { indexAxis: "y", responsive: true, plugins: { legend: { display: false } } }
         });
 
-        // Gráfica dona — convocatorias
         if (chartConvocatorias) chartConvocatorias.destroy();
         const colores = ["#2563eb","#16a34a","#d97706","#dc2626","#9333ea","#0891b2","#059669","#f59e0b","#6366f1","#10b981"];
         chartConvocatorias = new Chart(document.getElementById("chart-convocatorias"), {
@@ -713,19 +610,13 @@ Nuevo estado (aprobada/rechazada/en_revision/revisando_documentos/necesita_corre
       }
       document.getElementById("cnt-sel").textContent = idsSeleccionados.size;
       document.getElementById("cnt-disp").textContent = convActual.cupos - idsSeleccionados.size;
-      // Actualizar visual de la fila
-      const fila = document.getElementById("fila-" + id);
-      const sel = idsSeleccionados.has(id);
-      fila.style.background = sel ? "#f0fdf4" : "white";
-      fila.style.border = "1.5px solid " + (sel ? "#16a34a" : "#e5e7eb");
-      fila.innerHTML = fila.innerHTML; // forzar re-render
-      cargarPostulantes(); // refresh visual completo
+      cargarPostulantes();
     }
 
     async function confirmarSeleccion() {
       if (!convActual) return;
       const n = idsSeleccionados.size;
-      if (!confirm("¿Confirmar selección de " + n + " ganador(es) para "" + convActual.titulo + ""?\nLos NO seleccionados quedarán como rechazados.")) return;
+      if (!confirm("¿Confirmar selección de " + n + " ganador(es) para \"" + convActual.titulo + "\"?\nLos NO seleccionados quedarán como rechazados.")) return;
       const comentario = prompt("Comentario para los estudiantes (opcional):");
       try {
         const res = await apiFetch("/api/admin/convocatorias/" + convActual.id + "/seleccionar-ganadores", {
@@ -793,7 +684,7 @@ Nuevo estado (aprobada/rechazada/en_revision/revisando_documentos/necesita_corre
 
     async function cambiarRol(id, nuevoRol) {
       const u = todosUsuarios.find(x => x.id === id);
-      if (!confirm("¿Cambiar rol de " + u.nombre + " a "" + nuevoRol + ""?")) return;
+      if (!confirm("¿Cambiar rol de " + u.nombre + " a \"" + nuevoRol + "\"?")) return;
       try {
         await apiFetch("/api/admin/usuarios/" + id + "/rol", {
           method: "PUT", headers: authHeaders(), body: JSON.stringify({ rol: nuevoRol })
@@ -826,10 +717,7 @@ Nuevo estado (aprobada/rechazada/en_revision/revisando_documentos/necesita_corre
     }
 
     // ── Inicio ─────────────────────────────────────────────────────────────────
-    document.addEventListener("DOMContentLoaded", function() {
-      cargarAdmin();
-      mostrarTab("postulaciones");
-    });
+    mostrarTab("postulaciones");
   </script>
 </body>
 </html>

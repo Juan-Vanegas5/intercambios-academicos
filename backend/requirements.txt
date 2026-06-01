@@ -3,6 +3,8 @@ uvicorn[standard]
 sqlalchemy
 psycopg[binary]
 python-jose[cryptography]
-passlib[bcrypt]
+bcrypt
 python-dotenv
 python-multipart
+pyotp
+qrcode[pil]

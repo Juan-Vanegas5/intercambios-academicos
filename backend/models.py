@@ -31,6 +31,7 @@ class Usuario(Base):
     cedula          = Column(String(20))
     celular         = Column(String(20))
     programa_id     = Column(Integer, ForeignKey("programas_academicos.id"))
+    totp_secret     = Column(String(32))
     fecha_registro  = Column(DateTime, default=datetime.datetime.now)
 
     programa = relationship("ProgramaAcademico", lazy="joined")

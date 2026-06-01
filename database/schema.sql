@@ -41,6 +41,7 @@ CREATE TABLE usuarios (
     cedula          VARCHAR(20),
     celular         VARCHAR(20),
     programa_id     INT REFERENCES programas_academicos(id),
+    totp_secret     VARCHAR(32),
     fecha_registro  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -69,7 +70,9 @@ CREATE TABLE postulaciones (
     semestre            INT,
     carta_intencion     TEXT,
     estado              VARCHAR(20) NOT NULL DEFAULT 'en_revision'
-                            CHECK (estado IN ('en_revision', 'aprobada', 'rechazada')),
+                            CHECK (estado IN ('en_revision', 'aprobada', 'rechazada',
+                                              'revisando_documentos', 'necesita_correcciones',
+                                              'docs_pendientes', 'completada')),
     comentario_admin    TEXT,
     fecha_postulacion   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

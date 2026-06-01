@@ -56,6 +56,20 @@ class VerificarCodigoRequest(BaseModel):
     email: str
     codigo: str
 
+class TOTPSetupResponse(BaseModel):
+    qr_code: str
+    secret: str
+    email: str
+
+class TOTPVerifyRequest(BaseModel):
+    email: str
+    codigo: str
+
+class TOTPConfirmSetupRequest(BaseModel):
+    email: str
+    secret: str
+    codigo: str
+
 class EstadoRequest(BaseModel):
     estado: str
     comentario: Optional[str] = None

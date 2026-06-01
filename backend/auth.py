@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 import bcrypt as _bcrypt
 from fastapi import Depends, HTTPException
@@ -29,7 +29,7 @@ def generar_token(email: str, rol: str) -> str:
     payload = {
         "sub": email,
         "rol": rol,
-        "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+        "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=ALGORITHM)
 

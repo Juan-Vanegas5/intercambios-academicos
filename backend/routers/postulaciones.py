@@ -127,7 +127,7 @@ async def subir_documentos(
                 postulacion_id=id,
                 nombre_archivo=archivo.filename,
                 tipo_documento_id=tipo_id,
-                ruta_archivo=ruta,
+                s3_key=ruta,
                 fecha_subida=datetime.datetime.now()
             )
             db.add(doc)

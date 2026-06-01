@@ -72,6 +72,14 @@
         style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
         🏆 Selección de Ganadores
       </button>
+      <button id="tab-convocatorias" onclick="mostrarTab('convocatorias')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        📢 Convocatorias
+      </button>
+      <button id="tab-universidades" onclick="mostrarTab('universidades')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        🏫 Universidades
+      </button>
       <button id="tab-usuarios" onclick="mostrarTab('usuarios')"
         style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
         👥 Usuarios
@@ -333,6 +341,136 @@
       </div>
     </div>
 
+    <!-- ═══ SECCIÓN: CONVOCATORIAS ═══ -->
+    <div id="seccion-convocatorias" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h2 style="margin:0;color:#1a3a6b;">Gestión de Convocatorias</h2>
+        <button class="btn btn-primario" onclick="abrirModalConvocatoria()">+ Crear Nueva Convocatoria</button>
+      </div>
+      <div id="alerta-convocatorias" class="alerta mb-3" style="display:none;"></div>
+      <div class="card">
+        <div class="tabla-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Título</th><th>Universidad</th><th>Cupos</th><th>Fechas</th><th>Estado</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-convocatorias">
+              <tr><td colspan="7" style="text-align:center;color:#6b7280;padding:2rem;">Cargando convocatorias...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Crear/Editar Convocatoria -->
+    <div id="modal-convocatoria" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:110; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;">
+      <div class="card" style="max-width:600px; width:100%; margin:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+          <h3 id="modal-conv-titulo" style="color:#1a3a6b; margin:0;">Crear Convocatoria</h3>
+          <button onclick="cerrarModalConvocatoria()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+        </div>
+        <form id="form-convocatoria" onsubmit="guardarConvocatoria(event)">
+          <input type="hidden" id="conv-id">
+          <div class="form-group">
+            <label>Título de la Convocatoria</label>
+            <input type="text" id="conv-titulo-input" required placeholder="Ej: Intercambio Académico 2026-2">
+          </div>
+          <div class="form-group">
+            <label>Universidad</label>
+            <select id="conv-universidad" required>
+              <option value="">-- Seleccione una universidad --</option>
+            </select>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label>Fecha Inicio</label>
+              <input type="date" id="conv-fecha-inicio" required>
+            </div>
+            <div class="form-group">
+              <label>Fecha Cierre</label>
+              <input type="date" id="conv-fecha-cierre" required>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label>Cupos Disponibles</label>
+              <input type="number" id="conv-cupos" required min="1" value="1">
+            </div>
+            <div class="form-group">
+              <label>Estado</label>
+              <select id="conv-estado">
+                <option value="activa">Activa</option>
+                <option value="proximamente">Próximamente</option>
+                <option value="cerrada">Cerrada</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea id="conv-descripcion" rows="3" placeholder="Descripción breve de la convocatoria..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Requisitos</label>
+            <textarea id="conv-requisitos" rows="3" placeholder="Ej: Promedio > 4.0, 50% de créditos..."></textarea>
+          </div>
+          <div style="display:flex; gap:1rem; margin-top:1rem;">
+            <button type="button" class="btn btn-secundario" onclick="cerrarModalConvocatoria()" style="flex:1;">Cancelar</button>
+            <button type="submit" class="btn btn-primario" style="flex:2;">Guardar Convocatoria</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ═══ SECCIÓN: UNIVERSIDADES ═══ -->
+    <div id="seccion-universidades" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h2 style="margin:0;color:#1a3a6b;">Gestión de Universidades</h2>
+        <button class="btn btn-primario" onclick="abrirModalUniversidad()">+ Agregar Universidad</button>
+      </div>
+      <div id="alerta-universidades" class="alerta mb-3" style="display:none;"></div>
+      <div class="card">
+        <div class="tabla-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Nombre</th><th>País</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-universidades">
+              <tr><td colspan="4" style="text-align:center;color:#6b7280;padding:2rem;">Cargando universidades...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Universidad -->
+    <div id="modal-universidad" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:110; align-items:center; justify-content:center; padding:1rem;">
+      <div class="card" style="max-width:440px; width:100%; margin:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+          <h3 id="modal-uni-titulo" style="color:#1a3a6b; margin:0;">Agregar Universidad</h3>
+          <button onclick="cerrarModalUniversidad()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+        </div>
+        <form id="form-universidad" onsubmit="guardarUniversidad(event)">
+          <input type="hidden" id="uni-id">
+          <div class="form-group">
+            <label>Nombre de la Universidad</label>
+            <input type="text" id="uni-nombre-input" required placeholder="Ej: Universidad de Buenos Aires">
+          </div>
+          <div class="form-group">
+            <label>País</label>
+            <input type="text" id="uni-pais-input" required placeholder="Ej: Argentina">
+          </div>
+          <div style="display:flex; gap:1rem; margin-top:1rem;">
+            <button type="button" class="btn btn-secundario" onclick="cerrarModalUniversidad()" style="flex:1;">Cancelar</button>
+            <button type="submit" class="btn btn-primario" style="flex:2;">Guardar Universidad</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- ═══ SECCIÓN: USUARIOS ═══ -->
     <div id="seccion-usuarios" style="display:none;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
@@ -502,7 +640,7 @@
                 <div style="font-weight:600; font-size:0.9rem;">${d.tipo || "Documento"}</div>
                 <div style="font-size:0.8rem; color:#6b7280;">${d.nombre_archivo}</div>
               </div>
-              <a href="${BASE_URL}/${d.ruta_archivo.replace(/\\/g, "/")}" target="_blank"
+              <a href="${BASE_URL}/api/admin/documentos/descargar/${d.s3_key}" target="_blank"
                  class="btn btn-secundario btn-sm">⬇ Descargar</a>
             </div>
           `).join("");
@@ -615,7 +753,7 @@
 
   <script>
     // ── Sistema de pestañas ────────────────────────────────────────────────────
-    const TABS = ["postulaciones", "graficas", "seleccion", "usuarios", "mapa"];
+    const TABS = ["postulaciones", "graficas", "seleccion", "convocatorias", "universidades", "usuarios", "mapa"];
 
     function mostrarTab(tab) {
       TABS.forEach(t => {
@@ -629,8 +767,255 @@
       });
       if (tab === "graficas") cargarGraficas();
       if (tab === "seleccion") cargarConvocatoriasSeleccion();
+      if (tab === "convocatorias") cargarConvocatoriasAdmin();
+      if (tab === "universidades") cargarUniversidadesAdmin();
       if (tab === "usuarios") cargarUsuarios();
       if (tab === "mapa") iniciarMapaAdmin();
+    }
+
+    // ── PESTAÑA: UNIVERSIDADES ────────────────────────────────────────────────
+    let todasUniversidades = [];
+
+    async function cargarUniversidadesAdmin() {
+      try {
+        todasUniversidades = await apiFetch("/api/admin/universidades", { headers: authHeaders() });
+        renderTablaUniversidades(todasUniversidades);
+      } catch (err) {
+        mostrarAlertaUniversidades("Error al cargar universidades: " + err.message, "error");
+      }
+    }
+
+    function renderTablaUniversidades(lista) {
+      const tbody = document.getElementById("cuerpo-universidades");
+      if (!lista.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#6b7280;padding:2rem;">No hay universidades.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = lista.map(u => `
+        <tr>
+          <td>${u.id}</td>
+          <td><strong>${u.nombre}</strong></td>
+          <td>${u.pais}</td>
+          <td style="display:flex; gap:0.4rem;">
+            <button class="btn btn-secundario btn-sm" onclick="abrirModalUniversidad(${u.id})" title="Editar">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarUniversidad(${u.id})" title="Eliminar">🗑️</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function abrirModalUniversidad(id = null) {
+      const modal = document.getElementById("modal-universidad");
+      const titulo = document.getElementById("modal-uni-titulo");
+      const form = document.getElementById("form-universidad");
+      
+      form.reset();
+      document.getElementById("uni-id").value = "";
+
+      if (id) {
+        titulo.textContent = "Editar Universidad";
+        const u = todasUniversidades.find(x => x.id === id);
+        if (u) {
+          document.getElementById("uni-id").value = u.id;
+          document.getElementById("uni-nombre-input").value = u.nombre;
+          document.getElementById("uni-pais-input").value = u.pais;
+        }
+      } else {
+        titulo.textContent = "Agregar Universidad";
+      }
+      modal.style.display = "flex";
+    }
+
+    function cerrarModalUniversidad() {
+      document.getElementById("modal-universidad").style.display = "none";
+    }
+
+    async function guardarUniversidad(e) {
+      e.preventDefault();
+      const id = document.getElementById("uni-id").value;
+      const data = {
+        nombre: document.getElementById("uni-nombre-input").value,
+        pais: document.getElementById("uni-pais-input").value
+      };
+
+      try {
+        const method = id ? "PUT" : "POST";
+        const url = id ? `/api/admin/universidades/${id}` : "/api/admin/universidades";
+        await apiFetch(url, {
+          method,
+          headers: authHeaders(),
+          body: JSON.stringify(data)
+        });
+        cerrarModalUniversidad();
+        mostrarAlertaUniversidades(`Universidad ${id ? "actualizada" : "agregada"} con éxito`, "exito");
+        cargarUniversidadesAdmin();
+      } catch (err) {
+        mostrarAlertaUniversidades("Error al guardar: " + err.message, "error");
+      }
+    }
+
+    async function eliminarUniversidad(id) {
+      if (!confirm("¿Está seguro de eliminar esta universidad? No podrá hacerlo si tiene convocatorias asociadas.")) return;
+      try {
+        await apiFetch(`/api/admin/universidades/${id}`, {
+          method: "DELETE",
+          headers: authHeaders()
+        });
+        mostrarAlertaUniversidades("Universidad eliminada correctamente", "exito");
+        cargarUniversidadesAdmin();
+      } catch (err) {
+        mostrarAlertaUniversidades("Error al eliminar: " + err.message, "error");
+      }
+    }
+
+    function mostrarAlertaUniversidades(msg, tipo) {
+      const el = document.getElementById("alerta-universidades");
+      el.className = "alerta alerta-" + (tipo || "error") + " mb-3";
+      el.style.display = "block";
+      el.textContent = msg;
+      setTimeout(() => { el.style.display = "none"; }, 5000);
+    }
+
+    // ── PESTAÑA: CONVOCATORIAS ────────────────────────────────────────────────
+    let todasConvocatorias = [];
+
+    async function cargarConvocatoriasAdmin() {
+      try {
+        todasConvocatorias = await apiFetch("/api/admin/convocatorias", { headers: authHeaders() });
+        renderTablaConvocatorias(todasConvocatorias);
+      } catch (err) {
+        mostrarAlertaConvocatorias("Error al cargar convocatorias: " + err.message, "error");
+      }
+    }
+
+    function renderTablaConvocatorias(lista) {
+      const tbody = document.getElementById("cuerpo-convocatorias");
+      if (!lista.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:2rem;">No hay convocatorias.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = lista.map(c => `
+        <tr>
+          <td>${c.id}</td>
+          <td><strong>${c.titulo}</strong></td>
+          <td>${c.universidad}</td>
+          <td style="text-align:center;">${c.cupos}</td>
+          <td style="font-size:0.8rem;">
+            ${formatFecha(c.fecha_inicio)} al<br>${formatFecha(c.fecha_cierre)}
+          </td>
+          <td>${getBadge(c.estado)}</td>
+          <td style="display:flex; gap:0.4rem;">
+            <button class="btn btn-secundario btn-sm" onclick="abrirModalConvocatoria(${c.id})" title="Editar">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarConvocatoria(${c.id})" title="Eliminar"
+              ${c.totalPostulaciones > 0 ? "disabled style='opacity:0.3;cursor:not-allowed;'" : ""}>🗑️</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    async function abrirModalConvocatoria(id = null) {
+      const modal = document.getElementById("modal-convocatoria");
+      const titulo = document.getElementById("modal-conv-titulo");
+      const form = document.getElementById("form-convocatoria");
+      
+      // Reset form
+      form.reset();
+      document.getElementById("conv-id").value = "";
+      
+      // Cargar universidades si no están cargadas
+      await cargarUniversidadesSelect();
+
+      if (id) {
+        titulo.textContent = "Editar Convocatoria";
+        const c = todasConvocatorias.find(x => x.id === id);
+        if (c) {
+          document.getElementById("conv-id").value = c.id;
+          document.getElementById("conv-titulo-input").value = c.titulo;
+          document.getElementById("conv-universidad").value = c.universidad_id;
+          document.getElementById("conv-fecha-inicio").value = c.fecha_inicio;
+          document.getElementById("conv-fecha-cierre").value = c.fecha_cierre;
+          document.getElementById("conv-cupos").value = c.cupos;
+          document.getElementById("conv-estado").value = c.estado;
+          document.getElementById("conv-descripcion").value = c.descripcion || "";
+          document.getElementById("conv-requisitos").value = c.requisitos || "";
+        }
+      } else {
+        titulo.textContent = "Crear Convocatoria";
+      }
+      modal.style.display = "flex";
+    }
+
+    function cerrarModalConvocatoria() {
+      document.getElementById("modal-convocatoria").style.display = "none";
+    }
+
+    async function cargarUniversidadesSelect() {
+      const select = document.getElementById("conv-universidad");
+      if (select.options.length > 1) return; // Ya cargadas
+
+      try {
+        const unis = await apiFetch("/api/admin/universidades", { headers: authHeaders() });
+        unis.forEach(u => {
+          const opt = document.createElement("option");
+          opt.value = u.id;
+          opt.textContent = `${u.nombre} (${u.pais})`;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        console.error("Error cargando universidades:", err);
+      }
+    }
+
+    async function guardarConvocatoria(e) {
+      e.preventDefault();
+      const id = document.getElementById("conv-id").value;
+      const data = {
+        titulo: document.getElementById("conv-titulo-input").value,
+        universidad_id: parseInt(document.getElementById("conv-universidad").value),
+        fecha_inicio: document.getElementById("conv-fecha-inicio").value,
+        fecha_cierre: document.getElementById("conv-fecha-cierre").value,
+        cupos: parseInt(document.getElementById("conv-cupos").value),
+        estado: document.getElementById("conv-estado").value,
+        descripcion: document.getElementById("conv-descripcion").value,
+        requisitos: document.getElementById("conv-requisitos").value
+      };
+
+      try {
+        const method = id ? "PUT" : "POST";
+        const url = id ? `/api/admin/convocatorias/${id}` : "/api/admin/convocatorias";
+        await apiFetch(url, {
+          method,
+          headers: authHeaders(),
+          body: JSON.stringify(data)
+        });
+        cerrarModalConvocatoria();
+        mostrarAlertaConvocatorias(`Convocatoria ${id ? "actualizada" : "creada"} con éxito`, "exito");
+        cargarConvocatoriasAdmin();
+      } catch (err) {
+        mostrarAlertaConvocatorias("Error al guardar: " + err.message, "error");
+      }
+    }
+
+    async function eliminarConvocatoria(id) {
+      if (!confirm("¿Está seguro de eliminar esta convocatoria? Esta acción no se puede deshacer.")) return;
+      try {
+        await apiFetch(`/api/admin/convocatorias/${id}`, {
+          method: "DELETE",
+          headers: authHeaders()
+        });
+        mostrarAlertaConvocatorias("Convocatoria eliminada correctamente", "exito");
+        cargarConvocatoriasAdmin();
+      } catch (err) {
+        mostrarAlertaConvocatorias("Error al eliminar: " + err.message, "error");
+      }
+    }
+
+    function mostrarAlertaConvocatorias(msg, tipo) {
+      const el = document.getElementById("alerta-convocatorias");
+      el.className = "alerta alerta-" + (tipo || "error") + " mb-3";
+      el.style.display = "block";
+      el.textContent = msg;
+      setTimeout(() => { el.style.display = "none"; }, 5000);
     }
 
     function badgeEstado(estado) {

@@ -4,10 +4,13 @@ from sqlalchemy import func
 from typing import List
 
 from database import get_db
-from models import Usuario, Postulacion, Documento, Convocatoria, ProgramaAcademico, Notificacion
-from schemas import EstadoRequest, PostulacionResponse, DocumentoResponse, SeleccionGanadoresRequest
+from models import Usuario, Postulacion, Documento, Convocatoria, ProgramaAcademico, Notificacion, Universidad
+from schemas import (EstadoRequest, PostulacionResponse, DocumentoResponse,
+                     SeleccionGanadoresRequest, ConvocatoriaCreate, ConvocatoriaUpdate,
+                     UniversidadCreate, UniversidadUpdate)
 from auth import solo_admin
 from routers.postulaciones import to_response
+import datetime
 
 router = APIRouter(prefix="/api/admin", tags=["Administración"])
 
@@ -33,7 +36,7 @@ def ver_documentos(id: int, db: Session = Depends(get_db), admin: Usuario = Depe
             id=d.id,
             nombre_archivo=d.nombre_archivo,
             tipo=d.tipo_documento.nombre if d.tipo_documento else None,
-            ruta_archivo=d.ruta_archivo,
+            s3_key=d.s3_key,
             fecha_subida=d.fecha_subida
         ) for d in docs
     ]
@@ -124,6 +127,49 @@ def estadisticas_por_convocatoria(db: Session = Depends(get_db), admin: Usuario 
 
 # ── Convocatorias ─────────────────────────────────────────────────────────────
 
+@router.get("/universidades", summary="Listar todas las universidades")
+def listar_universidades(db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+    return db.query(Universidad).order_by(Universidad.nombre).all()
+
+
+@router.post("/universidades", summary="Agregar una nueva universidad")
+def crear_universidad(request: UniversidadCreate, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+    nueva = Universidad(nombre=request.nombre, pais=request.pais)
+    db.add(nueva)
+    db.commit()
+    db.refresh(nueva)
+    return nueva
+
+
+@router.put("/universidades/{id}", summary="Actualizar una universidad")
+def actualizar_universidad(id: int, request: UniversidadUpdate, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+    u = db.query(Universidad).filter(Universidad.id == id).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="Universidad no encontrada")
+    
+    if request.nombre is not None: u.nombre = request.nombre
+    if request.pais is not None: u.pais = request.pais
+    
+    db.commit()
+    db.refresh(u)
+    return u
+
+
+@router.delete("/universidades/{id}", summary="Eliminar una universidad")
+def eliminar_universidad(id: int, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+    u = db.query(Universidad).filter(Universidad.id == id).first()
+    if not u:
+        raise HTTPException(status_code=404, detail="Universidad no encontrada")
+    
+    # Verificar si tiene convocatorias asociadas
+    if db.query(Convocatoria).filter(Convocatoria.universidad_id == id).count() > 0:
+        raise HTTPException(status_code=400, detail="No se puede eliminar una universidad que tiene convocatorias asociadas.")
+        
+    db.delete(u)
+    db.commit()
+    return {"mensaje": "Universidad eliminada correctamente"}
+
+
 @router.get("/convocatorias", summary="Listar convocatorias para selección de ganadores")
 def listar_convocatorias(db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
     convs = db.query(Convocatoria).order_by(Convocatoria.fecha_creacion.desc()).all()
@@ -132,12 +178,83 @@ def listar_convocatorias(db: Session = Depends(get_db), admin: Usuario = Depends
             "id": c.id,
             "titulo": c.titulo,
             "universidad": c.universidad.nombre if c.universidad else "—",
+            "universidad_id": c.universidad_id,
+            "descripcion": c.descripcion,
+            "requisitos": c.requisitos,
+            "fecha_inicio": str(c.fecha_inicio),
+            "fecha_cierre": str(c.fecha_cierre),
             "cupos": c.cupos,
             "estado": c.estado,
             "totalPostulaciones": db.query(Postulacion).filter(Postulacion.convocatoria_id == c.id).count(),
         }
         for c in convs
     ]
+
+
+@router.post("/convocatorias", summary="Crear una nueva convocatoria")
+def crear_convocatoria(request: ConvocatoriaCreate, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+    try:
+        f_inicio = datetime.datetime.strptime(request.fecha_inicio, "%Y-%m-%d").date()
+        f_cierre = datetime.datetime.strptime(request.fecha_cierre, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Formato de fecha inválido (debe ser YYYY-MM-DD)")
+
+    nueva = Convocatoria(
+        titulo=request.titulo,
+        universidad_id=request.universidad_id,
+        descripcion=request.descripcion,
+        requisitos=request.requisitos,
+        fecha_inicio=f_inicio,
+        fecha_cierre=f_cierre,
+        cupos=request.cupos,
+        estado=request.estado,
+        creado_por=admin.id
+    )
+    db.add(nueva)
+    db.commit()
+    db.refresh(nueva)
+    return nueva
+
+
+@router.put("/convocatorias/{id}", summary="Actualizar una convocatoria")
+def actualizar_convocatoria(id: int, request: ConvocatoriaUpdate, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+    c = db.query(Convocatoria).filter(Convocatoria.id == id).first()
+    if not c:
+        raise HTTPException(status_code=404, detail="Convocatoria no encontrada")
+
+    if request.titulo is not None: c.titulo = request.titulo
+    if request.universidad_id is not None: c.universidad_id = request.universidad_id
+    if request.descripcion is not None: c.descripcion = request.descripcion
+    if request.requisitos is not None: c.requisitos = request.requisitos
+    if request.cupos is not None: c.cupos = request.cupos
+    if request.estado is not None: c.estado = request.estado
+
+    try:
+        if request.fecha_inicio is not None:
+            c.fecha_inicio = datetime.datetime.strptime(request.fecha_inicio, "%Y-%m-%d").date()
+        if request.fecha_cierre is not None:
+            c.fecha_cierre = datetime.datetime.strptime(request.fecha_cierre, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Formato de fecha inválido (debe ser YYYY-MM-DD)")
+
+    db.commit()
+    db.refresh(c)
+    return c
+
+
+@router.delete("/convocatorias/{id}", summary="Eliminar una convocatoria")
+def eliminar_convocatoria(id: int, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+    c = db.query(Convocatoria).filter(Convocatoria.id == id).first()
+    if not c:
+        raise HTTPException(status_code=404, detail="Convocatoria no encontrada")
+
+    # Verificar si hay postulaciones asociadas
+    if db.query(Postulacion).filter(Postulacion.convocatoria_id == id).count() > 0:
+        raise HTTPException(status_code=400, detail="No se puede eliminar una convocatoria que ya tiene postulaciones.")
+
+    db.delete(c)
+    db.commit()
+    return {"mensaje": "Convocatoria eliminada correctamente"}
 
 
 @router.get("/convocatorias/{id}/postulantes",
@@ -197,6 +314,15 @@ def seleccionar_ganadores(id: int, request: SeleccionGanadoresRequest,
             if request.comentario:
                 msg += f" Comentario: {request.comentario}"
             db.add(Notificacion(usuario_id=p.estudiante_id, mensaje=msg))
+            
+            # Enviar correo electrónico
+            enviar_notificacion_estado(
+                email=p.estudiante.email,
+                nombre=p.estudiante.nombre,
+                convocatoria=conv.titulo,
+                nuevo_estado=nuevo_estado,
+                comentario=request.comentario
+            )
 
     db.commit()
     return {

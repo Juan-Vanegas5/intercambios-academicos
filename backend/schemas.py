@@ -39,7 +39,7 @@ class DocumentoResponse(BaseModel):
     id: int
     nombre_archivo: str
     tipo: Optional[str] = None
-    ruta_archivo: str
+    s3_key: str
     fecha_subida: Optional[datetime] = None
 
 class RegistroRequest(BaseModel):
@@ -77,3 +77,31 @@ class EstadoRequest(BaseModel):
 class SeleccionGanadoresRequest(BaseModel):
     ids_seleccionados: List[int]
     comentario: Optional[str] = None
+
+class ConvocatoriaCreate(BaseModel):
+    titulo: str
+    universidad_id: int
+    descripcion: Optional[str] = None
+    requisitos: Optional[str] = None
+    fecha_inicio: str
+    fecha_cierre: str
+    cupos: int
+    estado: str
+
+class ConvocatoriaUpdate(BaseModel):
+    titulo: Optional[str] = None
+    universidad_id: Optional[int] = None
+    descripcion: Optional[str] = None
+    requisitos: Optional[str] = None
+    fecha_inicio: Optional[str] = None
+    fecha_cierre: Optional[str] = None
+    cupos: Optional[int] = None
+    estado: Optional[str] = None
+
+class UniversidadCreate(BaseModel):
+    nombre: str
+    pais: str
+
+class UniversidadUpdate(BaseModel):
+    nombre: Optional[str] = None
+    pais: Optional[str] = None

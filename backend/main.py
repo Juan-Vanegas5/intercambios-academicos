@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
@@ -35,6 +35,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    print(f"[ERROR 500] {request.method} {request.url} → {exc}")
+    origin = request.headers.get("origin", "")
+    cors_headers = {}
+    if origin:
+        cors_headers["Access-Control-Allow-Origin"] = origin
+        cors_headers["Access-Control-Allow-Credentials"] = "true"
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Error interno del servidor"},
+        headers=cors_headers,
+    )
 
 
 # ---- helpers TOTP ----

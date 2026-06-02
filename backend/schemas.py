@@ -39,7 +39,7 @@ class DocumentoResponse(BaseModel):
     id: int
     nombre_archivo: str
     tipo: Optional[str] = None
-    s3_key: str
+    ruta_archivo: str
     fecha_subida: Optional[datetime] = None
 
 class RegistroRequest(BaseModel):

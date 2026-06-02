@@ -127,7 +127,7 @@ async def subir_documentos(
                 postulacion_id=id,
                 nombre_archivo=archivo.filename,
                 tipo_documento_id=tipo_id,
-                s3_key=ruta,
+                ruta_archivo=ruta,
                 fecha_subida=datetime.datetime.now()
             )
             db.add(doc)
@@ -194,7 +194,7 @@ async def subir_documentos_viaje(
                 postulacion_id=id,
                 nombre_archivo=archivo.filename,
                 tipo_documento_id=tipo_id,
-                s3_key=ruta,
+                ruta_archivo=ruta,
                 fecha_subida=datetime.datetime.now()
             ))
             subidos.append(archivo.filename)

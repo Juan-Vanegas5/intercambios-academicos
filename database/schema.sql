@@ -72,7 +72,8 @@ CREATE TABLE postulaciones (
     estado              VARCHAR(20) NOT NULL DEFAULT 'en_revision'
                             CHECK (estado IN ('en_revision', 'aprobada', 'rechazada',
                                               'revisando_documentos', 'necesita_correcciones',
-                                              'docs_pendientes', 'completada')),
+                                              'docs_pendientes', 'completada',
+                                              'docs_viaje_enviados')),
     comentario_admin    TEXT,
     fecha_postulacion   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

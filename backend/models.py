@@ -74,8 +74,7 @@ class Documento(Base):
     postulacion_id    = Column(Integer, ForeignKey("postulaciones.id"), nullable=False)
     nombre_archivo    = Column(String(255), nullable=False)
     tipo_documento_id = Column(Integer, ForeignKey("tipos_documentos.id"))
-    mimetype          = Column(String(50), default="application/pdf")
-    s3_key            = Column(String(500), nullable=False)
+    ruta_archivo      = Column(String(500), nullable=False)
     fecha_subida      = Column(DateTime, default=datetime.datetime.now)
 
     tipo_documento = relationship("TipoDocumento", lazy="joined")

@@ -1,34 +1,40 @@
 import random
 import datetime
 import os
-import boto3
-from botocore.exceptions import ClientError
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 
 load_dotenv()
 
-SES_FROM_EMAIL = os.getenv("SES_FROM_EMAIL", "no-reply@intercambiosupc.lat")
-AWS_REGION     = os.getenv("AWS_REGION", "us-east-2")
+EMAIL_USER     = os.getenv("EMAIL_USER", "")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
+EMAIL_HOST     = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT     = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_FROM     = os.getenv("EMAIL_USER", "no-reply@intercambiosupc.lat")
 
 _codigos: dict = {}
 
-def _ses_client():
-    return boto3.client("ses", region_name=AWS_REGION)
-
 def _send_email(to: str, subject: str, html: str) -> bool:
     print(f"\n{'='*50}\n  EMAIL → {to}\n  Asunto: {subject}\n{'='*50}\n")
-    try:
-        _ses_client().send_email(
-            Source=SES_FROM_EMAIL,
-            Destination={"ToAddresses": [to]},
-            Message={
-                "Subject": {"Data": subject, "Charset": "UTF-8"},
-                "Body":    {"Html": {"Data": html, "Charset": "UTF-8"}}
-            }
-        )
+    if not EMAIL_USER or not EMAIL_PASSWORD:
+        print("  [Sin credenciales — solo log]")
         return True
-    except ClientError as e:
-        print(f"[SES] Error: {e.response['Error']['Message']}")
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"]    = EMAIL_FROM
+        msg["To"]      = to
+        msg.attach(MIMEText(html, "html"))
+        with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as server:
+            server.starttls()
+            server.login(EMAIL_USER, EMAIL_PASSWORD)
+            server.sendmail(EMAIL_FROM, to, msg.as_string())
+        print("  [Enviado OK]")
+        return True
+    except Exception as e:
+        print(f"  [Error SMTP] {e}")
         return False
 
 def generar_y_guardar_codigo(email: str) -> str:

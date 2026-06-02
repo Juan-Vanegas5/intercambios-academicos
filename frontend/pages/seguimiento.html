@@ -154,6 +154,7 @@
     <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
   </footer>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="../js/main.js"></script>
   <script>
     requireAuth();
@@ -203,11 +204,15 @@
               ${p.comentarioAdmin || "—"}
             </td>
             <td>
-              ${p.estado === "aprobada"
-                ? `<button class="btn btn-exito btn-sm" onclick="abrirViaje(${p.id})" style="white-space:nowrap;">✈️ Docs viaje</button>`
-                : (p.estado === "necesita_correcciones" || p.estado === "docs_pendientes")
-                  ? `<button class="btn btn-primario btn-sm" onclick="abrirCorreccion(${p.id})">📎 Corregir docs</button>`
-                  : "—"}
+              ${p.estado === "completada"
+                ? `<button class="btn btn-exito btn-sm" onclick="descargarCertificado(${p.id})" style="white-space:nowrap;background:#16a34a;">📜 Certificado</button>`
+                : p.estado === "aprobada"
+                  ? `<button class="btn btn-exito btn-sm" onclick="abrirViaje(${p.id})" style="white-space:nowrap;">✈️ Docs viaje</button>`
+                  : p.estado === "docs_viaje_enviados"
+                    ? `<span style="font-size:0.8rem;color:#2563eb;">✅ Docs enviados</span>`
+                    : (p.estado === "necesita_correcciones" || p.estado === "docs_pendientes")
+                      ? `<button class="btn btn-primario btn-sm" onclick="abrirCorreccion(${p.id})">📎 Corregir docs</button>`
+                      : "—"}
             </td>
           </tr>
         `).join("");
@@ -303,6 +308,200 @@
         alerta.className = "alerta alerta-error";
         alerta.style.display = "block";
         alerta.textContent = "Error: " + err.message;
+      }
+    }
+
+    async function descargarCertificado(id) {
+      try {
+        const todas = await apiFetch("/api/postulaciones/mis", { headers: authHeaders() });
+        const p = todas.find(x => x.id === id);
+        if (!p) { alert("No se encontró la postulación"); return; }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+        const W = 210, H = 297;
+
+        // Fondo blanco
+        doc.setFillColor(255, 255, 255);
+        doc.rect(0, 0, W, H, "F");
+
+        // Header azul oscuro
+        doc.setFillColor(26, 58, 107);
+        doc.rect(0, 0, W, 22, "F");
+
+        // Logo texto en header
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text("■  Intercambios UPC", 12, 14);
+
+        // Badge "CERTIFICACIÓN OFICIAL"
+        doc.setFillColor(255, 193, 7);
+        doc.roundedRect(145, 7, 52, 9, 4, 4, "F");
+        doc.setTextColor(26, 58, 107);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "bold");
+        doc.text("CERTIFICACIÓN OFICIAL", 171, 13, { align: "center" });
+
+        // Línea verde decorativa
+        doc.setFillColor(34, 197, 94);
+        doc.rect(0, 22, W, 2, "F");
+
+        // Cuerpo - borde de la carta
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(15, 32, W - 30, H - 65, 4, 4, "S");
+
+        // Universidad
+        doc.setTextColor(100, 116, 139);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.text("UNIVERSIDAD PILOTO DE COLOMBIA", W/2, 48, { align: "center" });
+
+        // Título
+        doc.setTextColor(26, 58, 107);
+        doc.setFontSize(20);
+        doc.setFont("helvetica", "bold");
+        doc.text("Certificado de Participación", W/2, 60, { align: "center" });
+        doc.text("en Intercambio Académico", W/2, 70, { align: "center" });
+
+        // Estrella decorativa
+        doc.setFillColor(26, 58, 107);
+        doc.circle(W/2, 83, 5, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.text("★", W/2, 86, { align: "center" });
+
+        // Líneas decorativas
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.3);
+        doc.line(W/2 - 40, 83, W/2 - 12, 83);
+        doc.line(W/2 + 12, 83, W/2 + 40, 83);
+
+        // "Se certifica que"
+        doc.setTextColor(100, 116, 139);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("Se certifica que el/la estudiante", W/2, 97, { align: "center" });
+
+        // Nombre del estudiante
+        doc.setTextColor(26, 58, 107);
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        const nombreCompleto = p.estudiante || "Estudiante";
+        doc.text(nombreCompleto, W/2, 110, { align: "center" });
+
+        // Texto descripción
+        doc.setTextColor(80, 80, 80);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("completó satisfactoriamente su proceso de postulación y fue seleccionado/a", W/2, 122, { align: "center" });
+        doc.text("para participar en el siguiente programa de intercambio académico internacional.", W/2, 129, { align: "center" });
+
+        // Caja programa
+        doc.setFillColor(239, 246, 255);
+        doc.setDrawColor(147, 197, 253);
+        doc.roundedRect(25, 137, W - 50, 32, 3, 3, "FD");
+        doc.setTextColor(37, 99, 235);
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "bold");
+        doc.text("PROGRAMA DE INTERCAMBIO", W/2, 146, { align: "center" });
+        doc.setTextColor(26, 58, 107);
+        doc.setFontSize(13);
+        doc.text(p.convocatoria || "—", W/2, 156, { align: "center" });
+        doc.setTextColor(37, 99, 235);
+        doc.setFontSize(10);
+        doc.text(`■ ${p.universidad || "—"}  —  ■ ${p.pais || "—"}`, W/2, 164, { align: "center" });
+
+        // Tres cajas: Período, Estado, Fecha
+        const now = new Date();
+        const mes = now.toLocaleString("es-CO", { month: "short", year: "numeric" });
+        const anio = now.getFullYear();
+        const semestre = now.getMonth() < 6 ? "I" : "II";
+        const periodo = `${anio}-${semestre}`;
+
+        const cajas = [
+          { label: "PERÍODO", valor: periodo },
+          { label: "ESTADO",  valor: "Aprobado", verde: true },
+          { label: "FECHA",   valor: mes },
+        ];
+        cajas.forEach((c, i) => {
+          const x = 30 + i * 52;
+          doc.setFillColor(249, 250, 251);
+          doc.setDrawColor(220, 220, 220);
+          doc.roundedRect(x, 177, 44, 22, 2, 2, "FD");
+          doc.setTextColor(120, 120, 120);
+          doc.setFontSize(7);
+          doc.setFont("helvetica", "normal");
+          doc.text(c.label, x + 22, 184, { align: "center" });
+          doc.setTextColor(c.verde ? 22 : 26, c.verde ? 163 : 58, c.verde ? 74 : 107);
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "bold");
+          doc.text(c.valor, x + 22, 193, { align: "center" });
+        });
+
+        // Sello circular UPC
+        doc.setFillColor(26, 58, 107);
+        doc.circle(W/2, 220, 12, "F");
+        doc.setDrawColor(255, 193, 7);
+        doc.setLineWidth(1.5);
+        doc.circle(W/2, 220, 12, "S");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text("UPC", W/2, 223, { align: "center" });
+        doc.setFontSize(6);
+        doc.text("Sello Digital", W/2, 229, { align: "center" });
+
+        // Firma izquierda
+        doc.setDrawColor(180, 180, 180);
+        doc.setLineWidth(0.3);
+        doc.line(25, 214, 75, 214);
+        doc.setTextColor(26, 58, 107);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text("Coordinador/a de Intercambios", 25, 220);
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.text("Dirección de Relaciones Internacionales", 25, 226);
+        doc.text("Universidad Piloto de Colombia", 25, 232);
+
+        // Código de verificación (derecha)
+        const codigo = `UPC-INT-${anio}-${String(id).padStart(6, "0")}`;
+        doc.setFillColor(249, 250, 251);
+        doc.setDrawColor(200, 200, 200);
+        doc.roundedRect(125, 213, 68, 14, 2, 2, "FD");
+        doc.setTextColor(120, 120, 120);
+        doc.setFontSize(7);
+        doc.text("Código de verificación", 159, 219, { align: "center" });
+        doc.setTextColor(26, 58, 107);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text(codigo, 159, 225, { align: "center" });
+
+        // Footer azul
+        doc.setFillColor(26, 58, 107);
+        doc.rect(0, H - 28, W, 28, "F");
+        doc.setTextColor(255, 193, 7);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.text("Universidad Piloto de Colombia  —  Programa de Desarrollo Web  —  " + anio, W/2, H - 17, { align: "center" });
+        doc.setTextColor(200, 220, 255);
+        doc.setFontSize(8);
+        doc.text("Este certificado fue generado digitalmente y tiene validez oficial.", W/2, H - 9, { align: "center" });
+
+        // Línea gris inferior del cuerpo
+        doc.setTextColor(150, 150, 150);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "normal");
+        const hoy = new Date().toLocaleDateString("es-CO");
+        doc.text(`Generado automáticamente por Intercambios UPC · intercambiosupc.lat`, 17, H - 33);
+        doc.text(hoy, W - 17, H - 33, { align: "right" });
+
+        doc.save(`Certificado_Intercambio_${nombreCompleto.replace(/ /g,"_")}.pdf`);
+      } catch(err) {
+        alert("Error al generar certificado: " + err.message);
       }
     }
 

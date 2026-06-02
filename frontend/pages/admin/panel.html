@@ -600,7 +600,6 @@
             <button class="btn btn-secundario btn-sm" onclick="abrirDetalle(${p.id})" title="Ver detalle y documentos">🔍</button>
             <button class="btn btn-exito btn-sm"      onclick="cambiarEstado(${p.id}, 'aprobada')" title="Aprobar">✔</button>
             <button class="btn btn-danger btn-sm"     onclick="cambiarEstado(${p.id}, 'rechazada')" title="Rechazar">✘</button>
-            <button class="btn btn-secundario btn-sm" onclick="abrirModal(${p.id}, '${(p.comentarioAdmin || "").replace(/'/g, "\\'")}')">💬</button>
             <button class="btn btn-danger btn-sm" onclick="eliminarPostulacion(${p.id})" title="Eliminar postulación" style="background:#fee2e2;">🗑</button>
           </td>
         </tr>

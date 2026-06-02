@@ -199,5 +199,7 @@ async def subir_documentos_viaje(
             ))
             subidos.append(archivo.filename)
 
+    if subidos:
+        postulacion.estado = "docs_viaje_enviados"
     db.commit()
     return {"mensaje": f"{len(subidos)} documento(s) de viaje subido(s)", "archivos": subidos}

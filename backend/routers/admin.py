@@ -10,12 +10,14 @@ from schemas import (EstadoRequest, PostulacionResponse, DocumentoResponse,
                      UniversidadCreate, UniversidadUpdate)
 from auth import solo_admin
 from routers.postulaciones import to_response
+from email_service import enviar_notificacion_estado
 import datetime
 
 router = APIRouter(prefix="/api/admin", tags=["Administración"])
 
 ESTADOS_VALIDOS = ["aprobada", "rechazada", "en_revision", "revisando_documentos",
-                   "necesita_correcciones", "docs_pendientes", "completada"]
+                   "necesita_correcciones", "docs_pendientes", "completada",
+                   "docs_viaje_enviados"]
 
 # ── Postulaciones ─────────────────────────────────────────────────────────────
 
@@ -75,6 +77,18 @@ def actualizar_estado(id: int, request: EstadoRequest,
                 usuario_id=postulacion.estudiante_id,
                 mensaje=texto
             ))
+
+    # Enviar correo al estudiante
+    try:
+        enviar_notificacion_estado(
+            email=postulacion.estudiante.email,
+            nombre=postulacion.estudiante.nombre,
+            convocatoria=postulacion.convocatoria.titulo if postulacion.convocatoria else "la convocatoria",
+            nuevo_estado=request.estado,
+            comentario=request.comentario
+        )
+    except Exception as e:
+        print(f"[admin] Error enviando email: {e}")
 
     db.commit()
     db.refresh(postulacion)

@@ -660,8 +660,9 @@
 
     async function accionDetalle(nuevoEstado) {
       const comentario = document.getElementById("comentario-detalle").value.trim();
+      const id = detalleId;
       cerrarDetalle();
-      await cambiarEstado(detalleId || 0, nuevoEstado, comentario);
+      await cambiarEstado(id, nuevoEstado, comentario);
     }
 
     async function soloComentario() {

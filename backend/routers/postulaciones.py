@@ -135,3 +135,69 @@ async def subir_documentos(
 
     db.commit()
     return {"mensaje": f"{len(archivos_subidos)} documento(s) subido(s) correctamente", "archivos": archivos_subidos}
+
+DOCS_VIAJE = [
+    ("vuelos",  "Tiquetes de vuelo",     3),
+    ("seguro",  "Seguro médico",         4),
+    ("visa",    "Visa",                  5),
+    ("pasaporte","Pasaporte",            6),
+]
+
+@router.post("/{id}/documentos-viaje", summary="Subir documentos de segunda fase (viaje)")
+async def subir_documentos_viaje(
+    id: int,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    vuelos:    UploadFile = File(None),
+    seguro:    UploadFile = File(None),
+    visa:      UploadFile = File(None),
+    pasaporte: UploadFile = File(None)
+):
+    """Sube los documentos de viaje (segunda fase) para una postulación aprobada."""
+    postulacion = db.query(Postulacion).filter(
+        Postulacion.id == id,
+        Postulacion.estudiante_id == usuario.id
+    ).first()
+    if not postulacion:
+        raise HTTPException(status_code=404, detail="Postulación no encontrada")
+    if postulacion.estado != "aprobada":
+        raise HTTPException(status_code=400, detail="Solo puedes subir documentos de viaje cuando tu postulación está aprobada")
+
+    carpeta = os.path.join(UPLOAD_DIR, str(id))
+    os.makedirs(carpeta, exist_ok=True)
+
+    archivos = [vuelos, seguro, visa, pasaporte]
+    subidos = []
+
+    for archivo, (campo, nombre_tipo, tipo_id) in zip(archivos, DOCS_VIAJE):
+        if archivo and archivo.filename:
+            if not archivo.filename.lower().endswith(".pdf"):
+                raise HTTPException(status_code=400, detail=f"'{archivo.filename}' debe ser PDF")
+
+            # Asegurar que el TipoDocumento existe
+            tipo = db.query(TipoDocumento).filter(TipoDocumento.id == tipo_id).first()
+            if not tipo:
+                tipo = TipoDocumento(id=tipo_id, nombre=nombre_tipo)
+                db.add(tipo)
+                db.flush()
+
+            ruta = os.path.join(carpeta, archivo.filename)
+            with open(ruta, "wb") as f:
+                shutil.copyfileobj(archivo.file, f)
+
+            db.query(Documento).filter(
+                Documento.postulacion_id == id,
+                Documento.tipo_documento_id == tipo_id
+            ).delete()
+
+            db.add(Documento(
+                postulacion_id=id,
+                nombre_archivo=archivo.filename,
+                tipo_documento_id=tipo_id,
+                s3_key=ruta,
+                fecha_subida=datetime.datetime.now()
+            ))
+            subidos.append(archivo.filename)
+
+    db.commit()
+    return {"mensaje": f"{len(subidos)} documento(s) de viaje subido(s)", "archivos": subidos}

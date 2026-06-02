@@ -46,7 +46,10 @@ async function apiFetch(url, options = {}) {
     if (res.status === 401) { cerrarSesion(); return null; }
     if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: res.statusText }));
-        throw new Error(err.detail || "Error en la petición");
+        const msg = Array.isArray(err.detail)
+            ? err.detail.map(e => e.msg || JSON.stringify(e)).join(", ")
+            : (err.detail || "Error en la petición");
+        throw new Error(msg);
     }
     return res.json();
 }

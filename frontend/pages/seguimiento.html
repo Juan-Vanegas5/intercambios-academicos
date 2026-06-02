@@ -25,6 +25,10 @@
       <p>Aquí puedes ver el estado de cada una de tus postulaciones</p>
     </div>
 
+
+    <!-- Barra de progreso por postulación -->
+    <div id="contenedor-progreso" style="margin-bottom:1.5rem;"></div>
+
     <div id="alerta-notif" class="alerta alerta-info mb-3" style="display:none;"></div>
     <div id="alerta-error" class="alerta alerta-error mb-3" style="display:none;"></div>
 
@@ -85,6 +89,42 @@
   </main>
 
 
+
+  <!-- Modal documentos de viaje (segunda fase) -->
+  <div id="modal-viaje" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; padding:1rem;">
+    <div class="card" style="max-width:500px; width:100%; margin:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+        <h3 style="color:#1a3a6b; margin:0;">✈️ Documentos de Viaje</h3>
+        <button onclick="cerrarViaje()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+      </div>
+      <p style="color:#6b7280; font-size:0.9rem; margin-bottom:1rem;">
+        ¡Felicitaciones! Tu postulación fue aprobada. Sube los documentos necesarios para completar el proceso. Solo archivos PDF.
+      </p>
+      <div id="alerta-viaje" class="alerta mb-3" style="display:none;"></div>
+      <form id="form-viaje" onsubmit="subirDocsViaje(event)">
+        <div class="form-group">
+          <label>✈️ Tiquetes de vuelo (PDF)</label>
+          <input type="file" id="doc-vuelos" accept=".pdf">
+        </div>
+        <div class="form-group">
+          <label>🏥 Seguro médico (PDF)</label>
+          <input type="file" id="doc-seguro" accept=".pdf">
+        </div>
+        <div class="form-group">
+          <label>🛂 Visa (PDF)</label>
+          <input type="file" id="doc-visa" accept=".pdf">
+        </div>
+        <div class="form-group">
+          <label>📘 Pasaporte (PDF)</label>
+          <input type="file" id="doc-pasaporte" accept=".pdf">
+        </div>
+        <div style="display:flex; gap:1rem; margin-top:1rem;">
+          <button type="button" class="btn btn-secundario" onclick="cerrarViaje()" style="flex:1;">Cancelar</button>
+          <button type="submit" class="btn btn-primario" style="flex:2;">Enviar documentos</button>
+        </div>
+      </form>
+    </div>
+  </div>
   <!-- Modal corrección de documentos -->
   <div id="modal-correccion" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; padding:1rem;">
     <div class="card" style="max-width:480px; width:100%; margin:auto;">
@@ -146,6 +186,7 @@
           return;
         }
 
+        renderProgreso(postulaciones);
         cuerpo.innerHTML = postulaciones.map(p => `
           <tr>
             <td><strong>${p.convocatoria}</strong></td>
@@ -162,9 +203,11 @@
               ${p.comentarioAdmin || "—"}
             </td>
             <td>
-              ${(p.estado === "necesita_correcciones" || p.estado === "docs_pendientes")
-                ? `<button class="btn btn-primario btn-sm" onclick="abrirCorreccion(${p.id})">📎 Corregir docs</button>`
-                : "—"}
+              ${p.estado === "aprobada"
+                ? `<button class="btn btn-exito btn-sm" onclick="abrirViaje(${p.id})" style="white-space:nowrap;">✈️ Docs viaje</button>`
+                : (p.estado === "necesita_correcciones" || p.estado === "docs_pendientes")
+                  ? `<button class="btn btn-primario btn-sm" onclick="abrirCorreccion(${p.id})">📎 Corregir docs</button>`
+                  : "—"}
             </td>
           </tr>
         `).join("");
@@ -177,6 +220,40 @@
     }
 
     cargarMisPostulaciones();
+
+    // ── Barra de progreso ──
+    const ETAPAS = [
+      { estados: ["en_revision"],              label: "En revisión",        icono: "🔍" },
+      { estados: ["revisando_documentos"],      label: "Revisando docs",     icono: "📋" },
+      { estados: ["necesita_correcciones","docs_pendientes"], label: "Corrección", icono: "⚠️" },
+      { estados: ["aprobada"],                 label: "Aprobada ✓",         icono: "🎉" },
+      { estados: ["completada"],               label: "Completada",         icono: "✅" },
+    ];
+
+    function renderProgreso(postulaciones) {
+      const contenedor = document.getElementById("contenedor-progreso");
+      if (!postulaciones || postulaciones.length === 0) { contenedor.innerHTML = ""; return; }
+      contenedor.innerHTML = postulaciones.map(p => {
+        const etapaActual = ETAPAS.findIndex(e => e.estados.includes(p.estado));
+        const steps = ETAPAS.map((e, i) => {
+          const done = i < etapaActual;
+          const active = i === etapaActual;
+          const color = done ? "#16a34a" : active ? "#2563eb" : "#d1d5db";
+          const textColor = (done || active) ? "white" : "#6b7280";
+          return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;">
+            ${i > 0 ? `<div style="position:absolute;top:16px;left:-50%;width:100%;height:3px;background:${done ? "#16a34a" : "#e5e7eb"};z-index:0;"></div>` : ""}
+            <div style="width:34px;height:34px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:0.85rem;z-index:1;color:${textColor};font-weight:700;">
+              ${done ? "✓" : e.icono}
+            </div>
+            <div style="font-size:0.72rem;margin-top:0.3rem;color:${active ? "#2563eb" : "#6b7280"};font-weight:${active ? "700" : "400"};text-align:center;">${e.label}</div>
+          </div>`;
+        }).join("");
+        return `<div class="card" style="padding:1rem;margin-bottom:0.75rem;">
+          <div style="font-size:0.85rem;color:#1a3a6b;font-weight:600;margin-bottom:0.75rem;">📌 ${p.convocatoria} — ${p.universidad}</div>
+          <div style="display:flex;align-items:flex-start;position:relative;">${steps}</div>
+        </div>`;
+      }).join("");
+    }
 
     let correccionId = null;
 
@@ -222,6 +299,56 @@
         alerta.style.display = "block";
         alerta.textContent = "✅ Documentos enviados correctamente.";
         setTimeout(() => { cerrarCorreccion(); cargarMisPostulaciones(); }, 1800);
+      } catch (err) {
+        alerta.className = "alerta alerta-error";
+        alerta.style.display = "block";
+        alerta.textContent = "Error: " + err.message;
+      }
+    }
+
+    let viajeId = null;
+
+    function abrirViaje(id) {
+      viajeId = id;
+      ["doc-vuelos","doc-seguro","doc-visa","doc-pasaporte"].forEach(i => document.getElementById(i).value = "");
+      document.getElementById("alerta-viaje").style.display = "none";
+      document.getElementById("modal-viaje").style.display = "flex";
+    }
+
+    function cerrarViaje() {
+      document.getElementById("modal-viaje").style.display = "none";
+      viajeId = null;
+    }
+
+    async function subirDocsViaje(e) {
+      e.preventDefault();
+      const alerta = document.getElementById("alerta-viaje");
+      const campos = ["vuelos","seguro","visa","pasaporte"];
+      const ids    = ["doc-vuelos","doc-seguro","doc-visa","doc-pasaporte"];
+      const files  = ids.map(i => document.getElementById(i).files[0]);
+
+      if (files.every(f => !f)) {
+        alerta.className = "alerta alerta-error";
+        alerta.style.display = "block";
+        alerta.textContent = "Debes adjuntar al menos un documento.";
+        return;
+      }
+
+      const form = new FormData();
+      campos.forEach((campo, i) => { if (files[i]) form.append(campo, files[i]); });
+
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${BASE_URL}/api/postulaciones/${viajeId}/documentos-viaje`, {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + token },
+          body: form
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
+        alerta.className = "alerta alerta-exito";
+        alerta.style.display = "block";
+        alerta.textContent = "✅ Documentos de viaje enviados correctamente.";
+        setTimeout(() => { cerrarViaje(); cargarMisPostulaciones(); }, 1800);
       } catch (err) {
         alerta.className = "alerta alerta-error";
         alerta.style.display = "block";

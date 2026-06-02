@@ -81,6 +81,18 @@ def actualizar_estado(id: int, request: EstadoRequest,
     return to_response(postulacion)
 
 
+
+@router.delete("/postulaciones/{id}", summary="Eliminar una postulación")
+def eliminar_postulacion(id: int, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+    postulacion = db.query(Postulacion).filter(Postulacion.id == id).first()
+    if not postulacion:
+        raise HTTPException(status_code=404, detail="Postulación no encontrada")
+    db.query(Documento).filter(Documento.postulacion_id == id).delete()
+    db.delete(postulacion)
+    db.commit()
+    return {"mensaje": "Postulación eliminada correctamente"}
+
+
 # ── Estadísticas ──────────────────────────────────────────────────────────────
 
 @router.get("/estadisticas", summary="Estadísticas generales")
@@ -199,6 +211,9 @@ def crear_convocatoria(request: ConvocatoriaCreate, db: Session = Depends(get_db
     except ValueError:
         raise HTTPException(status_code=400, detail="Formato de fecha inválido (debe ser YYYY-MM-DD)")
 
+    if f_cierre < f_inicio:
+        raise HTTPException(status_code=400, detail="La fecha de cierre no puede ser anterior a la fecha de inicio")
+
     nueva = Convocatoria(
         titulo=request.titulo,
         universidad_id=request.universidad_id,
@@ -236,6 +251,12 @@ def actualizar_convocatoria(id: int, request: ConvocatoriaUpdate, db: Session = 
             c.fecha_cierre = datetime.datetime.strptime(request.fecha_cierre, "%Y-%m-%d").date()
     except ValueError:
         raise HTTPException(status_code=400, detail="Formato de fecha inválido (debe ser YYYY-MM-DD)")
+
+    # Validate dates if both are set
+    fecha_inicio_final = c.fecha_inicio
+    fecha_cierre_final = c.fecha_cierre
+    if fecha_cierre_final < fecha_inicio_final:
+        raise HTTPException(status_code=400, detail="La fecha de cierre no puede ser anterior a la fecha de inicio")
 
     db.commit()
     db.refresh(c)

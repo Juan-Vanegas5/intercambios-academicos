@@ -196,7 +196,9 @@
           <button class="btn btn-secundario" onclick="cerrarDetalle()">Cerrar</button>
           <button class="btn btn-exito" onclick="accionDetalle('aprobada')" style="flex:1;">✔ Aprobar</button>
           <button class="btn btn-danger" onclick="accionDetalle('rechazada')" style="flex:1;">✘ Rechazar</button>
-          <button class="btn btn-primario" onclick="soloComentario()" style="flex:1;">💬 Guardar comentario</button>
+          <button class="btn btn-primario" onclick="soloComentario()" style="flex:1;">💬 Comentario</button>
+          <button class="btn btn-secundario" onclick="accionDetalle('revisando_documentos')" style="flex:1;background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">📋 Revisando docs</button>
+          <button class="btn btn-secundario" onclick="accionDetalle('necesita_correcciones')" style="flex:1;background:#fef3c7;color:#92400e;border-color:#fbbf24;">⚠ Necesita corrección</button>
         </div>
       </div>
     </div>
@@ -599,6 +601,7 @@
             <button class="btn btn-exito btn-sm"      onclick="cambiarEstado(${p.id}, 'aprobada')" title="Aprobar">✔</button>
             <button class="btn btn-danger btn-sm"     onclick="cambiarEstado(${p.id}, 'rechazada')" title="Rechazar">✘</button>
             <button class="btn btn-secundario btn-sm" onclick="abrirModal(${p.id}, '${(p.comentarioAdmin || "").replace(/'/g, "\\'")}')">💬</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarPostulacion(${p.id})" title="Eliminar postulación" style="background:#fee2e2;">🗑</button>
           </td>
         </tr>
       `).join("");
@@ -696,6 +699,21 @@
         alerta.className = "alerta alerta-error mb-3";
         alerta.style.display = "block";
         alerta.textContent = "Error al actualizar estado: " + err.message;
+      }
+    }
+
+    async function eliminarPostulacion(id) {
+      if (!confirm("¿Eliminar esta postulación? Esta acción no se puede deshacer.")) return;
+      try {
+        await apiFetch(`/api/admin/postulaciones/${id}`, { method: "DELETE", headers: authHeaders() });
+        todasPostulaciones = todasPostulaciones.filter(p => p.id !== id);
+        actualizarStats(todasPostulaciones);
+        filtrar("todas");
+      } catch (err) {
+        const alerta = document.getElementById("alerta-admin");
+        alerta.className = "alerta alerta-error mb-3";
+        alerta.style.display = "block";
+        alerta.textContent = "Error al eliminar: " + err.message;
       }
     }
 
@@ -979,6 +997,12 @@
         descripcion: document.getElementById("conv-descripcion").value,
         requisitos: document.getElementById("conv-requisitos").value
       };
+
+      const fi = data.fecha_inicio, fc = data.fecha_cierre;
+      if (fi && fc && fc < fi) {
+        mostrarAlertaConvocatorias("La fecha de cierre no puede ser anterior a la fecha de inicio.", "error");
+        return;
+      }
 
       try {
         const method = id ? "PUT" : "POST";

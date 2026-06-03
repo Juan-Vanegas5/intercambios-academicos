@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 import datetime
 import os
-import shutil
+import boto3
+from botocore.exceptions import NoCredentialsError
 
 from database import get_db
 from models import Usuario, Convocatoria, Postulacion, Documento, TipoDocumento
@@ -12,7 +13,35 @@ from auth import obtener_usuario_actual
 
 router = APIRouter(prefix="/api/postulaciones", tags=["Postulaciones"])
 
-UPLOAD_DIR = "uploads"
+# --- Configuración S3 ---
+# Se obtienen las credenciales de las variables de entorno
+S3_CLIENT = boto3.client(
+    's3',
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    region_name=os.getenv("AWS_REGION", "us-east-2")
+)
+BUCKET_NAME = os.getenv("AWS_S3_BUCKET", "intercambios-upc-docs")
+
+def subir_a_s3(file: UploadFile, folder: str) -> str:
+    """Sube un archivo a S3 y devuelve su URL pública."""
+    s3_key = f"uploads/{folder}/{file.filename}"
+    try:
+        # Asegurarse de que el puntero del archivo esté al inicio
+        file.file.seek(0)
+        S3_CLIENT.upload_fileobj(
+            file.file, 
+            BUCKET_NAME, 
+            s3_key,
+            ExtraArgs={'ContentType': file.content_type}
+        )
+        # Retorna la URL del archivo en S3
+        # Importante: El bucket debe tener permisos de lectura pública o usar URLs firmadas
+        region = os.getenv("AWS_REGION", "us-east-2")
+        return f"https://{BUCKET_NAME}.s3.{region}.amazonaws.com/{s3_key}"
+    except Exception as e:
+        print(f"Error subiendo a S3: {e}")
+        raise HTTPException(status_code=500, detail="Error al subir archivo a la nube")
 
 def to_response(p: Postulacion) -> PostulacionResponse:
     programa = p.estudiante.programa.nombre if p.estudiante.programa else ""
@@ -99,9 +128,6 @@ async def subir_documentos(
     if not postulacion:
         raise HTTPException(status_code=404, detail="Postulación no encontrada")
 
-    carpeta = os.path.join(UPLOAD_DIR, str(id))
-    os.makedirs(carpeta, exist_ok=True)
-
     archivos_subidos = []
     pares = [
         (certificado, "Certificado de notas", 1),
@@ -113,28 +139,28 @@ async def subir_documentos(
             if not archivo.filename.lower().endswith(".pdf"):
                 raise HTTPException(status_code=400, detail=f"El archivo '{archivo.filename}' debe ser PDF")
 
-            ruta = os.path.join(carpeta, archivo.filename)
-            with open(ruta, "wb") as f:
-                shutil.copyfileobj(archivo.file, f)
+            # SUBIR A S3
+            url_s3 = subir_a_s3(archivo, str(id))
 
-            # Eliminar documento previo del mismo tipo si existe
+            # Eliminar registro previo del mismo tipo en la BD si existe
             db.query(Documento).filter(
                 Documento.postulacion_id == id,
                 Documento.tipo_documento_id == tipo_id
             ).delete()
 
+            # Guardar nueva URL en la BD
             doc = Documento(
                 postulacion_id=id,
                 nombre_archivo=archivo.filename,
                 tipo_documento_id=tipo_id,
-                s3_key=ruta,
+                s3_key=url_s3,
                 fecha_subida=datetime.datetime.now()
             )
             db.add(doc)
             archivos_subidos.append(archivo.filename)
 
     db.commit()
-    return {"mensaje": f"{len(archivos_subidos)} documento(s) subido(s) correctamente", "archivos": archivos_subidos}
+    return {"mensaje": f"{len(archivos_subidos)} documento(s) subido(s) a S3 correctamente", "archivos": archivos_subidos}
 
 DOCS_VIAJE = [
     ("vuelos",  "Tiquetes de vuelo",     3),
@@ -163,9 +189,6 @@ async def subir_documentos_viaje(
     if postulacion.estado != "aprobada":
         raise HTTPException(status_code=400, detail="Solo puedes subir documentos de viaje cuando tu postulación está aprobada")
 
-    carpeta = os.path.join(UPLOAD_DIR, str(id))
-    os.makedirs(carpeta, exist_ok=True)
-
     archivos = [vuelos, seguro, visa, pasaporte]
     subidos = []
 
@@ -181,20 +204,21 @@ async def subir_documentos_viaje(
                 db.add(tipo)
                 db.flush()
 
-            ruta = os.path.join(carpeta, archivo.filename)
-            with open(ruta, "wb") as f:
-                shutil.copyfileobj(archivo.file, f)
+            # SUBIR A S3
+            url_s3 = subir_a_s3(archivo, str(id))
 
+            # Eliminar registro previo en la BD
             db.query(Documento).filter(
                 Documento.postulacion_id == id,
                 Documento.tipo_documento_id == tipo_id
             ).delete()
 
+            # Guardar nueva URL en la BD
             db.add(Documento(
                 postulacion_id=id,
                 nombre_archivo=archivo.filename,
                 tipo_documento_id=tipo_id,
-                s3_key=ruta,
+                s3_key=url_s3,
                 fecha_subida=datetime.datetime.now()
             ))
             subidos.append(archivo.filename)
@@ -202,4 +226,4 @@ async def subir_documentos_viaje(
     if subidos:
         postulacion.estado = "docs_viaje_enviados"
     db.commit()
-    return {"mensaje": f"{len(subidos)} documento(s) de viaje subido(s)", "archivos": subidos}
+    return {"mensaje": f"{len(subidos)} documento(s) de viaje subido(s) a S3", "archivos": subidos}

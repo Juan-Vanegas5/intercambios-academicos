@@ -2,7 +2,7 @@
 //  CONFIGURACIÓN Y UTILIDADES - Intercambios Académicos
 // =====================================================
 
-const BASE_URL = "https://api.intercambiosupc.lat";
+const BASE_URL = "";
 
 // ---- Manejo de sesión ----
 function getToken()   { return localStorage.getItem("token"); }

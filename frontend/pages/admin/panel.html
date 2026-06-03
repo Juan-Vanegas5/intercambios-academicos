@@ -643,7 +643,7 @@
                 <div style="font-weight:600; font-size:0.9rem;">${d.tipo || "Documento"}</div>
                 <div style="font-size:0.8rem; color:#6b7280;">${d.nombre_archivo}</div>
               </div>
-              <a href="${BASE_URL}/${d.s3_key}" target="_blank"
+              <a href="${d.s3_key.startsWith('http') ? d.s3_key : BASE_URL + '/' + d.s3_key}" target="_blank"
                  class="btn btn-secundario btn-sm">⬇ Descargar</a>
             </div>
           `).join("");

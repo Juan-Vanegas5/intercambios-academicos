@@ -206,11 +206,9 @@
             <td>
               ${p.estado === "completada"
                 ? `<button class="btn btn-exito btn-sm" onclick="descargarCertificado(${p.id})" style="white-space:nowrap;background:#16a34a;">📜 Certificado</button>`
-                : p.estado === "aprobada"
+                : (p.estado === "aprobada" || p.estado === "docs_viaje_enviados")
                   ? `<button class="btn btn-exito btn-sm" onclick="abrirViaje(${p.id})" style="white-space:nowrap;">✈️ Docs viaje</button>`
-                  : p.estado === "docs_viaje_enviados"
-                    ? `<span style="font-size:0.8rem;color:#2563eb;">✅ Docs enviados</span>`
-                    : (p.estado === "necesita_correcciones" || p.estado === "docs_pendientes")
+                  : (p.estado === "necesita_correcciones" || p.estado === "docs_pendientes")
                       ? `<button class="btn btn-primario btn-sm" onclick="abrirCorreccion(${p.id})">📎 Corregir docs</button>`
                       : "—"}
             </td>

@@ -59,7 +59,7 @@ class Postulacion(Base):
     convocatoria_id     = Column(Integer, ForeignKey("convocatorias.id"), nullable=False)
     semestre            = Column(Integer)
     carta_intencion     = Column(Text)
-    estado              = Column(String(20), nullable=False, default="en_revision")
+    estado              = Column(String(50), nullable=False, default="en_revision")
     comentario_admin    = Column(Text)
     fecha_postulacion   = Column(DateTime, default=datetime.datetime.now)
     fecha_actualizacion = Column(DateTime, default=datetime.datetime.now)

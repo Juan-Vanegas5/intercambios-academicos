@@ -27,6 +27,7 @@ class Usuario(Base):
     email           = Column(String(150), nullable=False, unique=True)
     contrasena      = Column(String(255), nullable=False)
     rol             = Column(String(20), nullable=False)
+    es_superusuario = Column(Boolean, nullable=False, default=False)
     codigo          = Column(String(20))
     cedula          = Column(String(20))
     celular         = Column(String(20))

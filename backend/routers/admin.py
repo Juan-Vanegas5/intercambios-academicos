@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from typing import List
 
 from database import get_db
@@ -401,10 +402,50 @@ def listar_usuarios(db: Session = Depends(get_db), admin: Usuario = Depends(solo
             "apellido": u.apellido,
             "email": u.email,
             "rol": u.rol,
+            "es_superusuario": u.es_superusuario,
             "programa": u.programa.nombre if u.programa else None,
         }
         for u in usuarios
     ]
+
+
+@router.put("/usuarios/{id}/superusuario", summary="Asignar o quitar superusuario")
+def cambiar_superusuario(id: int, body: dict, db: Session = Depends(get_db),
+                         admin: Usuario = Depends(solo_admin)):
+    valor = bool(body.get("es_superusuario"))
+
+    usuario = db.query(Usuario).filter(Usuario.id == id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    # Solo un administrador puede ser superusuario.
+    if valor and usuario.rol != "administrador":
+        raise HTTPException(
+            status_code=400,
+            detail="Solo un administrador puede ser superusuario."
+        )
+
+    # No permitir quitar el flag al último superusuario.
+    if usuario.es_superusuario and not valor:
+        otros_super = db.query(Usuario).filter(
+            Usuario.es_superusuario == True, Usuario.id != id
+        ).count()
+        if otros_super == 0:
+            raise HTTPException(
+                status_code=409,
+                detail="No puedes quitar el rol al último superusuario. Asigna otro primero."
+            )
+
+    usuario.es_superusuario = valor
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="No puedes quitar el rol al último superusuario del sistema."
+        )
+    return {"mensaje": "Superusuario actualizado", "id": id, "es_superusuario": valor}
 
 
 @router.put("/usuarios/{id}/rol", summary="Cambiar rol de un usuario")
@@ -444,10 +485,29 @@ def eliminar_usuario(id: int, db: Session = Depends(get_db), admin: Usuario = De
                 detail="No puedes eliminar al único administrador del sistema."
             )
 
+    # Protección del superusuario: debe quedar siempre al menos uno.
+    if usuario.es_superusuario:
+        otros_super = db.query(Usuario).filter(
+            Usuario.es_superusuario == True, Usuario.id != id
+        ).count()
+        if otros_super == 0:
+            raise HTTPException(
+                status_code=409,
+                detail="No puedes eliminar al último superusuario. Asigna otro superusuario primero."
+            )
+
     for postulacion in db.query(Postulacion).filter(Postulacion.estudiante_id == id).all():
         db.query(Documento).filter(Documento.postulacion_id == postulacion.id).delete()
         db.delete(postulacion)
 
     db.delete(usuario)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # Red de seguridad: el trigger de la base de datos bloqueó el borrado.
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="No puedes eliminar al último superusuario del sistema."
+        )
     return {"mensaje": f"Usuario '{usuario.nombre} {usuario.apellido}' eliminado correctamente"}

@@ -118,6 +118,26 @@ function actualizarNav() {
     }
 }
 
+// ---- Botón de acceso al panel de administración (solo admins) ----
+function inyectarBotonAdmin() {
+    const u = getUsuario();
+    if (!u || u.rol !== "administrador") return;
+    // No mostrarlo si ya estamos dentro del panel de administración
+    if (window.location.pathname.includes("/admin/")) return;
+
+    const nav = document.querySelector(".nav-links");
+    if (!nav || document.getElementById("nav-admin-link")) return;
+
+    const li = document.createElement("li");
+    li.innerHTML = `
+        <a href="admin/panel.html" id="nav-admin-link"
+           style="background:#fbbf24;color:#1a3a6b;font-weight:700;">
+            ⚙️ Panel Admin
+        </a>`;
+    // Insertarlo al inicio del menú para que sea lo primero que vea el admin
+    nav.insertBefore(li, nav.firstChild);
+}
+
 // ---- Notificaciones (campanita) ----
 async function cargarNotificaciones() {
     if (!getToken()) return;
@@ -215,6 +235,7 @@ document.addEventListener("click", (e) => {
 document.addEventListener("DOMContentLoaded", () => {
     marcarNavActivo();
     actualizarNav();
+    inyectarBotonAdmin();
     inyectarCampanita();
     cargarNotificaciones();
 });

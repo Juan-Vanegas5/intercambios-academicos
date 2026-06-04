@@ -65,6 +65,7 @@ function getBadge(estado) {
         "rechazada":          { clase: "badge-rojo",     texto: "Rechazada" },
         "revisando_documentos":{ clase: "badge-azul",    texto: "Revisando docs" },
         "necesita_correcciones":{ clase: "badge-amarillo",texto: "Necesita corrección" },
+        "necesita_correcciones_viaje":{ clase: "badge-amarillo",texto: "Corrección viaje" },
         "docs_pendientes":     { clase: "badge-amarillo", texto: "Docs pendientes" },
         "docs_viaje_enviados": { clase: "badge-azul",    texto: "Docs viaje enviados" },
         "completada":          { clase: "badge-verde",   texto: "Completada ✓" }

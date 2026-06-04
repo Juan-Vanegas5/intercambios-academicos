@@ -206,8 +206,8 @@
             <td>
               ${p.estado === "completada"
                 ? `<button class="btn btn-exito btn-sm" onclick="descargarCertificado(${p.id})" style="white-space:nowrap;background:#16a34a;">📜 Certificado</button>`
-                : (p.estado === "aprobada" || p.estado === "docs_viaje_enviados")
-                  ? `<button class="btn btn-exito btn-sm" onclick="abrirViaje(${p.id})" style="white-space:nowrap;">✈️ Docs viaje</button>`
+                : (p.estado === "aprobada" || p.estado === "docs_viaje_enviados" || p.estado === "necesita_correcciones_viaje")
+                  ? `<button class="btn btn-exito btn-sm" onclick="abrirViaje(${p.id})" style="white-space:nowrap;">✈️ ${p.estado === 'necesita_correcciones_viaje' ? 'Corregir viaje' : 'Docs viaje'}</button>`
                   : (p.estado === "necesita_correcciones" || p.estado === "docs_pendientes")
                       ? `<button class="btn btn-primario btn-sm" onclick="abrirCorreccion(${p.id})">📎 Corregir docs</button>`
                       : "—"}
@@ -229,7 +229,7 @@
       { estados: ["en_revision"],              label: "En revisión",        icono: "🔍" },
       { estados: ["revisando_documentos"],      label: "Revisando docs",     icono: "📋" },
       { estados: ["necesita_correcciones","docs_pendientes"], label: "Corrección", icono: "⚠️" },
-      { estados: ["aprobada"],                 label: "Aprobada ✓",         icono: "🎉" },
+      { estados: ["aprobada","docs_viaje_enviados","necesita_correcciones_viaje"], label: "Aprobada ✓", icono: "🎉" },
       { estados: ["completada"],               label: "Completada",         icono: "✅" },
     ];
 

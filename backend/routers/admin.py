@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/admin", tags=["Administración"])
 
 ESTADOS_VALIDOS = ["aprobada", "rechazada", "en_revision", "revisando_documentos",
                    "necesita_correcciones", "docs_pendientes", "completada",
-                   "docs_viaje_enviados"]
+                   "docs_viaje_enviados", "necesita_correcciones_viaje"]
 
 # ── Postulaciones ─────────────────────────────────────────────────────────────
 
@@ -65,6 +65,7 @@ def actualizar_estado(id: int, request: EstadoRequest,
             "rechazada": "Tu postulación a {conv} fue rechazada.",
             "revisando_documentos": "Estamos revisando los documentos de tu postulación a {conv}.",
             "necesita_correcciones": "Tu postulación a {conv} necesita correcciones.",
+            "necesita_correcciones_viaje": "Tu postulación a {conv} requiere corrección de documentos de viaje.",
             "docs_pendientes": "Faltan documentos en tu postulación a {conv}.",
             "completada": "Tu postulación a {conv} ha sido completada.",
         }

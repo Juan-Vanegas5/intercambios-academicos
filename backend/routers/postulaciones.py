@@ -186,8 +186,8 @@ async def subir_documentos_viaje(
     ).first()
     if not postulacion:
         raise HTTPException(status_code=404, detail="Postulación no encontrada")
-    if postulacion.estado != "aprobada":
-        raise HTTPException(status_code=400, detail="Solo puedes subir documentos de viaje cuando tu postulación está aprobada")
+    if postulacion.estado not in ["aprobada", "necesita_correcciones_viaje"]:
+        raise HTTPException(status_code=400, detail="Solo puedes subir documentos de viaje cuando tu postulación está aprobada o requiere correcciones de viaje")
 
     archivos = [vuelos, seguro, visa, pasaporte]
     subidos = []

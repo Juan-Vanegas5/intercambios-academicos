@@ -199,6 +199,7 @@
           <button class="btn btn-primario" onclick="soloComentario()" style="flex:1;">💬 Comentario</button>
           <button class="btn btn-secundario" onclick="accionDetalle('revisando_documentos')" style="flex:1;background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">📋 Revisando docs</button>
           <button class="btn btn-secundario" onclick="accionDetalle('necesita_correcciones')" style="flex:1;background:#fef3c7;color:#92400e;border-color:#fbbf24;">⚠ Necesita corrección</button>
+          <button id="btn-corr-viaje" class="btn btn-secundario" onclick="accionDetalle('necesita_correcciones_viaje')" style="flex:1;background:#fff7ed;color:#c2410c;border-color:#fdba74;display:none;">✈️ Corregir Docs Viaje</button>
           <button class="btn btn-exito" onclick="accionDetalle('completada')" style="flex:1;background:#16a34a;">✅ Completar y enviar certificado</button>
         </div>
       </div>
@@ -628,6 +629,15 @@
       document.getElementById("d-carta").textContent        = p.cartaIntencion || "No adjuntó carta de intención.";
       document.getElementById("comentario-detalle").value   = p.comentarioAdmin || "";
       document.getElementById("d-documentos").innerHTML     = '<p style="color:#9ca3af;font-size:0.9rem;">Cargando...</p>';
+
+      // Mostrar botón de corrección de viaje solo si está en etapa de viaje
+      const btnViaje = document.getElementById("btn-corr-viaje");
+      if (["aprobada", "docs_viaje_enviados", "necesita_correcciones_viaje"].includes(p.estado)) {
+        btnViaje.style.display = "block";
+      } else {
+        btnViaje.style.display = "none";
+      }
+
       document.getElementById("modal-detalle").style.display = "flex";
 
       // Cargar documentos

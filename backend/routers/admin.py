@@ -11,6 +11,7 @@ from schemas import (EstadoRequest, PostulacionResponse, DocumentoResponse,
 from auth import solo_admin
 from routers.postulaciones import to_response
 from email_service import enviar_notificacion_estado
+from pdf_service import generar_certificado_pdf
 import datetime
 
 router = APIRouter(prefix="/api/admin", tags=["Administración"])
@@ -80,15 +81,35 @@ def actualizar_estado(id: int, request: EstadoRequest,
 
     # Enviar correo al estudiante
     try:
+        pdf_content = None
+        pdf_filename = None
+        
+        if request.estado == "completada":
+            nombre_est = f"{postulacion.estudiante.nombre} {postulacion.estudiante.apellido}"
+            conv_titulo = postulacion.convocatoria.titulo if postulacion.convocatoria else "Intercambio"
+            uni_nombre = postulacion.convocatoria.universidad.nombre if postulacion.convocatoria and postulacion.convocatoria.universidad else "UPC"
+            pais_nombre = postulacion.convocatoria.universidad.pais if postulacion.convocatoria and postulacion.convocatoria.universidad else "Internacional"
+            
+            pdf_content = generar_certificado_pdf(
+                postulacion.id, 
+                nombre_est, 
+                conv_titulo, 
+                uni_nombre, 
+                pais_nombre
+            )
+            pdf_filename = f"Certificado_Intercambio_{postulacion.estudiante.apellido}.pdf"
+
         enviar_notificacion_estado(
             email=postulacion.estudiante.email,
             nombre=postulacion.estudiante.nombre,
             convocatoria=postulacion.convocatoria.titulo if postulacion.convocatoria else "la convocatoria",
             nuevo_estado=request.estado,
-            comentario=request.comentario
+            comentario=request.comentario,
+            attachment_content=pdf_content,
+            attachment_filename=pdf_filename
         )
     except Exception as e:
-        print(f"[admin] Error enviando email: {e}")
+        print(f"[admin] Error enviando email/pdf: {e}")
 
     db.commit()
     db.refresh(postulacion)

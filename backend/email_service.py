@@ -4,6 +4,8 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -16,7 +18,7 @@ EMAIL_FROM     = os.getenv("EMAIL_USER", "no-reply@intercambiosupc.lat")
 
 _codigos: dict = {}
 
-def _send_email(to: str, subject: str, html: str) -> bool:
+def _send_email(to: str, subject: str, html: str, attachment_content: bytes = None, attachment_filename: str = None) -> bool:
     print(f"\n{'='*50}\n  EMAIL → {to}\n  Asunto: {subject}\n{'='*50}\n")
     if not EMAIL_USER or not EMAIL_PASSWORD:
         print("  [Sin credenciales — solo log]")
@@ -27,6 +29,17 @@ def _send_email(to: str, subject: str, html: str) -> bool:
         msg["From"]    = EMAIL_FROM
         msg["To"]      = to
         msg.attach(MIMEText(html, "html"))
+
+        if attachment_content and attachment_filename:
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(attachment_content)
+            encoders.encode_base64(part)
+            part.add_header(
+                "Content-Disposition",
+                f"attachment; filename={attachment_filename}",
+            )
+            msg.attach(part)
+
         with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as server:
             server.starttls()
             server.login(EMAIL_USER, EMAIL_PASSWORD)
@@ -80,7 +93,8 @@ def enviar_codigo(email: str, codigo: str, nombre: str) -> bool:
     return _send_email(email, "Tu código de acceso — Intercambios UPC", html)
 
 def enviar_notificacion_estado(email: str, nombre: str, convocatoria: str,
-                               nuevo_estado: str, comentario: str = None) -> bool:
+                               nuevo_estado: str, comentario: str = None,
+                               attachment_content: bytes = None, attachment_filename: str = None) -> bool:
     titulos = {
         "aprobada":              "¡Tu postulación fue APROBADA! 🎉",
         "rechazada":             "Actualización sobre tu postulación 📬",
@@ -142,4 +156,4 @@ def enviar_notificacion_estado(email: str, nombre: str, convocatoria: str,
       </div>
     </body></html>"""
 
-    return _send_email(email, f"{asunto} — Intercambios UPC", html)
+    return _send_email(email, f"{asunto} — Intercambios UPC", html, attachment_content, attachment_filename)

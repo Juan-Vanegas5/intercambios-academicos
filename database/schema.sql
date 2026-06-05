@@ -31,6 +31,7 @@ CREATE TABLE tipos_documentos (
 
 
 CREATE TABLE usuarios (
+<<<<<<< HEAD
     id                    SERIAL PRIMARY KEY,
     nombre                VARCHAR(100) NOT NULL,
     apellido              VARCHAR(100) NOT NULL,
@@ -44,6 +45,22 @@ CREATE TABLE usuarios (
     fecha_registro        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     verificacion_codigo   VARCHAR(10),
     verificacion_expira   TIMESTAMP
+=======
+    id              SERIAL PRIMARY KEY,
+    nombre          VARCHAR(100) NOT NULL,
+    apellido        VARCHAR(100) NOT NULL,
+    email           VARCHAR(150) NOT NULL UNIQUE,
+    contrasena      VARCHAR(255) NOT NULL,
+    rol             VARCHAR(20)  NOT NULL CHECK (rol IN ('estudiante', 'administrador', 'universidad')),
+    es_superusuario BOOLEAN      NOT NULL DEFAULT FALSE,
+    codigo          VARCHAR(20),
+    cedula          VARCHAR(20),
+    celular         VARCHAR(20),
+    programa_id     INT REFERENCES programas_academicos(id),
+    universidad_id  INT REFERENCES universidades(id),
+    totp_secret     VARCHAR(32),
+    fecha_registro  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+>>>>>>> main
 );
 
 
@@ -71,7 +88,14 @@ CREATE TABLE postulaciones (
     semestre            INT,
     carta_intencion     TEXT,
     estado              VARCHAR(20) NOT NULL DEFAULT 'en_revision'
+<<<<<<< HEAD
                             CHECK (estado IN ('en_revision', 'aprobada', 'rechazada', 'revisando_documentos', 'necesita_correcciones', 'docs_pendientes', 'completada')),
+=======
+                            CHECK (estado IN ('en_revision', 'aprobada', 'rechazada',
+                                              'revisando_documentos', 'necesita_correcciones',
+                                              'docs_pendientes', 'completada',
+                                              'docs_viaje_enviados')),
+>>>>>>> main
     comentario_admin    TEXT,
     fecha_postulacion   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

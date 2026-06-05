@@ -2,12 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
 import datetime
+<<<<<<< HEAD
 import uuid
+=======
+import os
+import boto3
+from botocore.exceptions import NoCredentialsError
+>>>>>>> main
 
 from database import get_db
 from models import Usuario, Convocatoria, Postulacion, Documento, Notificacion, TipoDocumento
 from schemas import PostulacionRequest, PostulacionResponse
 from auth import obtener_usuario_actual
+<<<<<<< HEAD
 from s3_service import subir_documento, eliminar_documento
 
 router = APIRouter(prefix="/api/postulaciones", tags=["Postulaciones"])
@@ -15,6 +22,12 @@ router = APIRouter(prefix="/api/postulaciones", tags=["Postulaciones"])
 TIPOS_POSTULACION = ["Certificado de notas", "Paz y salvo académico"]
 TIPOS_VIAJE       = ["Pasaporte", "Seguro médico internacional", "Visa de estudiante", "Carta de aceptación universitaria"]
 
+=======
+from s3_service import subir_a_s3
+
+router = APIRouter(prefix="/api/postulaciones", tags=["Postulaciones"])
+
+>>>>>>> main
 def to_response(p: Postulacion) -> PostulacionResponse:
     programa = p.estudiante.programa.nombre if p.estudiante.programa else ""
     return PostulacionResponse(
@@ -125,6 +138,7 @@ async def _guardar_docs_postulacion(id, db, usuario, certificado, paz_y_salvo):
             if not archivo.filename.lower().endswith(".pdf"):
                 raise HTTPException(status_code=400, detail=f"{archivo.filename} debe ser PDF")
 
+<<<<<<< HEAD
             tipo = db.query(TipoDocumento).filter(TipoDocumento.nombre == tipo_nombre).first()
             if not tipo:
                 continue
@@ -132,6 +146,13 @@ async def _guardar_docs_postulacion(id, db, usuario, certificado, paz_y_salvo):
             contenido = await archivo.read()
 
             doc_existente = db.query(Documento).filter(
+=======
+            # SUBIR A S3
+            url_s3 = subir_a_s3(archivo, str(id))
+
+            # Eliminar registro previo del mismo tipo en la BD si existe
+            db.query(Documento).filter(
+>>>>>>> main
                 Documento.postulacion_id == id,
                 Documento.tipo_documento_id == tipo.id
             ).first()
@@ -139,6 +160,7 @@ async def _guardar_docs_postulacion(id, db, usuario, certificado, paz_y_salvo):
                 eliminar_documento(doc_existente.s3_key)
                 db.delete(doc_existente)
 
+<<<<<<< HEAD
             s3_key = f"postulaciones/{id}/tipo_{tipo.id}/{uuid.uuid4()}_{archivo.filename}"
             subir_documento(contenido, s3_key)
 
@@ -254,3 +276,84 @@ async def subir_docs_viaje(
 
     db.commit()
     return {"mensaje": "Documentos de viaje guardados", "archivos": archivos_subidos}
+=======
+            # Guardar nueva URL en la BD
+            doc = Documento(
+                postulacion_id=id,
+                nombre_archivo=archivo.filename,
+                tipo_documento_id=tipo_id,
+                s3_key=url_s3,
+                fecha_subida=datetime.datetime.now()
+            )
+            db.add(doc)
+            archivos_subidos.append(archivo.filename)
+
+    db.commit()
+    return {"mensaje": f"{len(archivos_subidos)} documento(s) subido(s) a S3 correctamente", "archivos": archivos_subidos}
+
+DOCS_VIAJE = [
+    ("vuelos",  "Tiquetes de vuelo",     3),
+    ("seguro",  "Seguro médico",         4),
+    ("visa",    "Visa",                  5),
+    ("pasaporte","Pasaporte",            6),
+]
+
+@router.post("/{id}/documentos-viaje", summary="Subir documentos de segunda fase (viaje)")
+async def subir_documentos_viaje(
+    id: int,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    vuelos:    UploadFile = File(None),
+    seguro:    UploadFile = File(None),
+    visa:      UploadFile = File(None),
+    pasaporte: UploadFile = File(None)
+):
+    """Sube los documentos de viaje (segunda fase) para una postulación aprobada."""
+    postulacion = db.query(Postulacion).filter(
+        Postulacion.id == id,
+        Postulacion.estudiante_id == usuario.id
+    ).first()
+    if not postulacion:
+        raise HTTPException(status_code=404, detail="Postulación no encontrada")
+    if postulacion.estado not in ["aprobada", "necesita_correcciones_viaje"]:
+        raise HTTPException(status_code=400, detail="Solo puedes subir documentos de viaje cuando tu postulación está aprobada o requiere correcciones de viaje")
+
+    archivos = [vuelos, seguro, visa, pasaporte]
+    subidos = []
+
+    for archivo, (campo, nombre_tipo, tipo_id) in zip(archivos, DOCS_VIAJE):
+        if archivo and archivo.filename:
+            if not archivo.filename.lower().endswith(".pdf"):
+                raise HTTPException(status_code=400, detail=f"'{archivo.filename}' debe ser PDF")
+
+            # Asegurar que el TipoDocumento existe
+            tipo = db.query(TipoDocumento).filter(TipoDocumento.id == tipo_id).first()
+            if not tipo:
+                tipo = TipoDocumento(id=tipo_id, nombre=nombre_tipo)
+                db.add(tipo)
+                db.flush()
+
+            # SUBIR A S3
+            url_s3 = subir_a_s3(archivo, str(id))
+
+            # Eliminar registro previo en la BD
+            db.query(Documento).filter(
+                Documento.postulacion_id == id,
+                Documento.tipo_documento_id == tipo_id
+            ).delete()
+
+            # Guardar nueva URL en la BD
+            db.add(Documento(
+                postulacion_id=id,
+                nombre_archivo=archivo.filename,
+                tipo_documento_id=tipo_id,
+                s3_key=url_s3,
+                fecha_subida=datetime.datetime.now()
+            ))
+            subidos.append(archivo.filename)
+
+    if subidos:
+        postulacion.estado = "docs_viaje_enviados"
+    db.commit()
+    return {"mensaje": f"{len(subidos)} documento(s) de viaje subido(s) a S3", "archivos": subidos}
+>>>>>>> main

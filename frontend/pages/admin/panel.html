@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel Administrador - Intercambios UPC</title>
+<<<<<<< HEAD
   <link rel="stylesheet" href="../css/styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <style>
@@ -17,6 +18,40 @@
     .postulante-fila.seleccionado { background:#dcfce7; border:1.5px solid #16a34a; }
     .postulante-fila .check { width:22px; height:22px; border:2px solid #d1d5db; border-radius:5px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
     .postulante-fila.seleccionado .check { background:#16a34a; border-color:#16a34a; color:white; font-size:0.85rem; }
+=======
+  <link rel="stylesheet" href="../../css/styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <style>
+    #mapa-admin { height: 480px; width: 100%; border-radius: 10px; z-index: 1; }
+    .mapa-leyenda-admin {
+      display:flex; flex-wrap:wrap; gap:1rem; align-items:center;
+      background:#f9fafb; border:1.5px solid #e5e7eb; border-radius:8px;
+      padding:0.75rem 1rem; margin-bottom:1rem; font-size:0.83rem;
+    }
+    .leg-item { display:flex; align-items:center; gap:0.4rem; }
+    .leg-dot { width:12px; height:12px; border-radius:50%; border:2px solid rgba(0,0,0,0.1); }
+    .paises-mini-grid {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:0.75rem; margin-top:1.25rem;
+    }
+    .pais-mini-card {
+      background:white; border:1.5px solid #e5e7eb; border-radius:8px;
+      padding:0.75rem; cursor:pointer; transition:all 0.15s; font-size:0.82rem;
+    }
+    .pais-mini-card:hover { border-color:#2563eb; box-shadow:0 2px 8px rgba(37,99,235,0.12); }
+    .leaflet-popup-content-wrapper { border-radius:10px !important; padding:0 !important; }
+    .leaflet-popup-content { margin:0 !important; min-width:210px; }
+    .popup-hdr { background:linear-gradient(135deg,#1a3a6b,#2563eb); color:white; padding:0.6rem 0.9rem; border-radius:10px 10px 0 0; font-size:0.88rem; font-weight:700; }
+    .popup-list { padding:0.5rem 0.9rem 0.7rem; }
+    .popup-row { font-size:0.8rem; color:#374151; padding:0.25rem 0; border-bottom:1px solid #f3f4f6; }
+    .popup-row:last-child { border-bottom:none; }
+    .filtros-mapa { display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:1rem; align-items:center; }
+    .filtros-mapa span { font-size:0.83rem; font-weight:600; color:#1a3a6b; }
+    .fbtn { padding:0.28rem 0.8rem; border-radius:999px; border:1.5px solid #d1d5db; background:white; font-size:0.8rem; font-weight:600; cursor:pointer; color:#374151; transition:all 0.15s; }
+    .fbtn:hover { border-color:#2563eb; color:#2563eb; }
+    .fbtn.on { background:#2563eb; color:white; border-color:#2563eb; }
+>>>>>>> main
   </style>
 </head>
 <body>
@@ -38,20 +73,71 @@
       <span class="badge badge-azul" style="font-size:0.9rem;">Administrador</span>
     </div>
 
+<<<<<<< HEAD
     <!-- Pestañas -->
+=======
+    <!-- Pestañas de navegación -->
+>>>>>>> main
     <div style="display:flex;gap:0;margin-bottom:1.5rem;border-bottom:2px solid #e5e7eb;">
       <button id="tab-postulaciones" onclick="mostrarTab('postulaciones')"
         style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#1a3a6b;border-bottom:3px solid #1a3a6b;margin-bottom:-2px;">
         📋 Postulaciones
       </button>
+<<<<<<< HEAD
       <button id="tab-convocatorias" onclick="mostrarTab('convocatorias')"
         style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
         📣 Convocatorias
+=======
+      <button id="tab-graficas" onclick="mostrarTab('graficas')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        📊 Estadísticas
+>>>>>>> main
       </button>
       <button id="tab-seleccion" onclick="mostrarTab('seleccion')"
         style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
         🏆 Selección de Ganadores
       </button>
+<<<<<<< HEAD
+=======
+      <button id="tab-convocatorias" onclick="mostrarTab('convocatorias')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        📢 Convocatorias
+      </button>
+      <button id="tab-universidades" onclick="mostrarTab('universidades')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        🏫 Universidades
+      </button>
+      <button id="tab-usuarios" onclick="mostrarTab('usuarios')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        👥 Usuarios
+      </button>
+      <button id="tab-mapa" onclick="mostrarTab('mapa')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        🌍 Mapa Global
+      </button>
+    </div>
+
+    <!-- ═══ SECCIÓN: POSTULACIONES ═══ -->
+    <div id="seccion-postulaciones">
+    <!-- Estadísticas -->
+    <div class="cards-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom:2rem;">
+      <div class="card text-center">
+        <div id="stat-total" style="font-size:2rem; font-weight:700; color:#2563eb;">—</div>
+        <div style="font-size:0.85rem; color:#6b7280;">Total postulaciones</div>
+      </div>
+      <div class="card text-center">
+        <div id="stat-revision" style="font-size:2rem; font-weight:700; color:#d97706;">—</div>
+        <div style="font-size:0.85rem; color:#6b7280;">En revisión</div>
+      </div>
+      <div class="card text-center">
+        <div id="stat-aprobadas" style="font-size:2rem; font-weight:700; color:#16a34a;">—</div>
+        <div style="font-size:0.85rem; color:#6b7280;">Aprobadas</div>
+      </div>
+      <div class="card text-center">
+        <div id="stat-rechazadas" style="font-size:2rem; font-weight:700; color:#dc2626;">—</div>
+        <div style="font-size:0.85rem; color:#6b7280;">Rechazadas</div>
+      </div>
+>>>>>>> main
     </div>
 
     <!-- ═══ SECCIÓN: POSTULACIONES ═══ -->
@@ -173,6 +259,7 @@
           </div>
         </div>
 
+<<<<<<< HEAD
         <!-- Comentario y confirmar -->
         <div class="card">
           <div class="form-group" style="margin-bottom:1rem;">
@@ -185,16 +272,388 @@
               ✅ Confirmar selección de ganadores
             </button>
           </div>
+=======
+        <!-- Comentario del admin -->
+        <div class="form-group">
+          <label style="font-weight:600; color:#1a3a6b;">💬 Comentario para el estudiante</label>
+          <textarea id="comentario-detalle" rows="3" placeholder="Ej: Documentos aprobados. Se le notificará por correo..."></textarea>
+        </div>
+
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+          <button class="btn btn-secundario" onclick="cerrarDetalle()">Cerrar</button>
+          <button class="btn btn-exito" onclick="accionDetalle('aprobada')" style="flex:1;">✔ Aprobar</button>
+          <button class="btn btn-danger" onclick="accionDetalle('rechazada')" style="flex:1;">✘ Rechazar</button>
+          <button class="btn btn-primario" onclick="soloComentario()" style="flex:1;">💬 Comentario</button>
+          <button class="btn btn-secundario" onclick="accionDetalle('revisando_documentos')" style="flex:1;background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">📋 Revisando docs</button>
+          <button class="btn btn-secundario" onclick="accionDetalle('necesita_correcciones')" style="flex:1;background:#fef3c7;color:#92400e;border-color:#fbbf24;">⚠ Necesita corrección</button>
+          <button id="btn-corr-viaje" class="btn btn-secundario" onclick="accionDetalle('necesita_correcciones_viaje')" style="flex:1;background:#fff7ed;color:#c2410c;border-color:#fdba74;display:none;">✈️ Corregir Docs Viaje</button>
+          <button class="btn btn-exito" onclick="accionDetalle('completada')" style="flex:1;background:#16a34a;">✅ Completar y enviar certificado</button>
+>>>>>>> main
         </div>
       </div>
     </div>
 
+<<<<<<< HEAD
+=======
+    <!-- Modal comentario rápido -->
+    <div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:center; justify-content:center;">
+      <div class="card" style="max-width:440px; width:90%; margin:auto;">
+        <h3 style="color:#1a3a6b; margin-bottom:1rem;">Agregar comentario</h3>
+        <div class="form-group">
+          <label>Comentario para el estudiante</label>
+          <textarea id="comentario-modal" rows="4" placeholder="Ej: Documentos aprobados. Se notificará por correo..."></textarea>
+        </div>
+        <div style="display:flex; gap:1rem;">
+          <button class="btn btn-secundario" onclick="cerrarModal()">Cancelar</button>
+          <button class="btn btn-primario" onclick="guardarComentario()" style="flex:1;">Guardar y actualizar</button>
+        </div>
+      </div>
+    </div>
+    </div><!-- fin seccion-postulaciones -->
+
+    <!-- ═══ SECCIÓN: ESTADÍSTICAS / GRÁFICAS ═══ -->
+    <div id="seccion-graficas" style="display:none;">
+      <h2 style="color:#1a3a6b;margin-bottom:1.5rem;">Estadísticas del Sistema</h2>
+
+      <!-- Cards resumen -->
+      <div class="cards-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:2rem;">
+        <div class="card text-center">
+          <div id="g-total" style="font-size:2rem;font-weight:700;color:#2563eb;">—</div>
+          <div style="font-size:0.85rem;color:#6b7280;">Total postulaciones</div>
+        </div>
+        <div class="card text-center">
+          <div id="g-revision" style="font-size:2rem;font-weight:700;color:#d97706;">—</div>
+          <div style="font-size:0.85rem;color:#6b7280;">En proceso</div>
+        </div>
+        <div class="card text-center">
+          <div id="g-aprobadas" style="font-size:2rem;font-weight:700;color:#16a34a;">—</div>
+          <div style="font-size:0.85rem;color:#6b7280;">Aprobadas</div>
+        </div>
+        <div class="card text-center">
+          <div id="g-rechazadas" style="font-size:2rem;font-weight:700;color:#dc2626;">—</div>
+          <div style="font-size:0.85rem;color:#6b7280;">Rechazadas</div>
+        </div>
+      </div>
+
+      <!-- Gráficas -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+        <div class="card">
+          <h3 style="color:#1a3a6b;margin-bottom:1rem;">Postulaciones por Programa</h3>
+          <canvas id="chart-programas" height="280"></canvas>
+        </div>
+        <div class="card">
+          <h3 style="color:#1a3a6b;margin-bottom:1rem;">Top 10 Convocatorias</h3>
+          <canvas id="chart-convocatorias" height="280"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECCIÓN: SELECCIÓN DE GANADORES ═══ -->
+    <div id="seccion-seleccion" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <div>
+          <h2 style="margin:0;color:#1a3a6b;">Selección de Ganadores por Cupos</h2>
+          <p style="color:#6b7280;font-size:0.88rem;margin-top:0.25rem;">
+            Elige los estudiantes que ocuparán los cupos disponibles en cada convocatoria
+          </p>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <label style="font-weight:600;color:#1a3a6b;display:block;margin-bottom:0.5rem;">
+          Selecciona una convocatoria:
+        </label>
+        <select id="sel-convocatoria" onchange="cargarPostulantes()"
+          style="width:100%;padding:0.6rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.95rem;">
+          <option value="">-- Elige una convocatoria --</option>
+        </select>
+      </div>
+
+      <!-- Banner "pocas postulaciones" — se muestra/oculta por JS -->
+      <div id="banner-pocos" style="display:none;background:#fffbeb;border:1.5px solid #fbbf24;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;">
+        <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+          <span style="font-size:1.5rem;line-height:1;">💡</span>
+          <div style="flex:1;">
+            <strong style="color:#92400e;font-size:0.95rem;">Convocatoria con pocas postulaciones</strong>
+            <p style="color:#78350f;font-size:0.85rem;margin:0.3rem 0 0.75rem;">
+              Esta convocatoria tiene <strong id="banner-total-post">—</strong> postulante(s) para
+              <strong id="banner-cupos">—</strong> cupo(s). Al ser pocos, puedes revisar cada perfil con
+              detalle antes de decidir, o usar las acciones rápidas:
+            </p>
+            <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+              <button class="btn btn-exito btn-sm" onclick="seleccionarTodos()">
+                ✅ Seleccionar todos
+              </button>
+              <button class="btn btn-secundario btn-sm" onclick="deseleccionarTodos()">
+                ✗ Limpiar selección
+              </button>
+              <button class="btn btn-secundario btn-sm" onclick="seleccionarHastaLlenarCupos()">
+                🎯 Llenar cupos en orden de llegada
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-seleccion" style="display:none;">
+        <!-- Info cupos -->
+        <div id="info-cupos" class="card mb-3" style="background:#eff6ff;border:1px solid #bfdbfe;padding:1rem 1.25rem;">
+        </div>
+
+        <div id="alerta-seleccion" class="alerta mb-3" style="display:none;"></div>
+
+        <!-- Barra de progreso de cupos -->
+        <div id="barra-cupos-wrap" class="card mb-3" style="padding:0.85rem 1.1rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+            <span style="font-size:0.85rem;font-weight:600;color:#1a3a6b;">Cupos ocupados</span>
+            <span style="font-size:0.85rem;color:#6b7280;" id="barra-label">0 / 0</span>
+          </div>
+          <div style="height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden;">
+            <div id="barra-fill" style="height:100%;background:#16a34a;border-radius:999px;transition:width 0.3s;width:0%;"></div>
+          </div>
+        </div>
+
+        <!-- Lista de postulantes -->
+        <div class="card mb-3">
+          <div style="padding:0.75rem 1rem 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f3f4f6;margin-bottom:0.5rem;">
+            <span style="font-size:0.85rem;font-weight:600;color:#1a3a6b;">
+              Postulantes — <span id="cnt-post-total">0</span> en total
+            </span>
+            <span style="font-size:0.78rem;color:#6b7280;">Haz clic para seleccionar / deseleccionar</span>
+          </div>
+          <div id="lista-postulantes" style="padding:0.5rem 0.75rem;"></div>
+        </div>
+
+        <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-primario" onclick="confirmarSeleccion()">
+            ✅ Confirmar selección
+          </button>
+          <span style="font-size:0.83rem;color:#6b7280;">
+            Se aprobarán <strong id="cnt-a-aprobar">0</strong> estudiante(s) y se rechazarán los demás.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECCIÓN: CONVOCATORIAS ═══ -->
+    <div id="seccion-convocatorias" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h2 style="margin:0;color:#1a3a6b;">Gestión de Convocatorias</h2>
+        <button class="btn btn-primario" onclick="abrirModalConvocatoria()">+ Crear Nueva Convocatoria</button>
+      </div>
+      <div id="alerta-convocatorias" class="alerta mb-3" style="display:none;"></div>
+      <div class="card">
+        <div class="tabla-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Título</th><th>Universidad</th><th>Cupos</th><th>Fechas</th><th>Estado</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-convocatorias">
+              <tr><td colspan="7" style="text-align:center;color:#6b7280;padding:2rem;">Cargando convocatorias...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Crear/Editar Convocatoria -->
+    <div id="modal-convocatoria" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:110; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;">
+      <div class="card" style="max-width:600px; width:100%; margin:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+          <h3 id="modal-conv-titulo" style="color:#1a3a6b; margin:0;">Crear Convocatoria</h3>
+          <button onclick="cerrarModalConvocatoria()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+        </div>
+        <form id="form-convocatoria" onsubmit="guardarConvocatoria(event)">
+          <input type="hidden" id="conv-id">
+          <div class="form-group">
+            <label>Título de la Convocatoria</label>
+            <input type="text" id="conv-titulo-input" required placeholder="Ej: Intercambio Académico 2026-2">
+          </div>
+          <div class="form-group">
+            <label>Universidad</label>
+            <select id="conv-universidad" required>
+              <option value="">-- Seleccione una universidad --</option>
+            </select>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label>Fecha Inicio</label>
+              <input type="date" id="conv-fecha-inicio" required>
+            </div>
+            <div class="form-group">
+              <label>Fecha Cierre</label>
+              <input type="date" id="conv-fecha-cierre" required>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label>Cupos Disponibles</label>
+              <input type="number" id="conv-cupos" required min="1" value="1">
+            </div>
+            <div class="form-group">
+              <label>Estado</label>
+              <select id="conv-estado">
+                <option value="activa">Activa</option>
+                <option value="proximamente">Próximamente</option>
+                <option value="cerrada">Cerrada</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea id="conv-descripcion" rows="3" placeholder="Descripción breve de la convocatoria..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Requisitos</label>
+            <textarea id="conv-requisitos" rows="3" placeholder="Ej: Promedio > 4.0, 50% de créditos..."></textarea>
+          </div>
+          <div style="display:flex; gap:1rem; margin-top:1rem;">
+            <button type="button" class="btn btn-secundario" onclick="cerrarModalConvocatoria()" style="flex:1;">Cancelar</button>
+            <button type="submit" class="btn btn-primario" style="flex:2;">Guardar Convocatoria</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ═══ SECCIÓN: UNIVERSIDADES ═══ -->
+    <div id="seccion-universidades" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h2 style="margin:0;color:#1a3a6b;">Gestión de Universidades</h2>
+        <button class="btn btn-primario" onclick="abrirModalUniversidad()">+ Agregar Universidad</button>
+      </div>
+      <div id="alerta-universidades" class="alerta mb-3" style="display:none;"></div>
+      <div class="card">
+        <div class="tabla-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Nombre</th><th>País</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-universidades">
+              <tr><td colspan="4" style="text-align:center;color:#6b7280;padding:2rem;">Cargando universidades...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Universidad -->
+    <div id="modal-universidad" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:110; align-items:center; justify-content:center; padding:1rem;">
+      <div class="card" style="max-width:440px; width:100%; margin:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+          <h3 id="modal-uni-titulo" style="color:#1a3a6b; margin:0;">Agregar Universidad</h3>
+          <button onclick="cerrarModalUniversidad()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+        </div>
+        <form id="form-universidad" onsubmit="guardarUniversidad(event)">
+          <input type="hidden" id="uni-id">
+          <div class="form-group">
+            <label>Nombre de la Universidad</label>
+            <input type="text" id="uni-nombre-input" required placeholder="Ej: Universidad de Buenos Aires">
+          </div>
+          <div class="form-group">
+            <label>País</label>
+            <input type="text" id="uni-pais-input" required placeholder="Ej: Argentina">
+          </div>
+          <div style="display:flex; gap:1rem; margin-top:1rem;">
+            <button type="button" class="btn btn-secundario" onclick="cerrarModalUniversidad()" style="flex:1;">Cancelar</button>
+            <button type="submit" class="btn btn-primario" style="flex:2;">Guardar Universidad</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ═══ SECCIÓN: USUARIOS ═══ -->
+    <div id="seccion-usuarios" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h2 style="margin:0;color:#1a3a6b;">Gestión de Usuarios</h2>
+        <span style="font-size:0.85rem;color:#6b7280;background:#fef3c7;border:1px solid #fbbf24;padding:0.4rem 0.8rem;border-radius:6px;">
+          🔒 El último administrador no puede ser eliminado ni degradado
+        </span>
+      </div>
+      <div id="alerta-usuarios" class="alerta mb-3" style="display:none;"></div>
+      <div class="card">
+        <div class="tabla-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Nombre</th><th>Correo</th><th>Programa</th><th>Rol</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-usuarios">
+              <tr><td colspan="6" style="text-align:center;color:#6b7280;padding:2rem;">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECCIÓN: MAPA GLOBAL ═══ -->
+    <div id="seccion-mapa" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+        <div>
+          <h2 style="margin:0;color:#1a3a6b;">Red Global de Universidades Aliadas</h2>
+          <p style="color:#6b7280;font-size:0.88rem;margin-top:0.2rem;">
+            Convenios activos con instituciones en todo el mundo
+          </p>
+        </div>
+        <a href="../mapa.html" target="_blank" class="btn btn-secundario btn-sm">↗ Ver página completa</a>
+      </div>
+
+      <!-- Stats rápidas -->
+      <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.2rem;">
+        <div class="card text-center" style="padding:0.8rem 1.5rem;flex:1;min-width:120px;">
+          <div style="font-size:1.8rem;font-weight:700;color:#2563eb;">42</div>
+          <div style="font-size:0.78rem;color:#6b7280;">Instituciones</div>
+        </div>
+        <div class="card text-center" style="padding:0.8rem 1.5rem;flex:1;min-width:120px;">
+          <div style="font-size:1.8rem;font-weight:700;color:#2563eb;" id="admin-map-paises">17</div>
+          <div style="font-size:0.78rem;color:#6b7280;">Países</div>
+        </div>
+        <div class="card text-center" style="padding:0.8rem 1.5rem;flex:1;min-width:120px;">
+          <div style="font-size:1.8rem;font-weight:700;color:#2563eb;">5</div>
+          <div style="font-size:0.78rem;color:#6b7280;">Continentes</div>
+        </div>
+      </div>
+
+      <!-- Leyenda y filtros -->
+      <div class="mapa-leyenda-admin">
+        <strong style="font-size:0.83rem;color:#1a3a6b;">Región:</strong>
+        <div class="leg-item"><div class="leg-dot" style="background:#e84393;"></div><span>América Latina</span></div>
+        <div class="leg-item"><div class="leg-dot" style="background:#2563eb;"></div><span>Norteamérica</span></div>
+        <div class="leg-item"><div class="leg-dot" style="background:#16a34a;"></div><span>Europa</span></div>
+        <div class="leg-item"><div class="leg-dot" style="background:#d97706;"></div><span>Asia / Medio Oriente</span></div>
+      </div>
+
+      <div class="filtros-mapa">
+        <span>Filtrar:</span>
+        <button class="fbtn on" onclick="filtrarMapaAdmin('todas', this)">Todas</button>
+        <button class="fbtn" onclick="filtrarMapaAdmin('América Latina', this)">🌎 América Latina</button>
+        <button class="fbtn" onclick="filtrarMapaAdmin('Norteamérica', this)">🇺🇸🇨🇦 Norteamérica</button>
+        <button class="fbtn" onclick="filtrarMapaAdmin('Europa', this)">🌍 Europa</button>
+        <button class="fbtn" onclick="filtrarMapaAdmin('Asia', this)">🌏 Asia</button>
+      </div>
+
+      <!-- Mapa -->
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:1.5rem;">
+        <div id="mapa-admin"></div>
+      </div>
+
+      <!-- Grid de países -->
+      <h3 style="color:#1a3a6b;margin-bottom:0.8rem;">Instituciones por país</h3>
+      <div class="paises-mini-grid" id="admin-paises-grid"></div>
+    </div>
+
+>>>>>>> main
   </main>
 
   <footer>
     <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
   </footer>
 
+<<<<<<< HEAD
   <!-- ═══ MODAL: Detalle de postulación ═══ -->
   <div id="modal-detalle" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;">
     <div class="card" style="max-width:620px; width:100%; margin:auto;">
@@ -330,6 +789,10 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="../js/main.js"></script>
+=======
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="../../js/main.js"></script>
+>>>>>>> main
   <script>
     requireAdmin();
 
@@ -543,9 +1006,13 @@
             <button class="btn btn-secundario btn-sm" onclick="abrirDetalle(${p.id})" title="Ver detalle">🔍</button>
             <button class="btn btn-exito btn-sm"      onclick="cambiarEstado(${p.id}, 'aprobada')" title="Aprobar">✔</button>
             <button class="btn btn-danger btn-sm"     onclick="cambiarEstado(${p.id}, 'rechazada')" title="Rechazar">✘</button>
+<<<<<<< HEAD
             <button class="btn btn-secundario btn-sm" onclick="abrirModal(${p.id}, '${(p.comentarioAdmin || "").replace(/'/g, "\\'")}')">💬</button>
             ${p.estado === "docs_pendientes" ? `<button class="btn btn-exito btn-sm" onclick="cambiarEstado(${p.id}, 'completada')" title="Completar" style="background:#16a34a;">✅</button>` : ""}
             <button class="btn btn-danger btn-sm" onclick="confirmarEliminar(${p.id})" title="Eliminar" style="background:#fff;color:#dc2626;border:1px solid #dc2626;">🗑</button>
+=======
+            <button class="btn btn-danger btn-sm" onclick="eliminarPostulacion(${p.id})" title="Eliminar postulación" style="background:#fee2e2;">🗑</button>
+>>>>>>> main
           </td>
         </tr>
       `).join("");
@@ -587,10 +1054,22 @@
       document.getElementById("d-estado-badge").innerHTML   = getBadge(p.estado);
       document.getElementById("comentario-detalle").value   = p.comentarioAdmin || "";
       document.getElementById("d-documentos").innerHTML     = '<p style="color:#9ca3af;font-size:0.9rem;">Cargando...</p>';
+<<<<<<< HEAD
       const eDocsViaje = p.estado === "docs_pendientes";
       document.getElementById("acciones-etapa1").style.display = eDocsViaje ? "none" : "block";
       document.getElementById("acciones-etapa2").style.display = eDocsViaje ? "block" : "none";
       document.getElementById("btn-aprobar-detalle").style.display = ["aprobada","docs_pendientes","completada"].includes(p.estado) ? "none" : "inline-block";
+=======
+
+      // Mostrar botón de corrección de viaje solo si está en etapa de viaje
+      const btnViaje = document.getElementById("btn-corr-viaje");
+      if (["aprobada", "docs_viaje_enviados", "necesita_correcciones_viaje"].includes(p.estado)) {
+        btnViaje.style.display = "block";
+      } else {
+        btnViaje.style.display = "none";
+      }
+
+>>>>>>> main
       document.getElementById("modal-detalle").style.display = "flex";
       try {
         const docs = await apiFetch(`/api/admin/postulaciones/${id}/documentos`, { headers: authHeaders() });
@@ -604,7 +1083,12 @@
                 <div style="font-weight:600; font-size:0.9rem;">${d.tipo || "Documento"}</div>
                 <div style="font-size:0.8rem; color:#6b7280;">${d.nombre_archivo}</div>
               </div>
+<<<<<<< HEAD
               <button class="btn btn-secundario btn-sm" onclick="descargarDoc(${d.id})">⬇ Descargar</button>
+=======
+              <a href="${d.s3_key}" target="_blank"
+                 class="btn btn-secundario btn-sm">⬇ Descargar</a>
+>>>>>>> main
             </div>
           `).join("");
         }
@@ -621,8 +1105,13 @@
     async function accionDetalle(nuevoEstado) {
       const id = detalleId;
       const comentario = document.getElementById("comentario-detalle").value.trim();
+      const id = detalleId;
       cerrarDetalle();
+<<<<<<< HEAD
       await cambiarEstado(id || 0, nuevoEstado, comentario);
+=======
+      await cambiarEstado(id, nuevoEstado, comentario);
+>>>>>>> main
     }
 
     async function soloComentario() {
@@ -654,6 +1143,21 @@
         filtrar("todas");
       } catch (err) {
         mostrarAlertaAdmin("Error al actualizar estado: " + err.message, "error");
+      }
+    }
+
+    async function eliminarPostulacion(id) {
+      if (!confirm("¿Eliminar esta postulación? Esta acción no se puede deshacer.")) return;
+      try {
+        await apiFetch(`/api/admin/postulaciones/${id}`, { method: "DELETE", headers: authHeaders() });
+        todasPostulaciones = todasPostulaciones.filter(p => p.id !== id);
+        actualizarStats(todasPostulaciones);
+        filtrar("todas");
+      } catch (err) {
+        const alerta = document.getElementById("alerta-admin");
+        alerta.className = "alerta alerta-error mb-3";
+        alerta.style.display = "block";
+        alerta.textContent = "Error al eliminar: " + err.message;
       }
     }
 
@@ -861,6 +1365,734 @@
         cerrarModal(); cerrarDetalle(); cerrarModalConv(); cerrarModalMapaAdmin();
       }
     });
+  </script>
+
+  <script>
+    // ── Sistema de pestañas ────────────────────────────────────────────────────
+    const TABS = ["postulaciones", "graficas", "seleccion", "convocatorias", "universidades", "usuarios", "mapa"];
+
+    function mostrarTab(tab) {
+      TABS.forEach(t => {
+        const btn = document.getElementById("tab-" + t);
+        const sec = document.getElementById("seccion-" + t);
+        if (btn) {
+          btn.style.color = t === tab ? "#1a3a6b" : "#6b7280";
+          btn.style.borderBottom = t === tab ? "3px solid #1a3a6b" : "3px solid transparent";
+        }
+        if (sec) sec.style.display = t === tab ? "block" : "none";
+      });
+      if (tab === "graficas") cargarGraficas();
+      if (tab === "seleccion") cargarConvocatoriasSeleccion();
+      if (tab === "convocatorias") cargarConvocatoriasAdmin();
+      if (tab === "universidades") cargarUniversidadesAdmin();
+      if (tab === "usuarios") cargarUsuarios();
+      if (tab === "mapa") iniciarMapaAdmin();
+    }
+
+    // ── PESTAÑA: UNIVERSIDADES ────────────────────────────────────────────────
+    let todasUniversidades = [];
+
+    async function cargarUniversidadesAdmin() {
+      try {
+        todasUniversidades = await apiFetch("/api/admin/universidades", { headers: authHeaders() });
+        renderTablaUniversidades(todasUniversidades);
+      } catch (err) {
+        mostrarAlertaUniversidades("Error al cargar universidades: " + err.message, "error");
+      }
+    }
+
+    function renderTablaUniversidades(lista) {
+      const tbody = document.getElementById("cuerpo-universidades");
+      if (!lista.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#6b7280;padding:2rem;">No hay universidades.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = lista.map(u => `
+        <tr>
+          <td>${u.id}</td>
+          <td><strong>${u.nombre}</strong></td>
+          <td>${u.pais}</td>
+          <td style="display:flex; gap:0.4rem;">
+            <button class="btn btn-secundario btn-sm" onclick="abrirModalUniversidad(${u.id})" title="Editar">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarUniversidad(${u.id})" title="Eliminar">🗑️</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function abrirModalUniversidad(id = null) {
+      const modal = document.getElementById("modal-universidad");
+      const titulo = document.getElementById("modal-uni-titulo");
+      const form = document.getElementById("form-universidad");
+      
+      form.reset();
+      document.getElementById("uni-id").value = "";
+
+      if (id) {
+        titulo.textContent = "Editar Universidad";
+        const u = todasUniversidades.find(x => x.id === id);
+        if (u) {
+          document.getElementById("uni-id").value = u.id;
+          document.getElementById("uni-nombre-input").value = u.nombre;
+          document.getElementById("uni-pais-input").value = u.pais;
+        }
+      } else {
+        titulo.textContent = "Agregar Universidad";
+      }
+      modal.style.display = "flex";
+    }
+
+    function cerrarModalUniversidad() {
+      document.getElementById("modal-universidad").style.display = "none";
+    }
+
+    async function guardarUniversidad(e) {
+      e.preventDefault();
+      const id = document.getElementById("uni-id").value;
+      const data = {
+        nombre: document.getElementById("uni-nombre-input").value,
+        pais: document.getElementById("uni-pais-input").value
+      };
+
+      try {
+        const method = id ? "PUT" : "POST";
+        const url = id ? `/api/admin/universidades/${id}` : "/api/admin/universidades";
+        await apiFetch(url, {
+          method,
+          headers: authHeaders(),
+          body: JSON.stringify(data)
+        });
+        cerrarModalUniversidad();
+        mostrarAlertaUniversidades(`Universidad ${id ? "actualizada" : "agregada"} con éxito`, "exito");
+        cargarUniversidadesAdmin();
+      } catch (err) {
+        mostrarAlertaUniversidades("Error al guardar: " + err.message, "error");
+      }
+    }
+
+    async function eliminarUniversidad(id) {
+      if (!confirm("¿Está seguro de eliminar esta universidad? No podrá hacerlo si tiene convocatorias asociadas.")) return;
+      try {
+        await apiFetch(`/api/admin/universidades/${id}`, {
+          method: "DELETE",
+          headers: authHeaders()
+        });
+        mostrarAlertaUniversidades("Universidad eliminada correctamente", "exito");
+        cargarUniversidadesAdmin();
+      } catch (err) {
+        mostrarAlertaUniversidades("Error al eliminar: " + err.message, "error");
+      }
+    }
+
+    function mostrarAlertaUniversidades(msg, tipo) {
+      const el = document.getElementById("alerta-universidades");
+      el.className = "alerta alerta-" + (tipo || "error") + " mb-3";
+      el.style.display = "block";
+      el.textContent = msg;
+      setTimeout(() => { el.style.display = "none"; }, 5000);
+    }
+
+    // ── PESTAÑA: CONVOCATORIAS ────────────────────────────────────────────────
+    let todasConvocatorias = [];
+
+    async function cargarConvocatoriasAdmin() {
+      try {
+        todasConvocatorias = await apiFetch("/api/admin/convocatorias", { headers: authHeaders() });
+        renderTablaConvocatorias(todasConvocatorias);
+      } catch (err) {
+        mostrarAlertaConvocatorias("Error al cargar convocatorias: " + err.message, "error");
+      }
+    }
+
+    function renderTablaConvocatorias(lista) {
+      const tbody = document.getElementById("cuerpo-convocatorias");
+      if (!lista.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:2rem;">No hay convocatorias.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = lista.map(c => `
+        <tr>
+          <td>${c.id}</td>
+          <td><strong>${c.titulo}</strong></td>
+          <td>${c.universidad}</td>
+          <td style="text-align:center;">${c.cupos}</td>
+          <td style="font-size:0.8rem;">
+            ${formatFecha(c.fecha_inicio)} al<br>${formatFecha(c.fecha_cierre)}
+          </td>
+          <td>${getBadge(c.estado)}</td>
+          <td style="display:flex; gap:0.4rem;">
+            <button class="btn btn-secundario btn-sm" onclick="abrirModalConvocatoria(${c.id})" title="Editar">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarConvocatoria(${c.id})" title="Eliminar"
+              ${c.totalPostulaciones > 0 ? "disabled style='opacity:0.3;cursor:not-allowed;'" : ""}>🗑️</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    async function abrirModalConvocatoria(id = null) {
+      const modal = document.getElementById("modal-convocatoria");
+      const titulo = document.getElementById("modal-conv-titulo");
+      const form = document.getElementById("form-convocatoria");
+      
+      // Reset form
+      form.reset();
+      document.getElementById("conv-id").value = "";
+      
+      // Cargar universidades si no están cargadas
+      await cargarUniversidadesSelect();
+
+      if (id) {
+        titulo.textContent = "Editar Convocatoria";
+        const c = todasConvocatorias.find(x => x.id === id);
+        if (c) {
+          document.getElementById("conv-id").value = c.id;
+          document.getElementById("conv-titulo-input").value = c.titulo;
+          document.getElementById("conv-universidad").value = c.universidad_id;
+          document.getElementById("conv-fecha-inicio").value = c.fecha_inicio;
+          document.getElementById("conv-fecha-cierre").value = c.fecha_cierre;
+          document.getElementById("conv-cupos").value = c.cupos;
+          document.getElementById("conv-estado").value = c.estado;
+          document.getElementById("conv-descripcion").value = c.descripcion || "";
+          document.getElementById("conv-requisitos").value = c.requisitos || "";
+        }
+      } else {
+        titulo.textContent = "Crear Convocatoria";
+      }
+      modal.style.display = "flex";
+    }
+
+    function cerrarModalConvocatoria() {
+      document.getElementById("modal-convocatoria").style.display = "none";
+    }
+
+    async function cargarUniversidadesSelect() {
+      const select = document.getElementById("conv-universidad");
+      if (select.options.length > 1) return; // Ya cargadas
+
+      try {
+        const unis = await apiFetch("/api/admin/universidades", { headers: authHeaders() });
+        unis.forEach(u => {
+          const opt = document.createElement("option");
+          opt.value = u.id;
+          opt.textContent = `${u.nombre} (${u.pais})`;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        console.error("Error cargando universidades:", err);
+      }
+    }
+
+    async function guardarConvocatoria(e) {
+      e.preventDefault();
+      const id = document.getElementById("conv-id").value;
+      const data = {
+        titulo: document.getElementById("conv-titulo-input").value,
+        universidad_id: parseInt(document.getElementById("conv-universidad").value),
+        fecha_inicio: document.getElementById("conv-fecha-inicio").value,
+        fecha_cierre: document.getElementById("conv-fecha-cierre").value,
+        cupos: parseInt(document.getElementById("conv-cupos").value),
+        estado: document.getElementById("conv-estado").value,
+        descripcion: document.getElementById("conv-descripcion").value,
+        requisitos: document.getElementById("conv-requisitos").value
+      };
+
+      const fi = data.fecha_inicio, fc = data.fecha_cierre;
+      if (fi && fc && fc < fi) {
+        mostrarAlertaConvocatorias("La fecha de cierre no puede ser anterior a la fecha de inicio.", "error");
+        return;
+      }
+
+      try {
+        const method = id ? "PUT" : "POST";
+        const url = id ? `/api/admin/convocatorias/${id}` : "/api/admin/convocatorias";
+        await apiFetch(url, {
+          method,
+          headers: authHeaders(),
+          body: JSON.stringify(data)
+        });
+        cerrarModalConvocatoria();
+        mostrarAlertaConvocatorias(`Convocatoria ${id ? "actualizada" : "creada"} con éxito`, "exito");
+        cargarConvocatoriasAdmin();
+      } catch (err) {
+        mostrarAlertaConvocatorias("Error al guardar: " + err.message, "error");
+      }
+    }
+
+    async function eliminarConvocatoria(id) {
+      if (!confirm("¿Está seguro de eliminar esta convocatoria? Esta acción no se puede deshacer.")) return;
+      try {
+        await apiFetch(`/api/admin/convocatorias/${id}`, {
+          method: "DELETE",
+          headers: authHeaders()
+        });
+        mostrarAlertaConvocatorias("Convocatoria eliminada correctamente", "exito");
+        cargarConvocatoriasAdmin();
+      } catch (err) {
+        mostrarAlertaConvocatorias("Error al eliminar: " + err.message, "error");
+      }
+    }
+
+    function mostrarAlertaConvocatorias(msg, tipo) {
+      const el = document.getElementById("alerta-convocatorias");
+      el.className = "alerta alerta-" + (tipo || "error") + " mb-3";
+      el.style.display = "block";
+      el.textContent = msg;
+      setTimeout(() => { el.style.display = "none"; }, 5000);
+    }
+
+    function badgeEstado(estado) {
+      const colores = {
+        en_revision: "#d97706", aprobada: "#16a34a", rechazada: "#dc2626",
+        revisando_documentos: "#2563eb", necesita_correcciones: "#9333ea",
+        docs_pendientes: "#0891b2", completada: "#059669"
+      };
+      const color = colores[estado] || "#6b7280";
+      return `<span class="badge" style="background:${color}20;color:${color};border:1px solid ${color}40;">${estado.replace(/_/g," ")}</span>`;
+    }
+
+    // ── PESTAÑA: ESTADÍSTICAS / GRÁFICAS ──────────────────────────────────────
+    let chartProgramas = null, chartConvocatorias = null;
+
+    async function cargarGraficas() {
+      try {
+        const [stats, porPrograma, porConv] = await Promise.all([
+          apiFetch("/api/admin/estadisticas", { headers: authHeaders() }),
+          apiFetch("/api/admin/estadisticas/por-programa", { headers: authHeaders() }),
+          apiFetch("/api/admin/estadisticas/por-convocatoria", { headers: authHeaders() })
+        ]);
+
+        document.getElementById("g-total").textContent = stats.total;
+        document.getElementById("g-revision").textContent = stats.en_revision;
+        document.getElementById("g-aprobadas").textContent = stats.aprobadas;
+        document.getElementById("g-rechazadas").textContent = stats.rechazadas;
+
+        if (chartProgramas) chartProgramas.destroy();
+        chartProgramas = new Chart(document.getElementById("chart-programas"), {
+          type: "bar",
+          data: {
+            labels: porPrograma.map(r => r.programa),
+            datasets: [{ label: "Postulaciones", data: porPrograma.map(r => r.total),
+              backgroundColor: "#2563eb99", borderColor: "#1a3a6b", borderWidth: 1 }]
+          },
+          options: { indexAxis: "y", responsive: true, plugins: { legend: { display: false } } }
+        });
+
+        if (chartConvocatorias) chartConvocatorias.destroy();
+        const colores = ["#2563eb","#16a34a","#d97706","#dc2626","#9333ea","#0891b2","#059669","#f59e0b","#6366f1","#10b981"];
+        chartConvocatorias = new Chart(document.getElementById("chart-convocatorias"), {
+          type: "doughnut",
+          data: {
+            labels: porConv.map(r => r.convocatoria),
+            datasets: [{ data: porConv.map(r => r.total),
+              backgroundColor: colores.slice(0, porConv.length) }]
+          },
+          options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+        });
+      } catch (err) {
+        console.error("Error cargando gráficas:", err);
+      }
+    }
+
+    // ── PESTAÑA: SELECCIÓN DE GANADORES ───────────────────────────────────────
+    let idsSeleccionados = new Set();
+    let convActual = null;
+
+    async function cargarConvocatoriasSeleccion() {
+      try {
+        const convs = await apiFetch("/api/admin/convocatorias", { headers: authHeaders() });
+        const sel = document.getElementById("sel-convocatoria");
+        sel.innerHTML = '<option value="">-- Elige una convocatoria --</option>';
+        convs.forEach(c => {
+          const pocos = c.totalPostulaciones <= 10 && c.totalPostulaciones > 0 ? " 💡" : "";
+          sel.innerHTML += `<option value="${c.id}">${c.titulo} — ${c.universidad} (${c.cupos} cupos · ${c.totalPostulaciones} postulantes)${pocos}</option>`;
+        });
+      } catch (err) {
+        console.error("Error cargando convocatorias:", err);
+      }
+    }
+
+    async function cargarPostulantes() {
+      const id = document.getElementById("sel-convocatoria").value;
+      if (!id) {
+        document.getElementById("panel-seleccion").style.display = "none";
+        document.getElementById("banner-pocos").style.display = "none";
+        return;
+      }
+
+      try {
+        const data = await apiFetch("/api/admin/convocatorias/" + id + "/postulantes", { headers: authHeaders() });
+        convActual = data.convocatoria;
+        postulantesActuales = data.postulaciones;
+        idsSeleccionados = new Set(
+          data.postulaciones.filter(p => p.estado === "aprobada").map(p => p.id)
+        );
+
+        // ── Banner pocas postulaciones (≤ 10) ──────────────────────────────
+        const total = data.postulaciones.length;
+        const bannerPocos = document.getElementById("banner-pocos");
+        if (total > 0 && total <= 10) {
+          document.getElementById("banner-total-post").textContent = total;
+          document.getElementById("banner-cupos").textContent = convActual.cupos;
+          bannerPocos.style.display = "block";
+        } else {
+          bannerPocos.style.display = "none";
+        }
+
+        // ── Info cupos ──────────────────────────────────────────────────────
+        document.getElementById("info-cupos").innerHTML = `
+          <strong style="color:#1a3a6b;">${convActual.titulo}</strong> — ${convActual.universidad}<br>
+          <span style="font-size:0.9rem;">
+            Cupos totales: <strong>${convActual.cupos}</strong> &nbsp;|&nbsp;
+            Seleccionados: <strong id="cnt-sel">${idsSeleccionados.size}</strong> &nbsp;|&nbsp;
+            Disponibles: <strong id="cnt-disp">${convActual.cuposDisponibles}</strong>
+          </span>`;
+
+        document.getElementById("cnt-post-total").textContent = total;
+
+        renderPostulantes(data.postulaciones);
+        actualizarBarraCupos();
+        document.getElementById("panel-seleccion").style.display = "block";
+        document.getElementById("alerta-seleccion").style.display = "none";
+      } catch (err) {
+        console.error("Error:", err);
+      }
+    }
+
+    // Lista de postulantes actual en memoria (para acciones rápidas)
+    let postulantesActuales = [];
+
+    function renderPostulantes(lista) {
+      const div = document.getElementById("lista-postulantes");
+      if (!lista.length) { div.innerHTML = "<p style='color:#6b7280;padding:1rem;'>No hay postulantes.</p>"; return; }
+      div.innerHTML = lista.map(p => {
+        const sel = idsSeleccionados.has(p.id);
+        return `<div class="postulante-fila ${sel ? "seleccionado" : ""}" onclick="togglePostulante(${p.id})" id="fila-${p.id}"
+          style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:8px;cursor:pointer;
+                 transition:all 0.15s;margin-bottom:0.5rem;
+                 border:1.5px solid ${sel ? "#16a34a" : "#e5e7eb"};
+                 background:${sel ? "#f0fdf4" : "white"};">
+          <div style="width:22px;height:22px;border:2px solid ${sel ? "#16a34a" : "#d1d5db"};border-radius:5px;
+                      display:flex;align-items:center;justify-content:center;
+                      background:${sel ? "#16a34a" : "white"};color:white;font-size:0.85rem;flex-shrink:0;">
+            ${sel ? "✓" : ""}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <strong style="font-size:0.92rem;">${p.estudiante}</strong>
+            <span style="font-size:0.78rem;color:#6b7280;margin-left:0.4rem;">${p.programa || ""}</span><br>
+            <small style="color:#6b7280;">
+              Sem. ${p.semestre || "—"} &nbsp;|&nbsp;
+              Docs: <strong style="color:${p.documentos > 0 ? "#16a34a" : "#dc2626"};">${p.documentos}</strong>
+              &nbsp;|&nbsp; ${formatFecha(p.fechaPostulacion)}
+            </small>
+          </div>
+          <span>${badgeEstado(p.estado)}</span>
+        </div>`;
+      }).join("");
+    }
+
+    function actualizarBarraCupos() {
+      const sel = idsSeleccionados.size;
+      const total = convActual ? convActual.cupos : 1;
+      const pct = Math.min(100, Math.round((sel / total) * 100));
+      const fill = document.getElementById("barra-fill");
+      if (fill) {
+        fill.style.width = pct + "%";
+        fill.style.background = pct >= 100 ? "#dc2626" : "#16a34a";
+      }
+      const label = document.getElementById("barra-label");
+      if (label) label.textContent = sel + " / " + total;
+      const cntAprobar = document.getElementById("cnt-a-aprobar");
+      if (cntAprobar) cntAprobar.textContent = sel;
+      const cntSel = document.getElementById("cnt-sel");
+      if (cntSel) cntSel.textContent = sel;
+      const cntDisp = document.getElementById("cnt-disp");
+      if (cntDisp) cntDisp.textContent = Math.max(0, total - sel);
+    }
+
+    function togglePostulante(id) {
+      if (idsSeleccionados.has(id)) {
+        idsSeleccionados.delete(id);
+      } else {
+        if (idsSeleccionados.size >= convActual.cupos) {
+          mostrarAlertaSeleccion("Ya llegaste al límite de " + convActual.cupos + " cupo(s).", "error");
+          return;
+        }
+        idsSeleccionados.add(id);
+      }
+      actualizarBarraCupos();
+      renderPostulantes(postulantesActuales);
+    }
+
+    // ── Acciones rápidas (visibles solo con ≤10 postulantes) ─────────────────
+
+    function seleccionarTodos() {
+      const disponibles = postulantesActuales.slice(0, convActual.cupos);
+      if (postulantesActuales.length > convActual.cupos) {
+        mostrarAlertaSeleccion(
+          "Hay más postulantes que cupos (" + postulantesActuales.length + " vs " + convActual.cupos +
+          "). Se seleccionarán solo los primeros " + convActual.cupos + " en orden de llegada.", "info"
+        );
+        disponibles.forEach(p => idsSeleccionados.add(p.id));
+      } else {
+        postulantesActuales.forEach(p => idsSeleccionados.add(p.id));
+      }
+      actualizarBarraCupos();
+      renderPostulantes(postulantesActuales);
+    }
+
+    function deseleccionarTodos() {
+      idsSeleccionados.clear();
+      actualizarBarraCupos();
+      renderPostulantes(postulantesActuales);
+    }
+
+    function seleccionarHastaLlenarCupos() {
+      idsSeleccionados.clear();
+      postulantesActuales.slice(0, convActual.cupos).forEach(p => idsSeleccionados.add(p.id));
+      actualizarBarraCupos();
+      renderPostulantes(postulantesActuales);
+      mostrarAlertaSeleccion(
+        "Se seleccionaron los primeros " + idsSeleccionados.size + " postulante(s) en orden de llegada.", "exito"
+      );
+    }
+
+    async function confirmarSeleccion() {
+      if (!convActual) return;
+      const n = idsSeleccionados.size;
+      if (!confirm("¿Confirmar selección de " + n + " ganador(es) para \"" + convActual.titulo + "\"?\nLos NO seleccionados quedarán como rechazados.")) return;
+      const comentario = prompt("Comentario para los estudiantes (opcional):");
+      try {
+        const res = await apiFetch("/api/admin/convocatorias/" + convActual.id + "/seleccionar-ganadores", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({ ids_seleccionados: Array.from(idsSeleccionados), comentario: comentario || null })
+        });
+        mostrarAlertaSeleccion(res.mensaje, "exito");
+        await cargarPostulantes();
+      } catch (err) {
+        mostrarAlertaSeleccion("Error: " + err.message, "error");
+      }
+    }
+
+    function mostrarAlertaSeleccion(msg, tipo) {
+      const el = document.getElementById("alerta-seleccion");
+      el.className = "alerta alerta-" + (tipo || "error") + " mb-3";
+      el.style.display = "block";
+      el.textContent = msg;
+      setTimeout(() => { el.style.display = "none"; }, 7000);
+    }
+
+    // ── PESTAÑA: USUARIOS ──────────────────────────────────────────────────────
+    let todosUsuarios = [];
+
+    async function cargarUsuarios() {
+      try {
+        todosUsuarios = await apiFetch("/api/admin/usuarios", { headers: authHeaders() });
+        renderTablaUsuarios(todosUsuarios);
+      } catch (err) {
+        mostrarAlertaUsuarios("Error al cargar usuarios: " + err.message, "error");
+      }
+    }
+
+    function renderTablaUsuarios(lista) {
+      const tbody = document.getElementById("cuerpo-usuarios");
+      if (!lista.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#6b7280;padding:2rem;">No hay usuarios.</td></tr>';
+        return;
+      }
+      const totalAdmins = lista.filter(u => u.rol === "administrador").length;
+      tbody.innerHTML = lista.map(u => {
+        const esUnico = u.rol === "administrador" && totalAdmins <= 1;
+        const rolBadge = u.rol === "administrador"
+          ? '<span class="badge badge-azul">Administrador</span>'
+          : '<span class="badge" style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;">Estudiante</span>';
+        const btnRol = esUnico
+          ? '<button class="btn btn-secundario btn-sm" disabled style="opacity:0.4;">&#x26A0; Único admin</button>'
+          : (u.rol === "administrador"
+              ? `<button class="btn btn-secundario btn-sm" onclick="cambiarRol(${u.id},'estudiante')">&#x2193; Estudiante</button>`
+              : `<button class="btn btn-secundario btn-sm" onclick="cambiarRol(${u.id},'administrador')" style="color:#1a3a6b;border-color:#1a3a6b;">&#x2191; Admin</button>`);
+        const btnDel = esUnico
+          ? '<button class="btn btn-danger btn-sm" disabled style="opacity:0.4;">&#x1F512;</button>'
+          : `<button class="btn btn-danger btn-sm" onclick="eliminarUsuario(${u.id})">&#x1F5D1;</button>`;
+        return `<tr>
+          <td>${u.id}</td>
+          <td><strong>${u.nombre} ${u.apellido}</strong></td>
+          <td style="font-size:0.85rem;">${u.email}</td>
+          <td style="font-size:0.85rem;">${u.programa || "—"}</td>
+          <td>${rolBadge}</td>
+          <td style="display:flex;gap:0.4rem;">${btnRol} ${btnDel}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    async function cambiarRol(id, nuevoRol) {
+      const u = todosUsuarios.find(x => x.id === id);
+      if (!confirm("¿Cambiar rol de " + u.nombre + " a \"" + nuevoRol + "\"?")) return;
+      try {
+        await apiFetch("/api/admin/usuarios/" + id + "/rol", {
+          method: "PUT", headers: authHeaders(), body: JSON.stringify({ rol: nuevoRol })
+        });
+        mostrarAlertaUsuarios("Rol actualizado.", "exito");
+        await cargarUsuarios();
+      } catch (err) {
+        mostrarAlertaUsuarios("Error: " + err.message, "error");
+      }
+    }
+
+    async function eliminarUsuario(id) {
+      const u = todosUsuarios.find(x => x.id === id);
+      if (!confirm("¿Eliminar permanentemente a " + u.nombre + " " + u.apellido + "?")) return;
+      try {
+        await apiFetch("/api/admin/usuarios/" + id, { method: "DELETE", headers: authHeaders() });
+        mostrarAlertaUsuarios("Usuario eliminado.", "exito");
+        await cargarUsuarios();
+      } catch (err) {
+        mostrarAlertaUsuarios("Error: " + err.message, "error");
+      }
+    }
+
+    function mostrarAlertaUsuarios(msg, tipo) {
+      const el = document.getElementById("alerta-usuarios");
+      el.className = "alerta alerta-" + (tipo || "error") + " mb-3";
+      el.style.display = "block";
+      el.textContent = msg;
+      setTimeout(() => { el.style.display = "none"; }, 6000);
+    }
+
+    // ── Inicio ─────────────────────────────────────────────────────────────────
+    mostrarTab("postulaciones");
+
+    // ── Mapa Global ───────────────────────────────────────────────────────────
+    const UNIS_MAPA = [
+      { pais:"Argentina",            bandera:"🇦🇷", region:"América Latina", lat:-31.6107, lng:-60.6970, color:"#e84393", nombre:"Universidad Nacional del Litoral" },
+      { pais:"Brasil",               bandera:"🇧🇷", region:"América Latina", lat:-12.9714, lng:-38.5014, color:"#e84393", nombre:"Universidade Federal da Bahia" },
+      { pais:"Brasil",               bandera:"🇧🇷", region:"América Latina", lat:-28.2400, lng:-48.6450, color:"#e84393", nombre:"University of South Santa Catarina" },
+      { pais:"Canadá",               bandera:"🇨🇦", region:"Norteamérica",   lat:45.4215,  lng:-75.6972, color:"#2563eb", nombre:"Canada Research Chair in Architecture, Competitions and Quality" },
+      { pais:"Chile",                bandera:"🇨🇱", region:"América Latina", lat:-33.4489, lng:-70.6693, color:"#e84393", nombre:"Universidad Central de Chile" },
+      { pais:"Chile",                bandera:"🇨🇱", region:"América Latina", lat:-33.4128, lng:-70.5808, color:"#e84393", nombre:"Universidad Mayor" },
+      { pais:"Chile",                bandera:"🇨🇱", region:"América Latina", lat:-33.4680, lng:-70.6417, color:"#e84393", nombre:"Universidad Andrés Bello" },
+      { pais:"España",               bandera:"🇪🇸", region:"Europa",         lat:42.4600,  lng:-2.4448,  color:"#16a34a", nombre:"Universidad Internacional de La Rioja" },
+      { pais:"España",               bandera:"🇪🇸", region:"Europa",         lat:37.3891,  lng:-5.9845,  color:"#16a34a", nombre:"Universidad de Sevilla" },
+      { pais:"España",               bandera:"🇪🇸", region:"Europa",         lat:42.3439,  lng:-3.6969,  color:"#16a34a", nombre:"Universidad Isabel I" },
+      { pais:"Estados Unidos",       bandera:"🇺🇸", region:"Norteamérica",   lat:37.7749,  lng:-122.4194,color:"#2563eb", nombre:"Universidad de San Francisco" },
+      { pais:"Italia",               bandera:"🇮🇹", region:"Europa",         lat:45.4654,  lng:9.1859,   color:"#16a34a", nombre:"Instituto Marangoni" },
+      { pais:"México",               bandera:"🇲🇽", region:"América Latina", lat:19.4978,  lng:-99.1478, color:"#e84393", nombre:"Instituto Politécnico Nacional (IPN)" },
+      { pais:"México",               bandera:"🇲🇽", region:"América Latina", lat:19.3320,  lng:-99.1876, color:"#e84393", nombre:"Universidad Nacional Autónoma de México (UNAM)" },
+      { pais:"México",               bandera:"🇲🇽", region:"América Latina", lat:25.6866,  lng:-100.3161,color:"#e84393", nombre:"Universidad de Monterrey" },
+      { pais:"México",               bandera:"🇲🇽", region:"América Latina", lat:19.0500,  lng:-104.3200,color:"#e84393", nombre:"Universidad Tecnológica de Manzanillo" },
+      { pais:"México",               bandera:"🇲🇽", region:"América Latina", lat:19.3900,  lng:-99.0700, color:"#e84393", nombre:"Universidad Autónoma Metropolitana" },
+      { pais:"México",               bandera:"🇲🇽", region:"América Latina", lat:19.2904,  lng:-99.6534, color:"#e84393", nombre:"Universidad Autónoma del Estado de México" },
+      { pais:"México",               bandera:"🇲🇽", region:"América Latina", lat:20.6597,  lng:-103.3496,color:"#e84393", nombre:"Universidad de Guadalajara" },
+      { pais:"México",               bandera:"🇲🇽", region:"América Latina", lat:21.0191,  lng:-101.2574,color:"#e84393", nombre:"Universidad de Guanajuato" },
+      { pais:"México",               bandera:"🇲🇽", region:"América Latina", lat:22.7709,  lng:-102.5832,color:"#e84393", nombre:"Universidad Autónoma de Zacatecas" },
+      { pais:"México",               bandera:"🇲🇽", region:"América Latina", lat:20.5200,  lng:-100.8100,color:"#e84393", nombre:"Universidad de Celaya" },
+      { pais:"México",               bandera:"🇲🇽", region:"América Latina", lat:19.4320,  lng:-99.1350, color:"#e84393", nombre:"Universidad Ducens" },
+      { pais:"México",               bandera:"🇲🇽", region:"América Latina", lat:19.4680,  lng:-99.1780, color:"#e84393", nombre:"Universidad INQBA Escuela de Negocios" },
+      { pais:"Panamá",               bandera:"🇵🇦", region:"América Latina", lat:8.9936,   lng:-79.5197, color:"#e84393", nombre:"ISTHMUS Escuela de Arquitectura y Diseño" },
+      { pais:"Panamá",               bandera:"🇵🇦", region:"América Latina", lat:8.9800,   lng:-79.5100, color:"#e84393", nombre:"Escuela Empresarial ESEM" },
+      { pais:"Perú",                 bandera:"🇵🇪", region:"América Latina", lat:-12.0464, lng:-77.0428, color:"#e84393", nombre:"Pontificia Universidad Católica del Perú" },
+      { pais:"Perú",                 bandera:"🇵🇪", region:"América Latina", lat:-12.0688, lng:-77.0590, color:"#e84393", nombre:"Universidad Ricardo Palma" },
+      { pais:"Perú",                 bandera:"🇵🇪", region:"América Latina", lat:-12.0847, lng:-76.9506, color:"#e84393", nombre:"Universidad Peruana de Ciencias Aplicadas" },
+      { pais:"Perú",                 bandera:"🇵🇪", region:"América Latina", lat:-12.1559, lng:-76.9728, color:"#e84393", nombre:"Universidad Autónoma del Perú" },
+      { pais:"Perú",                 bandera:"🇵🇪", region:"América Latina", lat:-12.0585, lng:-77.0783, color:"#e84393", nombre:"Universidad Nacional Mayor de San Marcos" },
+      { pais:"Perú",                 bandera:"🇵🇪", region:"América Latina", lat:-15.8402, lng:-70.0219, color:"#e84393", nombre:"Universidad Nacional del Altiplano" },
+      { pais:"República Dominicana", bandera:"🇩🇴", region:"América Latina", lat:18.4801,  lng:-69.9407, color:"#e84393", nombre:"Universidad Iberoamericana (UNIBE)" },
+      { pais:"Taiwán",               bandera:"🇹🇼", region:"Asia",           lat:24.2308,  lng:120.6806, color:"#d97706", nombre:"Providence University" },
+      { pais:"Israel",               bandera:"🇮🇱", region:"Asia",           lat:32.0853,  lng:34.7818,  color:"#d97706", nombre:"Check Point Software — Secure Academy" },
+      { pais:"Portugal",             bandera:"🇵🇹", region:"Europa",         lat:40.2033,  lng:-8.4103,  color:"#16a34a", nombre:"Polytechnic Institute of Coimbra" },
+      { pais:"Venezuela",            bandera:"🇻🇪", region:"América Latina", lat:10.4806,  lng:-66.9036, color:"#e84393", nombre:"Universidad Católica Andrés Bello" },
+    ];
+
+    let mapaAdminIniciado = false;
+    let mapaAdmin = null;
+    let marcadoresAdmin = [];
+
+    function agruparPorPaisAdmin(lista) {
+      const m = {};
+      lista.forEach(u => {
+        if (!m[u.pais]) m[u.pais] = { ...u, universidades: [] };
+        m[u.pais].universidades.push(u.nombre);
+      });
+      return Object.values(m);
+    }
+
+    function iconoAdmin(color, count) {
+      const s = count > 1 ? 36 : 28;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s+8}" viewBox="0 0 ${s} ${s+8}">
+        <circle cx="${s/2}" cy="${s/2}" r="${s/2-2}" fill="${color}" stroke="white" stroke-width="2.5" opacity="0.9"/>
+        <polygon points="${s/2-5},${s-4} ${s/2+5},${s-4} ${s/2},${s+6}" fill="${color}" opacity="0.9"/>
+        <text x="${s/2}" y="${s/2+5}" text-anchor="middle" fill="white" font-size="${count>9?10:12}" font-weight="700" font-family="sans-serif">${count}</text>
+      </svg>`;
+      return L.divIcon({ html: svg, className:'', iconSize:[s,s+8], iconAnchor:[s/2,s+8], popupAnchor:[0,-(s+8)] });
+    }
+
+    function renderMarcadoresAdmin(lista) {
+      marcadoresAdmin.forEach(m => mapaAdmin.removeLayer(m));
+      marcadoresAdmin = [];
+      agruparPorPaisAdmin(lista).forEach(g => {
+        const mk = L.marker([g.lat, g.lng], { icon: iconoAdmin(g.color, g.universidades.length) });
+        mk.bindPopup(`
+          <div class="popup-hdr">${g.bandera} ${g.pais}
+            <span style="float:right;background:rgba(255,255,255,0.25);padding:0.1rem 0.45rem;border-radius:999px;font-size:0.73rem;">${g.universidades.length}</span>
+          </div>
+          <div class="popup-list">${g.universidades.map(u=>`<div class="popup-row">🎓 ${u}</div>`).join('')}</div>
+        `, { maxWidth:270 });
+        mk.addTo(mapaAdmin);
+        marcadoresAdmin.push(mk);
+      });
+    }
+
+    function renderTarjetasAdmin(lista) {
+      const grid = document.getElementById('admin-paises-grid');
+      if (!grid) return;
+      const grupos = agruparPorPaisAdmin(lista);
+      grid.innerHTML = grupos.map(g => `
+        <div class="pais-mini-card" onclick="centrarPaisAdmin(${g.lat},${g.lng})">
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
+            <span style="font-size:1.2rem;">${g.bandera}</span>
+            <div>
+              <div style="font-weight:700;color:#1a3a6b;">${g.pais}</div>
+              <div style="font-size:0.75rem;color:#6b7280;">${g.universidades.length} institución${g.universidades.length>1?'es':''}</div>
+            </div>
+          </div>
+          <div style="font-size:0.77rem;color:#374151;line-height:1.5;">${g.universidades.join('<br>')}</div>
+        </div>
+      `).join('');
+    }
+
+    function centrarPaisAdmin(lat, lng) {
+      mapaAdmin.setView([lat, lng], 6, { animate:true });
+      marcadoresAdmin.forEach(m => {
+        if (Math.abs(m.getLatLng().lat - lat) < 0.1 && Math.abs(m.getLatLng().lng - lng) < 0.1) m.openPopup();
+      });
+    }
+
+    function filtrarMapaAdmin(region, btn) {
+      document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      const filtradas = region === 'todas' ? UNIS_MAPA : UNIS_MAPA.filter(u => u.region === region);
+      renderMarcadoresAdmin(filtradas);
+      renderTarjetasAdmin(filtradas);
+      document.getElementById('admin-map-paises').textContent = agruparPorPaisAdmin(filtradas).length;
+      if (region === 'todas') { mapaAdmin.setView([15,-30], 2, {animate:true}); }
+      else {
+        const bounds = filtradas.map(u => [u.lat, u.lng]);
+        if (bounds.length) mapaAdmin.fitBounds(bounds, { padding:[50,50], maxZoom:5 });
+      }
+    }
+
+    function iniciarMapaAdmin() {
+      if (mapaAdminIniciado) return;
+      mapaAdminIniciado = true;
+      setTimeout(() => {
+        mapaAdmin = L.map('mapa-admin', { center:[15,-30], zoom:2, minZoom:2, maxZoom:12 });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          attribution:'© OpenStreetMap | © CARTO', subdomains:'abcd', maxZoom:19
+        }).addTo(mapaAdmin);
+        renderMarcadoresAdmin(UNIS_MAPA);
+        renderTarjetasAdmin(UNIS_MAPA);
+      }, 100);
+    }
   </script>
 </body>
 </html>

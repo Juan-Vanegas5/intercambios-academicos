@@ -6,4 +6,12 @@ python-jose[cryptography]
 bcrypt
 python-dotenv
 python-multipart
+<<<<<<< HEAD
 boto3
+=======
+pyotp
+qrcode[pil]
+boto3
+reportlab
+requests
+>>>>>>> main

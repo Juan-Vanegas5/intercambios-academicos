@@ -22,6 +22,7 @@ class LoginResponse(BaseModel):
     apellido: str
     email: str
     rol: str
+    universidad_id: Optional[int] = None
 
 class PostulacionRequest(BaseModel):
     convocatoriaId: int
@@ -50,7 +51,11 @@ class DocumentoResponse(BaseModel):
     id: int
     nombre_archivo: str
     tipo: Optional[str] = None
+<<<<<<< HEAD
     mimetype: Optional[str] = "application/pdf"
+=======
+    s3_key: str
+>>>>>>> main
     fecha_subida: Optional[datetime] = None
 
     class Config:
@@ -84,17 +89,34 @@ class VerificarCodigoRequest(BaseModel):
     email: str
     codigo: str
 
+<<<<<<< HEAD
 class ConfirmarRegistroRequest(BaseModel):
     email: str
     codigo: str
 
 class ReenviarVerificacionRequest(BaseModel):
     email: str
+=======
+class TOTPSetupResponse(BaseModel):
+    qr_code: str
+    secret: str
+    email: str
+
+class TOTPVerifyRequest(BaseModel):
+    email: str
+    codigo: str
+
+class TOTPConfirmSetupRequest(BaseModel):
+    email: str
+    secret: str
+    codigo: str
+>>>>>>> main
 
 class EstadoRequest(BaseModel):
     estado: str
     comentario: Optional[str] = None
 
+<<<<<<< HEAD
 class ConvocatoriaCreate(BaseModel):
     titulo: str
     universidadId: int
@@ -115,3 +137,36 @@ class NotificacionResponse(BaseModel):
 class SeleccionGanadoresRequest(BaseModel):
     ids_seleccionados: List[int]
     comentario: Optional[str] = None
+=======
+class SeleccionGanadoresRequest(BaseModel):
+    ids_seleccionados: List[int]
+    comentario: Optional[str] = None
+
+class ConvocatoriaCreate(BaseModel):
+    titulo: str
+    universidad_id: int
+    descripcion: Optional[str] = None
+    requisitos: Optional[str] = None
+    fecha_inicio: str
+    fecha_cierre: str
+    cupos: int
+    estado: str
+
+class ConvocatoriaUpdate(BaseModel):
+    titulo: Optional[str] = None
+    universidad_id: Optional[int] = None
+    descripcion: Optional[str] = None
+    requisitos: Optional[str] = None
+    fecha_inicio: Optional[str] = None
+    fecha_cierre: Optional[str] = None
+    cupos: Optional[int] = None
+    estado: Optional[str] = None
+
+class UniversidadCreate(BaseModel):
+    nombre: str
+    pais: str
+
+class UniversidadUpdate(BaseModel):
+    nombre: Optional[str] = None
+    pais: Optional[str] = None
+>>>>>>> main

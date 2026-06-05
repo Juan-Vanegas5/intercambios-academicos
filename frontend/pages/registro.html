@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registro - Intercambios UPC</title>
-  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
 
@@ -22,6 +22,140 @@
     <div class="form-container" style="max-width:560px;">
       <div class="card">
 
+<<<<<<< HEAD
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- PASO 1 — Formulario de registro                -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <div id="paso-1">
+
+          <div class="text-center mb-3">
+            <div style="font-size:2.5rem; margin-bottom:0.5rem;">📝</div>
+            <h1 style="font-size:1.5rem; color:#1a3a6b; margin-bottom:0.3rem;">Crear cuenta</h1>
+            <p style="color:#6b7280; font-size:0.9rem;">Regístrate para postularte a intercambios académicos</p>
+          </div>
+
+          <form id="form-registro" onsubmit="registrar(event)">
+
+            <div class="form-fila">
+              <div class="form-group">
+                <label for="nombre">Nombre</label>
+                <input type="text" id="nombre" placeholder="Ej: Juan Andrés" required />
+              </div>
+              <div class="form-group">
+                <label for="apellido">Apellido</label>
+                <input type="text" id="apellido" placeholder="Ej: Vanegas" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Correo institucional</label>
+              <input type="email" id="email" placeholder="ejemplo@upc.edu.co" required />
+            </div>
+
+            <div class="form-fila">
+              <div class="form-group">
+                <label for="cedula">Cédula de ciudadanía</label>
+                <input type="text" id="cedula" placeholder="Ej: 1234567890" required />
+              </div>
+              <div class="form-group">
+                <label for="celular">Número celular</label>
+                <input type="tel" id="celular" placeholder="Ej: 3001234567" required />
+              </div>
+            </div>
+
+            <div class="form-fila">
+              <div class="form-group">
+                <label for="codigo">Código estudiantil</label>
+                <input type="text" id="codigo" placeholder="Ej: 201923456" required />
+              </div>
+              <div class="form-group">
+                <label for="programa">Programa académico</label>
+                <select id="programa" required>
+                  <option value="">Seleccionar...</option>
+                  <option>Ingeniería de Sistemas</option>
+                  <option>Ingeniería Civil</option>
+                  <option>Arquitectura</option>
+                  <option>Administración de Empresas</option>
+                  <option>Derecho</option>
+                  <option>Psicología</option>
+                  <option>Medicina</option>
+                  <option>Otro</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-fila">
+              <div class="form-group">
+                <label for="contrasena">Contraseña</label>
+                <input type="password" id="contrasena" placeholder="Mínimo 6 caracteres" required minlength="6" />
+              </div>
+              <div class="form-group">
+                <label for="confirmar">Confirmar contraseña</label>
+                <input type="password" id="confirmar" placeholder="Repite tu contraseña" required />
+              </div>
+            </div>
+
+            <div id="alerta-registro"></div>
+
+            <button type="submit" class="btn btn-primario btn-bloque btn-submit">
+              Crear cuenta
+            </button>
+          </form>
+
+          <div class="form-pie mt-2">
+            ¿Ya tienes cuenta? <a href="login.html">Inicia sesión aquí</a>
+          </div>
+
+        </div><!-- /paso-1 -->
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- PASO 2 — Verificación de correo (MFA)          -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <div id="paso-2" style="display:none;">
+
+          <div class="text-center mb-3">
+            <div style="font-size:2.5rem; margin-bottom:0.5rem;">✉️</div>
+            <h1 style="font-size:1.5rem; color:#1a3a6b; margin-bottom:0.3rem;">Verifica tu correo</h1>
+            <p style="color:#6b7280; font-size:0.9rem;">
+              Te enviamos un código de 6 dígitos a <strong id="email-destino-registro"></strong>
+            </p>
+          </div>
+
+          <form id="form-verificar-registro" onsubmit="confirmarRegistro(event)">
+
+            <div class="form-group text-center">
+              <label for="codigo-verificacion-registro" style="display:block; margin-bottom:0.5rem;">
+                Código de verificación
+              </label>
+              <input
+                type="text"
+                id="codigo-verificacion-registro"
+                maxlength="6"
+                placeholder="000000"
+                autocomplete="one-time-code"
+                style="font-size:1.8rem; letter-spacing:0.5rem; text-align:center; width:220px;"
+                required
+              />
+            </div>
+
+            <div id="alerta-verificacion-registro"></div>
+
+            <button type="submit" class="btn btn-primario btn-bloque btn-submit">
+              Verificar y crear cuenta
+            </button>
+
+          </form>
+
+          <div class="form-pie mt-2" style="text-align:center;">
+            <button
+              onclick="reenviarCodigoRegistro()"
+              style="background:none; border:none; color:#2563eb; cursor:pointer; font-size:0.9rem; text-decoration:underline;">
+              ¿No recibiste el código? Reenviar
+            </button>
+          </div>
+
+        </div><!-- /paso-2 -->
+=======
         <!-- PASO 1: Formulario de registro -->
         <div id="paso-registro">
           <div class="text-center mb-3">
@@ -141,6 +275,7 @@
             </button>
           </form>
         </div>
+>>>>>>> main
 
       </div>
     </div>
@@ -150,17 +285,127 @@
     <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
   </footer>
 
-  <script src="../js/main.js"></script>
+  <script src="js/main.js"></script>
   <script>
+<<<<<<< HEAD
+    // ── Utilidades de validación ─────────────────────────────────────────────
+    function validarEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email.trim());
+    }
+
+    function validarSoloLetras(valor) {
+      return /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/.test(valor.trim());
+    }
+
+    function aplicarValidacionTexto(inputEl, alerta) {
+      inputEl.addEventListener('blur', function () {
+        const val = inputEl.value.trim();
+        if (val && !validarSoloLetras(val)) {
+          alerta.className = 'alerta alerta-error';
+          alerta.textContent = `El campo "${inputEl.previousElementSibling.textContent}" no puede contener números ni símbolos.`;
+          inputEl.style.borderColor = '#dc2626';
+        } else {
+          if (alerta.textContent.includes(inputEl.previousElementSibling.textContent)) {
+            alerta.textContent = '';
+            alerta.className = '';
+          }
+          inputEl.style.borderColor = '';
+        }
+      });
+
+      inputEl.addEventListener('input', function () {
+        if (inputEl.style.borderColor === 'rgb(220, 38, 38)' && validarSoloLetras(inputEl.value.trim())) {
+          alerta.textContent = '';
+          alerta.className = '';
+          inputEl.style.borderColor = '';
+        }
+      });
+    }
+
+    // ── Validaciones en tiempo real ──────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function () {
+      const inputEmail    = document.getElementById('email');
+      const inputNombre   = document.getElementById('nombre');
+      const inputApellido = document.getElementById('apellido');
+      const alerta        = document.getElementById('alerta-registro');
+
+      inputEmail.addEventListener('blur', function () {
+        const val = inputEmail.value.trim();
+        if (val && !validarEmail(val)) {
+          alerta.className = 'alerta alerta-error';
+          alerta.textContent = 'El correo no es válido. Debe tener el formato: ejemplo@dominio.com';
+          inputEmail.style.borderColor = '#dc2626';
+        } else {
+          alerta.textContent = '';
+          alerta.className = '';
+          inputEmail.style.borderColor = '';
+        }
+      });
+
+      inputEmail.addEventListener('input', function () {
+        if (inputEmail.style.borderColor === 'rgb(220, 38, 38)' && validarEmail(inputEmail.value.trim())) {
+          alerta.textContent = '';
+          alerta.className = '';
+          inputEmail.style.borderColor = '';
+        }
+      });
+
+      aplicarValidacionTexto(inputNombre, alerta);
+      aplicarValidacionTexto(inputApellido, alerta);
+
+      document.getElementById('cedula').addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '');
+      });
+      document.getElementById('celular').addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9+]/g, '');
+      });
+      document.getElementById('codigo').addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '');
+      });
+      document.getElementById('codigo-verificacion-registro').addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '');
+      });
+    });
+
+    // ── PASO 1: Enviar formulario de registro ────────────────────────────────
+=======
     let emailRegistrado = "";
     let secretRegistrado = "";
 
+>>>>>>> main
     async function registrar(e) {
       e.preventDefault();
       const contrasena = document.getElementById('contrasena').value;
       const confirmar  = document.getElementById('confirmar').value;
+      const email      = document.getElementById('email').value.trim();
+      const nombre     = document.getElementById('nombre').value.trim();
+      const apellido   = document.getElementById('apellido').value.trim();
       const alerta     = document.getElementById('alerta-registro');
       const btn        = document.getElementById('btn-registro');
+
+      if (!validarSoloLetras(nombre)) {
+        alerta.className = 'alerta alerta-error';
+        alerta.textContent = 'El nombre no puede contener números ni símbolos.';
+        document.getElementById('nombre').style.borderColor = '#dc2626';
+        document.getElementById('nombre').focus();
+        return;
+      }
+
+      if (!validarSoloLetras(apellido)) {
+        alerta.className = 'alerta alerta-error';
+        alerta.textContent = 'El apellido no puede contener números ni símbolos.';
+        document.getElementById('apellido').style.borderColor = '#dc2626';
+        document.getElementById('apellido').focus();
+        return;
+      }
+
+      if (!validarEmail(email)) {
+        alerta.className = 'alerta alerta-error';
+        alerta.textContent = 'El correo no es válido. Debe tener el formato: ejemplo@dominio.com';
+        document.getElementById('email').style.borderColor = '#dc2626';
+        document.getElementById('email').focus();
+        return;
+      }
 
       if (contrasena !== confirmar) {
         alerta.className = 'alerta alerta-error';
@@ -173,13 +418,13 @@
       btn.textContent = 'Creando cuenta...';
 
       try {
-        const data = await apiFetch('/api/auth/registro', {
+        await apiFetch('/api/auth/registro', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            nombre:     document.getElementById('nombre').value.trim(),
-            apellido:   document.getElementById('apellido').value.trim(),
-            email:      document.getElementById('email').value.trim(),
+            nombre:     nombre,
+            apellido:   apellido,
+            email:      email,
             contrasena: contrasena,
             cedula:     document.getElementById('cedula').value.trim(),
             celular:    document.getElementById('celular').value.trim(),
@@ -188,6 +433,13 @@
           })
         });
 
+<<<<<<< HEAD
+        // Guardamos el email para usarlo en paso 2
+        document.getElementById('email-destino-registro').textContent = email;
+        document.getElementById('paso-1').style.display = 'none';
+        document.getElementById('paso-2').style.display = 'block';
+        document.getElementById('codigo-verificacion-registro').focus();
+=======
         if (data.requiere_setup) {
           // Mostrar QR para configurar TOTP
           emailRegistrado = data.email;
@@ -198,6 +450,7 @@
           document.getElementById('paso-setup').style.display = 'block';
           document.getElementById('codigo-setup').focus();
         }
+>>>>>>> main
 
       } catch (err) {
         alerta.className = 'alerta alerta-error';
@@ -207,6 +460,25 @@
       }
     }
 
+<<<<<<< HEAD
+    // ── PASO 2: Confirmar código de verificación ─────────────────────────────
+    async function confirmarRegistro(e) {
+      e.preventDefault();
+      const email  = document.getElementById('email-destino-registro').textContent;
+      const codigo = document.getElementById('codigo-verificacion-registro').value.trim();
+      const alerta = document.getElementById('alerta-verificacion-registro');
+      const btn    = document.querySelector('#form-verificar-registro button[type="submit"]');
+
+      alerta.textContent = '';
+      btn.disabled    = true;
+      btn.textContent = 'Verificando...';
+
+      try {
+        const data = await apiFetch('/api/auth/confirmar-registro', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, codigo })
+=======
     async function confirmarSetup(e) {
       e.preventDefault();
       const btn    = document.getElementById('btn-setup');
@@ -222,6 +494,7 @@
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: emailRegistrado, secret: secretRegistrado, codigo: codigo })
+>>>>>>> main
         });
 
         setSession(data.token, {
@@ -231,6 +504,33 @@
         window.location.href = 'index.html';
 
       } catch (err) {
+<<<<<<< HEAD
+        alerta.className = 'alerta alerta-error';
+        alerta.textContent = err.message || 'Código incorrecto o expirado.';
+        btn.disabled    = false;
+        btn.textContent = 'Verificar y crear cuenta';
+      }
+    }
+
+    // ── Reenviar código ──────────────────────────────────────────────────────
+    async function reenviarCodigoRegistro() {
+      const email = document.getElementById('email-destino-registro').textContent;
+      const alerta = document.getElementById('alerta-verificacion-registro');
+      try {
+        // Llamamos de nuevo al paso 1 solo con el email para reenviar el código
+        await apiFetch('/api/auth/reenviar-verificacion', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        alerta.className = 'alerta alerta-exito';
+        alerta.textContent = 'Código reenviado. Revisa tu bandeja de entrada.';
+      } catch (err) {
+        alerta.className = 'alerta alerta-error';
+        alerta.textContent = err.message || 'No se pudo reenviar el código.';
+      }
+    }
+=======
         alerta.style.display = 'block';
         alerta.className = 'alerta alerta-error';
         alerta.textContent = err.message || 'Código incorrecto. Verifica el QR.';
@@ -245,6 +545,7 @@
     document.getElementById('codigo-setup').addEventListener('input', function() {
       this.value = this.value.replace(/[^0-9]/g, '');
     });
+>>>>>>> main
   </script>
 </body>
 </html>

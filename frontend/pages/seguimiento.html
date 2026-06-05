@@ -4,7 +4,109 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mis Postulaciones - Intercambios UPC</title>
-  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* ── Stepper ── */
+    .stepper {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+    .step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      min-width: 120px;
+    }
+    .step::before {
+      content: "";
+      position: absolute;
+      top: 20px;
+      left: -50%;
+      right: 50%;
+      height: 3px;
+      background: #e5e7eb;
+      z-index: 0;
+    }
+    .step:first-child::before { display: none; }
+    .step.activo::before,
+    .step.completado::before { background: #2563eb; }
+    .step-circle {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 3px solid #e5e7eb;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #9ca3af;
+      z-index: 1;
+      position: relative;
+      transition: all .3s;
+    }
+    .step.activo .step-circle {
+      border-color: #2563eb;
+      background: #2563eb;
+      color: #fff;
+      box-shadow: 0 0 0 4px rgba(37,99,235,.18);
+    }
+    .step.advertencia .step-circle {
+      border-color: #f59e0b;
+      background: #f59e0b;
+      color: #fff;
+      box-shadow: 0 0 0 4px rgba(245,158,11,.18);
+    }
+    .step.completado .step-circle {
+      border-color: #16a34a;
+      background: #16a34a;
+      color: #fff;
+    }
+    .step.bloqueado .step-circle {
+      border-color: #d1d5db;
+      background: #f3f4f6;
+      color: #d1d5db;
+    }
+    .step-label {
+      margin-top: 0.5rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-align: center;
+      color: #9ca3af;
+      line-height: 1.3;
+    }
+    .step.activo .step-label     { color: #2563eb; }
+    .step.advertencia .step-label { color: #f59e0b; }
+    .step.completado .step-label { color: #16a34a; }
+
+    .panel-editar {
+      background: #fffbeb;
+      border: 2px dashed #f59e0b;
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+    }
+    .panel-editar h4 { color: #92400e; margin: 0 0 0.75rem; font-size: 0.95rem; }
+    .doc-estado-fila {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .cards-estado { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap:1rem; margin-top:1.5rem; }
+  </style>
 </head>
 <body>
 
@@ -22,15 +124,23 @@
   <main>
     <div class="page-header">
       <h1>Mis Postulaciones</h1>
-      <p>Aquí puedes ver el estado de cada una de tus postulaciones</p>
+      <p>Sigue el estado de tu proceso de intercambio</p>
     </div>
+
+<<<<<<< HEAD
+    <div id="alerta-global" class="alerta mb-3" style="display:none;"></div>
+=======
+
+    <!-- Barra de progreso por postulación -->
+    <div id="contenedor-progreso" style="margin-bottom:1.5rem;"></div>
 
     <div id="alerta-notif" class="alerta alerta-info mb-3" style="display:none;"></div>
     <div id="alerta-error" class="alerta alerta-error mb-3" style="display:none;"></div>
+>>>>>>> main
 
     <div class="card">
       <div class="tabla-container">
-        <table id="tabla-postulaciones">
+        <table>
           <thead>
             <tr>
               <th>Convocatoria</th>
@@ -38,87 +148,269 @@
               <th>País</th>
               <th>Fecha postulación</th>
               <th>Estado</th>
+<<<<<<< HEAD
+              <th>Docs. subidos</th>
+              <th>Comentario admin</th>
+              <th>Acciones</th>
+=======
               <th>Documentos</th>
               <th>Comentario</th>
+              <th>Acción</th>
+>>>>>>> main
             </tr>
           </thead>
           <tbody id="cuerpo-tabla">
             <tr>
-              <td colspan="7" style="text-align:center; color:#6b7280; padding:2rem;">
-                Cargando postulaciones...
-              </td>
+              <td colspan="8" style="text-align:center; color:#6b7280; padding:2rem;">Cargando postulaciones...</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
+    <!-- Detalle -->
+    <div id="seccion-detalle" style="display:none; margin-top:2rem;">
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+        <h2 style="color:#1a3a6b; font-size:1.1rem; margin:0;">
+          📋 Detalle: <span id="detalle-titulo" style="font-weight:400;"></span>
+        </h2>
+        <button onclick="cerrarDetalle()" style="background:none; border:1px solid #d1d5db; border-radius:6px; padding:0.35rem 0.9rem; cursor:pointer; color:#6b7280; font-size:0.85rem;">✕ Cerrar</button>
+      </div>
+
+      <!-- Stepper -->
+      <div class="stepper">
+        <div class="step" id="step-1">
+          <div class="step-circle" id="sc-1">1</div>
+          <div class="step-label">Postulación<br>enviada</div>
+        </div>
+        <div class="step" id="step-2">
+          <div class="step-circle" id="sc-2">2</div>
+          <div class="step-label">Revisión<br>admin</div>
+        </div>
+        <div class="step" id="step-3">
+          <div class="step-circle" id="sc-3">✈️</div>
+          <div class="step-label">Documentos<br>de viaje</div>
+        </div>
+      </div>
+
+      <!-- Panel paso 1 — En revisión / necesita correcciones -->
+      <div id="panel-paso1" style="display:none;">
+        <div class="card" id="card-paso1" style="border:2px solid #f59e0b;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+            <span style="font-size:1.8rem;" id="icono-paso1">📝</span>
+            <div>
+              <h3 id="titulo-paso1" style="color:#92400e; margin:0; font-size:1rem;">Tu postulación está en revisión</h3>
+              <p id="subtitulo-paso1" style="color:#6b7280; font-size:0.85rem; margin:0;">Mientras el administrador revisa, puedes actualizar tus documentos.</p>
+            </div>
+          </div>
+          <div id="alerta-paso1" class="alerta mb-2" style="display:none;"></div>
+          <div id="lista-docs-postulacion" style="margin-bottom:1rem;"></div>
+          <div class="panel-editar">
+            <h4>📤 Subir / reemplazar documentos (PDF)</h4>
+            <p style="font-size:0.82rem; color:#78350f; margin:0 0 0.75rem;">Solo sube el que quieras actualizar. Los demás quedan igual.</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+              <div class="form-group" style="margin:0;">
+                <label style="font-size:0.85rem;">📄 Certificado de notas</label>
+                <input type="file" id="edit-certificado" accept=".pdf" />
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label style="font-size:0.85rem;">📄 Paz y salvo académico</label>
+                <input type="file" id="edit-paz_y_salvo" accept=".pdf" />
+              </div>
+            </div>
+            <div id="progreso-editar" class="alerta alerta-info mt-2" style="display:none;">⏳ Actualizando...</div>
+            <button onclick="guardarEdicionDocs()" class="btn btn-primario" id="btn-guardar-docs" style="margin-top:0.75rem;">💾 Guardar cambios</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel paso 2 — Revisando documentos -->
+      <div id="panel-paso2-info" style="display:none;">
+        <div class="card" style="border:2px solid #2563eb; text-align:center; padding:2rem;">
+          <span style="font-size:2.5rem;" id="icono-paso2">🔍</span>
+          <h3 id="titulo-paso2" style="color:#1a3a6b; margin:0.5rem 0;">El administrador está revisando tu postulación</h3>
+          <p id="subtitulo-paso2" style="color:#6b7280; font-size:0.9rem;">Te notificaremos aquí cuando haya una decisión.</p>
+        </div>
+      </div>
+
+      <!-- Panel rechazada -->
+      <div id="panel-rechazada" style="display:none;">
+        <div class="card" style="border:2px solid #dc2626; text-align:center; padding:2rem;">
+          <span style="font-size:2.5rem;">❌</span>
+          <h3 style="color:#dc2626; margin:0.5rem 0;">Postulación rechazada</h3>
+          <p id="comentario-rechazo" style="color:#6b7280; font-size:0.9rem;"></p>
+          <a href="postulacion.html" class="btn btn-primario" style="margin-top:0.75rem; display:inline-block;">Ver otras convocatorias</a>
+        </div>
+      </div>
+
+      <!-- Panel paso 3 — Documentos de viaje -->
+      <div id="panel-paso3" style="display:none;">
+        <div class="card" style="border:2px solid #2563eb;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem; flex-wrap:wrap;">
+            <span style="font-size:1.8rem;">✈️</span>
+            <div style="flex:1;">
+              <h3 style="color:#1a3a6b; margin:0; font-size:1rem;">Paso 3 — Documentos de viaje</h3>
+              <p style="color:#6b7280; font-size:0.85rem; margin:0;">¡Tu postulación fue aprobada! Sube los documentos para el intercambio.</p>
+            </div>
+            <span id="badge-paso3"></span>
+          </div>
+          <div id="alerta-viaje" class="alerta mb-3" style="display:none;"></div>
+          <div id="lista-docs-viaje" style="margin-bottom:1.5rem;"></div>
+          <form id="form-docs-viaje" onsubmit="subirDocsViaje(event)">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+              <div class="form-group">
+                <label>🛂 Pasaporte (PDF)</label>
+                <input type="file" id="doc-pasaporte" accept=".pdf" />
+              </div>
+              <div class="form-group">
+                <label>🏥 Seguro médico internacional (PDF)</label>
+                <input type="file" id="doc-seguro_medico" accept=".pdf" />
+              </div>
+              <div class="form-group">
+                <label>🪪 Visa de estudiante (PDF) <span style="color:#6b7280;font-size:0.8rem;">opcional</span></label>
+                <input type="file" id="doc-visa" accept=".pdf" />
+              </div>
+              <div class="form-group">
+                <label>📜 Carta de aceptación (PDF)</label>
+                <input type="file" id="doc-carta_aceptacion" accept=".pdf" />
+              </div>
+            </div>
+            <div id="progreso-viaje" class="alerta alerta-info mb-2" style="display:none;">⏳ Subiendo documentos...</div>
+            <button type="submit" class="btn btn-primario" id="btn-subir-viaje" style="margin-top:0.5rem;">📤 Subir documentos de viaje</button>
+          </form>
+        </div>
+      </div>
+
+    </div><!-- /seccion-detalle -->
+
+    <!-- Guía -->
     <div style="margin-top:2rem;">
-      <h2 style="color:#1a3a6b; font-size:1.1rem; margin-bottom:1rem;">¿Qué significa cada estado?</h2>
-      <div class="cards-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+      <h2 style="color:#1a3a6b; font-size:1rem; margin-bottom:1rem;">¿Qué significa cada estado?</h2>
+      <div class="cards-estado">
         <div class="card text-center">
-          <span class="badge badge-amarillo mb-1" style="font-size:0.95rem;">En revisión</span>
-          <p style="font-size:0.85rem; color:#6b7280; margin-top:0.5rem;">
-            Tu postulación fue recibida y está siendo evaluada por el equipo de intercambios.
-          </p>
+          <span class="badge badge-amarillo mb-1">En revisión</span>
+          <p style="font-size:0.82rem; color:#6b7280; margin-top:0.5rem;">Tu postulación fue recibida. Puedes editar tus documentos.</p>
         </div>
         <div class="card text-center">
-          <span class="badge badge-verde mb-1" style="font-size:0.95rem;">Aprobada</span>
-          <p style="font-size:0.85rem; color:#6b7280; margin-top:0.5rem;">
-            ¡Felicitaciones! Fuiste seleccionado. Revisa tu correo para los siguientes pasos.
-          </p>
+          <span class="badge badge-azul mb-1">Revisando docs</span>
+          <p style="font-size:0.82rem; color:#6b7280; margin-top:0.5rem;">El administrador está revisando tus documentos.</p>
         </div>
         <div class="card text-center">
-          <span class="badge badge-rojo mb-1" style="font-size:0.95rem;">Rechazada</span>
-          <p style="font-size:0.85rem; color:#6b7280; margin-top:0.5rem;">
-            Tu postulación no fue aprobada esta vez. Puedes aplicar a otras convocatorias.
-          </p>
+          <span class="badge badge-amarillo mb-1">Necesita correcciones</span>
+          <p style="font-size:0.82rem; color:#6b7280; margin-top:0.5rem;">Debes corregir o reemplazar algún documento.</p>
+        </div>
+        <div class="card text-center">
+          <span class="badge badge-verde mb-1">Aprobada</span>
+          <p style="font-size:0.82rem; color:#6b7280; margin-top:0.5rem;">¡Felicitaciones! Sube tus documentos de viaje.</p>
+        </div>
+        <div class="card text-center">
+          <span class="badge badge-rojo mb-1">Rechazada</span>
+          <p style="font-size:0.82rem; color:#6b7280; margin-top:0.5rem;">Tu postulación no fue aprobada esta vez.</p>
+        </div>
+        <div class="card text-center">
+          <span class="badge badge-verde mb-1">✅ Completada</span>
+          <p style="font-size:0.82rem; color:#6b7280; margin-top:0.5rem;">¡Todo listo! El admin verificó tus documentos.</p>
         </div>
       </div>
     </div>
 
     <div style="margin-top:1.5rem; display:flex; gap:1rem;">
-      <a href="index.html" class="btn btn-primario">Ver más convocatorias</a>
+      <a href="index.html" class="btn btn-primario">Ver convocatorias</a>
       <a href="postulacion.html" class="btn btn-secundario">Nueva postulación</a>
     </div>
   </main>
 
+
+
+  <!-- Modal documentos de viaje (segunda fase) -->
+  <div id="modal-viaje" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; padding:1rem;">
+    <div class="card" style="max-width:500px; width:100%; margin:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+        <h3 style="color:#1a3a6b; margin:0;">✈️ Documentos de Viaje</h3>
+        <button onclick="cerrarViaje()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+      </div>
+      <p style="color:#6b7280; font-size:0.9rem; margin-bottom:1rem;">
+        ¡Felicitaciones! Tu postulación fue aprobada. Sube los documentos necesarios para completar el proceso. Solo archivos PDF.
+      </p>
+      <div id="alerta-viaje" class="alerta mb-3" style="display:none;"></div>
+      <form id="form-viaje" onsubmit="subirDocsViaje(event)">
+        <div class="form-group">
+          <label>✈️ Tiquetes de vuelo (PDF)</label>
+          <input type="file" id="doc-vuelos" accept=".pdf">
+        </div>
+        <div class="form-group">
+          <label>🏥 Seguro médico (PDF)</label>
+          <input type="file" id="doc-seguro" accept=".pdf">
+        </div>
+        <div class="form-group">
+          <label>🛂 Visa (PDF)</label>
+          <input type="file" id="doc-visa" accept=".pdf">
+        </div>
+        <div class="form-group">
+          <label>📘 Pasaporte (PDF)</label>
+          <input type="file" id="doc-pasaporte" accept=".pdf">
+        </div>
+        <div style="display:flex; gap:1rem; margin-top:1rem;">
+          <button type="button" class="btn btn-secundario" onclick="cerrarViaje()" style="flex:1;">Cancelar</button>
+          <button type="submit" class="btn btn-primario" style="flex:2;">Enviar documentos</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- Modal corrección de documentos -->
+  <div id="modal-correccion" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; padding:1rem;">
+    <div class="card" style="max-width:480px; width:100%; margin:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+        <h3 style="color:#1a3a6b; margin:0;">📎 Corregir Documentos</h3>
+        <button onclick="cerrarCorreccion()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+      </div>
+      <p style="color:#6b7280; font-size:0.9rem; margin-bottom:1rem;">Sube los documentos corregidos. Solo archivos PDF.</p>
+      <div id="alerta-correccion" class="alerta mb-3" style="display:none;"></div>
+      <form id="form-correccion" onsubmit="subirCorreccion(event)">
+        <div class="form-group">
+          <label>Certificado de notas (PDF)</label>
+          <input type="file" id="cert-corr" accept=".pdf">
+        </div>
+        <div class="form-group">
+          <label>Paz y salvo académico (PDF)</label>
+          <input type="file" id="paz-corr" accept=".pdf">
+        </div>
+        <div style="display:flex; gap:1rem; margin-top:1rem;">
+          <button type="button" class="btn btn-secundario" onclick="cerrarCorreccion()" style="flex:1;">Cancelar</button>
+          <button type="submit" class="btn btn-primario" style="flex:2;">Enviar documentos</button>
+        </div>
+      </form>
+    </div>
+  </div>
   <footer>
     <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
   </footer>
 
+<<<<<<< HEAD
+  <script src="js/main.js"></script>
+=======
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="../js/main.js"></script>
+>>>>>>> main
   <script>
     requireAuth();
+    let postulacionActiva = null;
 
     async function cargarMisPostulaciones() {
       const cuerpo = document.getElementById("cuerpo-tabla");
-      const alertaNotif = document.getElementById("alerta-notif");
-      const alertaError = document.getElementById("alerta-error");
-
       try {
-        const postulaciones = await apiFetch("/api/postulaciones/mis", {
-          headers: authHeaders()
-        });
-
-        const enRevision = postulaciones.filter(p => p.estado === "en_revision").length;
-        if (enRevision > 0) {
-          alertaNotif.style.display = "block";
-          alertaNotif.innerHTML = `🔔 Tienes <strong>${enRevision} postulación${enRevision > 1 ? "es" : ""} en revisión</strong>. Te notificaremos por correo cuando haya cambios.`;
-        }
-
-        if (postulaciones.length === 0) {
-          cuerpo.innerHTML = `
-            <tr>
-              <td colspan="7" style="text-align:center; color:#6b7280; padding:2rem;">
-                No tienes postulaciones registradas.
-                <a href="postulacion.html" style="color:#2563eb; margin-left:0.5rem;">Postúlate ahora →</a>
-              </td>
-            </tr>
-          `;
+        const postulaciones = await apiFetch("/api/postulaciones/mis", { headers: authHeaders() });
+        if (!postulaciones || postulaciones.length === 0) {
+          cuerpo.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#6b7280;padding:2rem;">
+            No tienes postulaciones. <a href="postulacion.html" style="color:#2563eb;">Postúlate ahora →</a></td></tr>`;
           return;
         }
+<<<<<<< HEAD
+=======
 
+        renderProgreso(postulaciones);
+>>>>>>> main
         cuerpo.innerHTML = postulaciones.map(p => `
           <tr>
             <td><strong>${p.convocatoria}</strong></td>
@@ -126,25 +418,556 @@
             <td>${p.pais}</td>
             <td>${formatFecha(p.fechaPostulacion)}</td>
             <td>${getBadge(p.estado)}</td>
-            <td style="text-align:center;">
-              ${p.documentos > 0
-                ? `<span style="color:#16a34a; font-weight:600;">📎 ${p.documentos}</span>`
-                : `<span style="color:#9ca3af; font-size:0.85rem;">Sin adjuntos</span>`}
+            <td style="text-align:center;">${p.documentos > 0 ? `<span style="color:#16a34a;font-weight:600;">📎 ${p.documentos}</span>` : `<span style="color:#9ca3af;font-size:0.85rem;">Sin adjuntos</span>`}</td>
+            <td style="color:#6b7280;font-size:0.85rem;max-width:160px;">${p.comentarioAdmin || "—"}</td>
+            <td>
+              <button class="btn btn-secundario" style="font-size:0.8rem;padding:0.3rem 0.75rem;"
+                onclick="abrirDetalle(${JSON.stringify(p).replace(/"/g, '&quot;')})">Ver detalle</button>
             </td>
+<<<<<<< HEAD
+          </tr>`).join("");
+=======
             <td style="color:#6b7280; font-size:0.85rem;">
               ${p.comentarioAdmin || "—"}
+            </td>
+            <td>
+              ${p.estado === "completada"
+                ? `<button class="btn btn-exito btn-sm" onclick="descargarCertificado(${p.id})" style="white-space:nowrap;background:#16a34a;">📜 Certificado</button>`
+                : (p.estado === "aprobada" || p.estado === "docs_viaje_enviados" || p.estado === "necesita_correcciones_viaje")
+                  ? `<button class="btn btn-exito btn-sm" onclick="abrirViaje(${p.id})" style="white-space:nowrap;">✈️ ${p.estado === 'necesita_correcciones_viaje' ? 'Corregir viaje' : 'Docs viaje'}</button>`
+                  : (p.estado === "necesita_correcciones" || p.estado === "docs_pendientes")
+                      ? `<button class="btn btn-primario btn-sm" onclick="abrirCorreccion(${p.id})">📎 Corregir docs</button>`
+                      : "—"}
             </td>
           </tr>
         `).join("");
 
+>>>>>>> main
       } catch (err) {
-        alertaError.style.display = "block";
-        alertaError.textContent = "No se pudieron cargar las postulaciones: " + err.message;
-        cuerpo.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#6b7280; padding:2rem;">Error al cargar datos.</td></tr>`;
+        cuerpo.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#dc2626;padding:2rem;">Error: ${err.message}</td></tr>`;
       }
     }
 
+    async function abrirDetalle(p) {
+      postulacionActiva = p;
+      document.getElementById("detalle-titulo").textContent = p.convocatoria + " — " + p.universidad;
+      document.getElementById("seccion-detalle").style.display = "block";
+      document.getElementById("seccion-detalle").scrollIntoView({ behavior: "smooth", block: "start" });
+      actualizarStepper(p.estado);
+      ocultarTodosPaneles();
+
+      if (p.estado === "en_revision" || p.estado === "necesita_correcciones") {
+        if (p.estado === "necesita_correcciones") {
+          document.getElementById("icono-paso1").textContent = "⚠️";
+          document.getElementById("titulo-paso1").textContent = "Necesitas corregir tus documentos";
+          document.getElementById("subtitulo-paso1").textContent =
+            p.comentarioAdmin ? `El administrador indicó: ${p.comentarioAdmin}` : "Corrige o reemplaza algún documento.";
+        } else {
+          document.getElementById("icono-paso1").textContent = "📝";
+          document.getElementById("titulo-paso1").textContent = "Tu postulación está en revisión";
+          document.getElementById("subtitulo-paso1").textContent = "Mientras el administrador revisa, puedes actualizar tus documentos.";
+        }
+        document.getElementById("panel-paso1").style.display = "block";
+        await cargarDocsPostulacion(p.id);
+
+      } else if (p.estado === "revisando_documentos") {
+        document.getElementById("icono-paso2").textContent = "🔍";
+        document.getElementById("titulo-paso2").textContent = "El administrador está revisando tus documentos";
+        document.getElementById("subtitulo-paso2").textContent = "Te notificaremos cuando haya una decisión.";
+        document.getElementById("panel-paso2-info").style.display = "block";
+
+      } else if (p.estado === "rechazada") {
+        document.getElementById("panel-rechazada").style.display = "block";
+        document.getElementById("comentario-rechazo").textContent =
+          p.comentarioAdmin ? `Motivo: ${p.comentarioAdmin}` : "No se proporcionó motivo.";
+
+      } else if (["aprobada", "docs_pendientes", "completada"].includes(p.estado)) {
+        document.getElementById("panel-paso3").style.display = "block";
+        document.getElementById("badge-paso3").innerHTML = getBadge(p.estado);
+        if (p.estado === "completada") {
+          document.getElementById("form-docs-viaje").style.display = "none";
+          mostrarAlertaViaje("✅ ¡El administrador verificó tus documentos. Tu proceso está completo!", "exito");
+        }
+        await cargarDocsViaje(p.id);
+      }
+    }
+
+    function cerrarDetalle() {
+      document.getElementById("seccion-detalle").style.display = "none";
+      postulacionActiva = null;
+    }
+
+    function ocultarTodosPaneles() {
+      ["panel-paso1","panel-paso2-info","panel-rechazada","panel-paso3"].forEach(id =>
+        document.getElementById(id).style.display = "none");
+      document.getElementById("form-docs-viaje").style.display = "";
+      document.getElementById("alerta-viaje").style.display = "none";
+      document.getElementById("alerta-paso1").style.display = "none";
+    }
+
+    function actualizarStepper(estado) {
+      [1,2,3].forEach(n => { document.getElementById("step-"+n).className = "step"; });
+      const cfg = {
+        "en_revision":           [["activo","1"],    ["bloqueado","2"],    ["bloqueado","✈️"]],
+        "necesita_correcciones": [["advertencia","⚠️"],["bloqueado","2"],  ["bloqueado","✈️"]],
+        "revisando_documentos":  [["completado","✓"],["activo","🔍"],      ["bloqueado","✈️"]],
+        "rechazada":             [["completado","✓"],["activo","❌"],       ["bloqueado","✈️"]],
+        "aprobada":              [["completado","✓"],["completado","✓"],   ["activo","✈️"]],
+        "docs_pendientes":       [["completado","✓"],["completado","✓"],   ["activo","📋"]],
+        "completada":            [["completado","✓"],["completado","✓"],   ["completado","✓"]],
+      };
+      (cfg[estado] || cfg["en_revision"]).forEach(([clase, icono], i) => {
+        document.getElementById("step-"+(i+1)).className = "step "+clase;
+        document.getElementById("sc-"+(i+1)).textContent = icono;
+      });
+    }
+
+    async function cargarDocsPostulacion(id) {
+      try {
+        const docs = await apiFetch(`/api/postulaciones/${id}/documentos-postulacion`, { headers: authHeaders() });
+        const subidos = docs.filter(d => d.subido).length;
+        document.getElementById("lista-docs-postulacion").innerHTML = `
+          <p style="font-size:0.85rem;color:#6b7280;margin-bottom:0.5rem;">Documentos subidos: <strong style="color:#1a3a6b;">${subidos} / ${docs.length}</strong></p>
+          ${docs.map(d => `<div class="doc-estado-fila">
+            <span>${d.subido?"✅":"⏳"}</span>
+            <span style="flex:1;font-weight:600;color:#1a3a6b;">${d.nombre}</span>
+            ${d.subido ? `<span style="color:#16a34a;font-size:0.78rem;">📎 ${d.nombre_archivo}</span>` : `<span style="color:#9ca3af;font-size:0.78rem;">Pendiente</span>`}
+          </div>`).join("")}`;
+      } catch(e) {
+        document.getElementById("lista-docs-postulacion").innerHTML = '<p style="color:#6b7280;font-size:0.85rem;">No se pudo cargar.</p>';
+      }
+    }
+
+    async function guardarEdicionDocs() {
+      if (!postulacionActiva) return;
+      const btn = document.getElementById("btn-guardar-docs");
+      const alerta = document.getElementById("alerta-paso1");
+      const certificado = document.getElementById("edit-certificado").files[0];
+      const pazSalvo    = document.getElementById("edit-paz_y_salvo").files[0];
+
+      if (!certificado && !pazSalvo) {
+        alerta.style.display="block"; alerta.className="alerta alerta-error mb-2";
+        alerta.textContent="Selecciona al menos un archivo."; return;
+      }
+      for (const f of [certificado, pazSalvo].filter(Boolean)) {
+        if (!f.name.toLowerCase().endsWith(".pdf")) {
+          alerta.style.display="block"; alerta.className="alerta alerta-error mb-2";
+          alerta.textContent=`${f.name} debe ser PDF.`; return;
+        }
+      }
+      btn.disabled=true; btn.textContent="Guardando...";
+      alerta.style.display="none";
+      document.getElementById("progreso-editar").style.display="block";
+      try {
+        const fd = new FormData();
+        if (certificado) fd.append("certificado", certificado);
+        if (pazSalvo)    fd.append("paz_y_salvo", pazSalvo);
+        const res = await fetch(`${BASE_URL}/api/postulaciones/${postulacionActiva.id}/documentos`, {
+          method:"PUT", headers:{"Authorization":`Bearer ${getToken()}`}, body:fd
+        });
+        if (!res.ok) { const e=await res.json(); throw new Error(e.detail||"Error"); }
+        document.getElementById("progreso-editar").style.display="none";
+        alerta.style.display="block"; alerta.className="alerta alerta-exito mb-2";
+        alerta.textContent="✅ Documentos actualizados.";
+        document.getElementById("edit-certificado").value="";
+        document.getElementById("edit-paz_y_salvo").value="";
+        await cargarDocsPostulacion(postulacionActiva.id);
+        await cargarMisPostulaciones();
+      } catch(err) {
+        document.getElementById("progreso-editar").style.display="none";
+        alerta.style.display="block"; alerta.className="alerta alerta-error mb-2";
+        alerta.textContent="Error: "+err.message;
+      } finally { btn.disabled=false; btn.textContent="💾 Guardar cambios"; }
+    }
+
+    async function cargarDocsViaje(id) {
+      try {
+        const docs = await apiFetch(`/api/postulaciones/${id}/documentos-viaje`, { headers: authHeaders() });
+        const subidos = docs.filter(d => d.subido).length;
+        document.getElementById("lista-docs-viaje").innerHTML = `
+          <p style="font-size:0.85rem;color:#6b7280;margin-bottom:0.75rem;">Documentos subidos: <strong style="color:#1a3a6b;">${subidos} / ${docs.length}</strong></p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:0.75rem;margin-bottom:1rem;">
+            ${docs.map(d=>`<div style="padding:0.75rem;border-radius:8px;border:1px solid ${d.subido?"#16a34a":"#e5e7eb"};background:${d.subido?"#f0fdf4":"#f9fafb"};">
+              <div style="font-size:1.2rem;margin-bottom:0.25rem;">${d.subido?"✅":"⏳"}</div>
+              <div style="font-size:0.85rem;font-weight:600;color:#1a3a6b;">${d.nombre}</div>
+              ${d.subido?`<div style="font-size:0.75rem;color:#16a34a;margin-top:0.25rem;">📎 ${d.nombre_archivo}</div>`:`<div style="font-size:0.75rem;color:#9ca3af;margin-top:0.25rem;">Pendiente</div>`}
+            </div>`).join("")}
+          </div>`;
+      } catch(e) {
+        document.getElementById("lista-docs-viaje").innerHTML='<p style="color:#6b7280;font-size:0.85rem;">No se pudo cargar.</p>';
+      }
+    }
+
+    function mostrarAlertaViaje(msg, tipo) {
+      const el=document.getElementById("alerta-viaje");
+      el.style.display="block"; el.className=`alerta alerta-${tipo} mb-3`; el.textContent=msg;
+    }
+
+    async function subirDocsViaje(e) {
+      e.preventDefault();
+      if (!postulacionActiva) return;
+      const btn=document.getElementById("btn-subir-viaje");
+      const campos=["pasaporte","seguro_medico","visa","carta_aceptacion"];
+      const fd=new FormData();
+      let hayArchivos=false;
+      for (const campo of campos) {
+        const input=document.getElementById(`doc-${campo}`);
+        if (input && input.files[0]) {
+          const f=input.files[0];
+          if (!f.name.toLowerCase().endsWith(".pdf")) { mostrarAlertaViaje(`${f.name} debe ser PDF.`,"error"); return; }
+          fd.append(campo,f); hayArchivos=true;
+        }
+      }
+      if (!hayArchivos) { mostrarAlertaViaje("Selecciona al menos un documento.","error"); return; }
+      btn.disabled=true; btn.textContent="Subiendo...";
+      document.getElementById("alerta-viaje").style.display="none";
+      document.getElementById("progreso-viaje").style.display="block";
+      try {
+        const res=await fetch(`${BASE_URL}/api/postulaciones/${postulacionActiva.id}/documentos-viaje`,{
+          method:"POST", headers:{"Authorization":`Bearer ${getToken()}`}, body:fd
+        });
+        if (!res.ok) { const er=await res.json(); throw new Error(er.detail||"Error"); }
+        document.getElementById("progreso-viaje").style.display="none";
+        mostrarAlertaViaje("✅ Documentos subidos. El administrador los revisará pronto.","exito");
+        campos.forEach(c=>{ const el=document.getElementById(`doc-${c}`); if(el) el.value=""; });
+        await cargarDocsViaje(postulacionActiva.id);
+        await cargarMisPostulaciones();
+      } catch(err) {
+        document.getElementById("progreso-viaje").style.display="none";
+        mostrarAlertaViaje("Error: "+err.message,"error");
+      } finally { btn.disabled=false; btn.textContent="📤 Subir documentos de viaje"; }
+    }
+
     cargarMisPostulaciones();
+
+    // ── Barra de progreso ──
+    const ETAPAS = [
+      { estados: ["en_revision"],              label: "En revisión",        icono: "🔍" },
+      { estados: ["revisando_documentos"],      label: "Revisando docs",     icono: "📋" },
+      { estados: ["necesita_correcciones","docs_pendientes"], label: "Corrección", icono: "⚠️" },
+      { estados: ["aprobada","docs_viaje_enviados","necesita_correcciones_viaje"], label: "Aprobada ✓", icono: "🎉" },
+      { estados: ["completada"],               label: "Completada",         icono: "✅" },
+    ];
+
+    function renderProgreso(postulaciones) {
+      const contenedor = document.getElementById("contenedor-progreso");
+      if (!postulaciones || postulaciones.length === 0) { contenedor.innerHTML = ""; return; }
+      contenedor.innerHTML = postulaciones.map(p => {
+        const etapaActual = ETAPAS.findIndex(e => e.estados.includes(p.estado));
+        const steps = ETAPAS.map((e, i) => {
+          const done = i < etapaActual;
+          const active = i === etapaActual;
+          const color = done ? "#16a34a" : active ? "#2563eb" : "#d1d5db";
+          const textColor = (done || active) ? "white" : "#6b7280";
+          return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;">
+            ${i > 0 ? `<div style="position:absolute;top:16px;left:-50%;width:100%;height:3px;background:${done ? "#16a34a" : "#e5e7eb"};z-index:0;"></div>` : ""}
+            <div style="width:34px;height:34px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:0.85rem;z-index:1;color:${textColor};font-weight:700;">
+              ${done ? "✓" : e.icono}
+            </div>
+            <div style="font-size:0.72rem;margin-top:0.3rem;color:${active ? "#2563eb" : "#6b7280"};font-weight:${active ? "700" : "400"};text-align:center;">${e.label}</div>
+          </div>`;
+        }).join("");
+        return `<div class="card" style="padding:1rem;margin-bottom:0.75rem;">
+          <div style="font-size:0.85rem;color:#1a3a6b;font-weight:600;margin-bottom:0.75rem;">📌 ${p.convocatoria} — ${p.universidad}</div>
+          <div style="display:flex;align-items:flex-start;position:relative;">${steps}</div>
+        </div>`;
+      }).join("");
+    }
+
+    let correccionId = null;
+
+    function abrirCorreccion(id) {
+      correccionId = id;
+      document.getElementById("cert-corr").value = "";
+      document.getElementById("paz-corr").value = "";
+      document.getElementById("alerta-correccion").style.display = "none";
+      document.getElementById("modal-correccion").style.display = "flex";
+    }
+
+    function cerrarCorreccion() {
+      document.getElementById("modal-correccion").style.display = "none";
+      correccionId = null;
+    }
+
+    async function subirCorreccion(e) {
+      e.preventDefault();
+      const alerta = document.getElementById("alerta-correccion");
+      const cert = document.getElementById("cert-corr").files[0];
+      const paz = document.getElementById("paz-corr").files[0];
+
+      if (!cert && !paz) {
+        alerta.className = "alerta alerta-error";
+        alerta.style.display = "block";
+        alerta.textContent = "Debes adjuntar al menos un documento.";
+        return;
+      }
+
+      const form = new FormData();
+      if (cert) form.append("certificado", cert);
+      if (paz) form.append("paz_y_salvo", paz);
+
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${BASE_URL}/api/postulaciones/${correccionId}/documentos`, {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + token },
+          body: form
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
+        alerta.className = "alerta alerta-exito";
+        alerta.style.display = "block";
+        alerta.textContent = "✅ Documentos enviados correctamente.";
+        setTimeout(() => { cerrarCorreccion(); cargarMisPostulaciones(); }, 1800);
+      } catch (err) {
+        alerta.className = "alerta alerta-error";
+        alerta.style.display = "block";
+        alerta.textContent = "Error: " + err.message;
+      }
+    }
+
+    async function descargarCertificado(id) {
+      try {
+        const todas = await apiFetch("/api/postulaciones/mis", { headers: authHeaders() });
+        const p = todas.find(x => x.id === id);
+        if (!p) { alert("No se encontró la postulación"); return; }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+        const W = 210, H = 297;
+
+        // Fondo blanco
+        doc.setFillColor(255, 255, 255);
+        doc.rect(0, 0, W, H, "F");
+
+        // Header azul oscuro
+        doc.setFillColor(26, 58, 107);
+        doc.rect(0, 0, W, 22, "F");
+
+        // Logo texto en header
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text("■  Intercambios UPC", 12, 14);
+
+        // Badge "CERTIFICACIÓN OFICIAL"
+        doc.setFillColor(255, 193, 7);
+        doc.roundedRect(145, 7, 52, 9, 4, 4, "F");
+        doc.setTextColor(26, 58, 107);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "bold");
+        doc.text("CERTIFICACIÓN OFICIAL", 171, 13, { align: "center" });
+
+        // Línea verde decorativa
+        doc.setFillColor(34, 197, 94);
+        doc.rect(0, 22, W, 2, "F");
+
+        // Cuerpo - borde de la carta
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(15, 32, W - 30, H - 65, 4, 4, "S");
+
+        // Universidad
+        doc.setTextColor(100, 116, 139);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.text("UNIVERSIDAD PILOTO DE COLOMBIA", W/2, 48, { align: "center" });
+
+        // Título
+        doc.setTextColor(26, 58, 107);
+        doc.setFontSize(20);
+        doc.setFont("helvetica", "bold");
+        doc.text("Certificado de Participación", W/2, 60, { align: "center" });
+        doc.text("en Intercambio Académico", W/2, 70, { align: "center" });
+
+        // Estrella decorativa
+        doc.setFillColor(26, 58, 107);
+        doc.circle(W/2, 83, 5, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.text("★", W/2, 86, { align: "center" });
+
+        // Líneas decorativas
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.3);
+        doc.line(W/2 - 40, 83, W/2 - 12, 83);
+        doc.line(W/2 + 12, 83, W/2 + 40, 83);
+
+        // "Se certifica que"
+        doc.setTextColor(100, 116, 139);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("Se certifica que el/la estudiante", W/2, 97, { align: "center" });
+
+        // Nombre del estudiante
+        doc.setTextColor(26, 58, 107);
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        const nombreCompleto = p.estudiante || "Estudiante";
+        doc.text(nombreCompleto, W/2, 110, { align: "center" });
+
+        // Texto descripción
+        doc.setTextColor(80, 80, 80);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("completó satisfactoriamente su proceso de postulación y fue seleccionado/a", W/2, 122, { align: "center" });
+        doc.text("para participar en el siguiente programa de intercambio académico internacional.", W/2, 129, { align: "center" });
+
+        // Caja programa
+        doc.setFillColor(239, 246, 255);
+        doc.setDrawColor(147, 197, 253);
+        doc.roundedRect(25, 137, W - 50, 32, 3, 3, "FD");
+        doc.setTextColor(37, 99, 235);
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "bold");
+        doc.text("PROGRAMA DE INTERCAMBIO", W/2, 146, { align: "center" });
+        doc.setTextColor(26, 58, 107);
+        doc.setFontSize(13);
+        doc.text(p.convocatoria || "—", W/2, 156, { align: "center" });
+        doc.setTextColor(37, 99, 235);
+        doc.setFontSize(10);
+        doc.text(`■ ${p.universidad || "—"}  —  ■ ${p.pais || "—"}`, W/2, 164, { align: "center" });
+
+        // Tres cajas: Período, Estado, Fecha
+        const now = new Date();
+        const mes = now.toLocaleString("es-CO", { month: "short", year: "numeric" });
+        const anio = now.getFullYear();
+        const semestre = now.getMonth() < 6 ? "I" : "II";
+        const periodo = `${anio}-${semestre}`;
+
+        const cajas = [
+          { label: "PERÍODO", valor: periodo },
+          { label: "ESTADO",  valor: "Aprobado", verde: true },
+          { label: "FECHA",   valor: mes },
+        ];
+        cajas.forEach((c, i) => {
+          const x = 30 + i * 52;
+          doc.setFillColor(249, 250, 251);
+          doc.setDrawColor(220, 220, 220);
+          doc.roundedRect(x, 177, 44, 22, 2, 2, "FD");
+          doc.setTextColor(120, 120, 120);
+          doc.setFontSize(7);
+          doc.setFont("helvetica", "normal");
+          doc.text(c.label, x + 22, 184, { align: "center" });
+          doc.setTextColor(c.verde ? 22 : 26, c.verde ? 163 : 58, c.verde ? 74 : 107);
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "bold");
+          doc.text(c.valor, x + 22, 193, { align: "center" });
+        });
+
+        // Sello circular UPC
+        doc.setFillColor(26, 58, 107);
+        doc.circle(W/2, 220, 12, "F");
+        doc.setDrawColor(255, 193, 7);
+        doc.setLineWidth(1.5);
+        doc.circle(W/2, 220, 12, "S");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text("UPC", W/2, 223, { align: "center" });
+        doc.setFontSize(6);
+        doc.text("Sello Digital", W/2, 229, { align: "center" });
+
+        // Firma izquierda
+        doc.setDrawColor(180, 180, 180);
+        doc.setLineWidth(0.3);
+        doc.line(25, 214, 75, 214);
+        doc.setTextColor(26, 58, 107);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text("Coordinador/a de Intercambios", 25, 220);
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.text("Dirección de Relaciones Internacionales", 25, 226);
+        doc.text("Universidad Piloto de Colombia", 25, 232);
+
+        // Código de verificación (derecha)
+        const codigo = `UPC-INT-${anio}-${String(id).padStart(6, "0")}`;
+        doc.setFillColor(249, 250, 251);
+        doc.setDrawColor(200, 200, 200);
+        doc.roundedRect(125, 213, 68, 14, 2, 2, "FD");
+        doc.setTextColor(120, 120, 120);
+        doc.setFontSize(7);
+        doc.text("Código de verificación", 159, 219, { align: "center" });
+        doc.setTextColor(26, 58, 107);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text(codigo, 159, 225, { align: "center" });
+
+        // Footer azul
+        doc.setFillColor(26, 58, 107);
+        doc.rect(0, H - 28, W, 28, "F");
+        doc.setTextColor(255, 193, 7);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.text("Universidad Piloto de Colombia  —  Programa de Desarrollo Web  —  " + anio, W/2, H - 17, { align: "center" });
+        doc.setTextColor(200, 220, 255);
+        doc.setFontSize(8);
+        doc.text("Este certificado fue generado digitalmente y tiene validez oficial.", W/2, H - 9, { align: "center" });
+
+        // Línea gris inferior del cuerpo
+        doc.setTextColor(150, 150, 150);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "normal");
+        const hoy = new Date().toLocaleDateString("es-CO");
+        doc.text(`Generado automáticamente por Intercambios UPC · intercambiosupc.lat`, 17, H - 33);
+        doc.text(hoy, W - 17, H - 33, { align: "right" });
+
+        doc.save(`Certificado_Intercambio_${nombreCompleto.replace(/ /g,"_")}.pdf`);
+      } catch(err) {
+        alert("Error al generar certificado: " + err.message);
+      }
+    }
+
+    let viajeId = null;
+
+    function abrirViaje(id) {
+      viajeId = id;
+      ["doc-vuelos","doc-seguro","doc-visa","doc-pasaporte"].forEach(i => document.getElementById(i).value = "");
+      document.getElementById("alerta-viaje").style.display = "none";
+      document.getElementById("modal-viaje").style.display = "flex";
+    }
+
+    function cerrarViaje() {
+      document.getElementById("modal-viaje").style.display = "none";
+      viajeId = null;
+    }
+
+    async function subirDocsViaje(e) {
+      e.preventDefault();
+      const alerta = document.getElementById("alerta-viaje");
+      const campos = ["vuelos","seguro","visa","pasaporte"];
+      const ids    = ["doc-vuelos","doc-seguro","doc-visa","doc-pasaporte"];
+      const files  = ids.map(i => document.getElementById(i).files[0]);
+
+      if (files.every(f => !f)) {
+        alerta.className = "alerta alerta-error";
+        alerta.style.display = "block";
+        alerta.textContent = "Debes adjuntar al menos un documento.";
+        return;
+      }
+
+      const form = new FormData();
+      campos.forEach((campo, i) => { if (files[i]) form.append(campo, files[i]); });
+
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${BASE_URL}/api/postulaciones/${viajeId}/documentos-viaje`, {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + token },
+          body: form
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
+        alerta.className = "alerta alerta-exito";
+        alerta.style.display = "block";
+        alerta.textContent = "✅ Documentos de viaje enviados correctamente.";
+        setTimeout(() => { cerrarViaje(); cargarMisPostulaciones(); }, 1800);
+      } catch (err) {
+        alerta.className = "alerta alerta-error";
+        alerta.style.display = "block";
+        alerta.textContent = "Error: " + err.message;
+      }
+    }
   </script>
 </body>
 </html>

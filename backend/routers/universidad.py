@@ -29,7 +29,10 @@ def mis_estudiantes(
         .filter(Convocatoria.universidad_id == usuario.universidad_id)
         .order_by(Postulacion.fecha_postulacion.desc())
         .all()
+<<<<<<< HEAD
         
+=======
+>>>>>>> 5f8cd0ea6c3b20ff9e5478affd40f0c326db16fc
     )
     return [to_response(p) for p in postulaciones]
 

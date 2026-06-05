@@ -32,10 +32,12 @@ class Usuario(Base):
     cedula          = Column(String(20))
     celular         = Column(String(20))
     programa_id     = Column(Integer, ForeignKey("programas_academicos.id"))
+    universidad_id  = Column(Integer, ForeignKey("universidades.id"))
     totp_secret     = Column(String(32))
     fecha_registro  = Column(DateTime, default=datetime.datetime.now)
 
     programa = relationship("ProgramaAcademico", lazy="joined")
+    universidad_usuario = relationship("Universidad", lazy="joined")
 
 class Convocatoria(Base):
     __tablename__ = "convocatorias"

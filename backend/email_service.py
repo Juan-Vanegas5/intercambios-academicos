@@ -18,7 +18,10 @@ EMAIL_FROM     = os.getenv("EMAIL_USER", "no-reply@intercambiosupc.lat")
 
 _codigos: dict = {}
 
-def _send_email(to: str, subject: str, html: str, attachment_content: bytes = None, attachment_filename: str = None) -> bool:
+def _send_email(to: str, subject: str, html: str, attachments: list = None) -> bool:
+    """
+    attachments: lista de diccionarios [{'content': bytes, 'filename': str}, ...]
+    """
     print(f"\n{'='*50}\n  EMAIL → {to}\n  Asunto: {subject}\n{'='*50}\n")
     if not EMAIL_USER or not EMAIL_PASSWORD:
         print("  [Sin credenciales — solo log]")
@@ -30,15 +33,17 @@ def _send_email(to: str, subject: str, html: str, attachment_content: bytes = No
         msg["To"]      = to
         msg.attach(MIMEText(html, "html"))
 
-        if attachment_content and attachment_filename:
-            part = MIMEBase("application", "octet-stream")
-            part.set_payload(attachment_content)
-            encoders.encode_base64(part)
-            part.add_header(
-                "Content-Disposition",
-                f"attachment; filename={attachment_filename}",
-            )
-            msg.attach(part)
+        if attachments:
+            for att in attachments:
+                if att.get('content') and att.get('filename'):
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload(att['content'])
+                    encoders.encode_base64(part)
+                    part.add_header(
+                        "Content-Disposition",
+                        f"attachment; filename={att['filename']}",
+                    )
+                    msg.attach(part)
 
         with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as server:
             server.starttls()
@@ -156,4 +161,38 @@ def enviar_notificacion_estado(email: str, nombre: str, convocatoria: str,
       </div>
     </body></html>"""
 
-    return _send_email(email, f"{asunto} — Intercambios UPC", html, attachment_content, attachment_filename)
+    attachments = []
+    if attachment_content and attachment_filename:
+        attachments.append({'content': attachment_content, 'filename': attachment_filename})
+
+    return _send_email(email, f"{asunto} — Intercambios UPC", html, attachments)
+
+def enviar_notificacion_universidad_destino(email_uni: str, nombre_uni: str, nombre_est: str, 
+                                          convocatoria: str, attachments: list) -> bool:
+    html = f"""
+    <html><body style="font-family:Arial,sans-serif;background:#f9fafb;padding:30px;">
+      <div style="max-width:550px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <div style="background:#1a3a6b;padding:24px;text-align:center;">
+          <h2 style="color:white;margin:0;">🎓 Notificación de Intercambio — UPC</h2>
+        </div>
+        <div style="padding:32px;">
+          <p style="color:#374151;font-size:1.05rem;">Estimados representantes de <strong>{nombre_uni}</strong>,</p>
+          <p style="color:#374151;">Les informamos que el proceso de intercambio para el siguiente estudiante ha sido <strong>completado exitosamente</strong>:</p>
+          <div style="background:#f3f4f6;padding:20px;border-radius:8px;margin:20px 0;">
+            <p style="margin:0;color:#374151;"><strong>Estudiante:</strong> {nombre_est}</p>
+            <p style="margin:5px 0 0;color:#374151;"><strong>Convocatoria:</strong> {convocatoria}</p>
+            <p style="margin:5px 0 0;color:#374151;"><strong>Origen:</strong> Universidad Piloto de Colombia</p>
+          </div>
+          <p style="color:#374151;">Adjunto encontrarán:</p>
+          <ul style="color:#374151;">
+            <li>Certificado de Notas del estudiante.</li>
+            <li>Certificado Oficial de Intercambio Académico.</li>
+          </ul>
+          <p style="color:#374151;">El estudiante se pondrá en contacto con ustedes pronto para los trámites finales de llegada.</p>
+        </div>
+        <div style="background:#1a3a6b;padding:16px;text-align:center;">
+          <p style="color:#93c5fd;font-size:0.8rem;margin:0;">Oficina de Relaciones Internacionales — Universidad Piloto de Colombia</p>
+        </div>
+      </div>
+    </body></html>"""
+    return _send_email(email_uni, f"Nuevo Estudiante de Intercambio: {nombre_est}", html, attachments)

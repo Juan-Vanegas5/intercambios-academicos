@@ -10,38 +10,9 @@ from database import get_db
 from models import Usuario, Convocatoria, Postulacion, Documento, TipoDocumento
 from schemas import PostulacionRequest, PostulacionResponse
 from auth import obtener_usuario_actual
+from s3_service import subir_a_s3
 
 router = APIRouter(prefix="/api/postulaciones", tags=["Postulaciones"])
-
-# --- Configuración S3 ---
-# Se obtienen las credenciales de las variables de entorno
-S3_CLIENT = boto3.client(
-    's3',
-    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-    region_name=os.getenv("AWS_REGION", "us-east-2")
-)
-BUCKET_NAME = os.getenv("AWS_S3_BUCKET", "intercambios-upc-docs")
-
-def subir_a_s3(file: UploadFile, folder: str) -> str:
-    """Sube un archivo a S3 y devuelve su URL pública."""
-    s3_key = f"uploads/{folder}/{file.filename}"
-    try:
-        # Asegurarse de que el puntero del archivo esté al inicio
-        file.file.seek(0)
-        S3_CLIENT.upload_fileobj(
-            file.file, 
-            BUCKET_NAME, 
-            s3_key,
-            ExtraArgs={'ContentType': file.content_type}
-        )
-        # Retorna la URL del archivo en S3
-        # Importante: El bucket debe tener permisos de lectura pública o usar URLs firmadas
-        region = os.getenv("AWS_REGION", "us-east-2")
-        return f"https://{BUCKET_NAME}.s3.{region}.amazonaws.com/{s3_key}"
-    except Exception as e:
-        print(f"Error subiendo a S3: {e}")
-        raise HTTPException(status_code=500, detail="Error al subir archivo a la nube")
 
 def to_response(p: Postulacion) -> PostulacionResponse:
     programa = p.estudiante.programa.nombre if p.estudiante.programa else ""

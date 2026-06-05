@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Universidad - Intercambios UPC</title>
+  <link rel="stylesheet" href="../../css/styles.css" />
+</head>
+<body>
+
+  <nav>
+    <a href="../index.html" class="nav-logo">🎓 Intercambios UPC</a>
+    <ul class="nav-links">
+      <li><a href="panel.html" class="activo">Panel Universidad</a></li>
+      <li><a href="../index.html">Ver convocatorias</a></li>
+      <li><a href="#" onclick="cerrarSesion()">Cerrar Sesión</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="page-header flex-between">
+      <div>
+        <h1 id="titulo-uni">Panel de Universidad Destino</h1>
+        <p>Gestiona los estudiantes que vienen de intercambio a tu institución</p>
+      </div>
+      <span class="badge badge-verde" style="font-size:0.9rem;">Universidad Aliada</span>
+    </div>
+
+    <div class="cards-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom:2rem;">
+      <div class="card text-center">
+        <div id="stat-total" style="font-size:2rem; font-weight:700; color:#2563eb;">—</div>
+        <div style="font-size:0.85rem; color:#6b7280;">Total estudiantes</div>
+      </div>
+      <div class="card text-center">
+        <div id="stat-completados" style="font-size:2rem; font-weight:700; color:#16a34a;">—</div>
+        <div style="font-size:0.85rem; color:#6b7280;">Procesos completados</div>
+      </div>
+      <div class="card text-center">
+        <div id="stat-en-proceso" style="font-size:2rem; font-weight:700; color:#d97706;">—</div>
+        <div style="font-size:0.85rem; color:#6b7280;">En proceso</div>
+      </div>
+    </div>
+
+    <div id="alerta-uni" class="alerta mb-3" style="display:none;"></div>
+
+    <div class="card">
+      <div class="tabla-container">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Estudiante</th>
+              <th>Programa Origen</th>
+              <th>Convocatoria</th>
+              <th>Semestre</th>
+              <th>Docs</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo-uni">
+            <tr>
+              <td colspan="8" style="text-align:center; color:#6b7280; padding:2rem;">
+                Cargando estudiantes...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal detalle -->
+    <div id="modal-detalle" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;">
+      <div class="card" style="max-width:600px; width:100%; margin:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+          <h3 style="color:#1a3a6b; margin:0;">Información del Estudiante</h3>
+          <button onclick="cerrarDetalle()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+        </div>
+
+        <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+          <h4 style="color:#1a3a6b; margin:0 0 0.75rem;">👤 Datos Personales</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.9rem;">
+            <div><span style="color:#6b7280;">Nombre:</span> <strong id="d-nombre"></strong></div>
+            <div><span style="color:#6b7280;">Programa:</span> <strong id="d-programa"></strong></div>
+            <div><span style="color:#6b7280;">Cédula:</span> <strong id="d-cedula"></strong></div>
+            <div><span style="color:#6b7280;">Celular:</span> <strong id="d-celular"></strong></div>
+            <div><span style="color:#6b7280;">Email:</span> <strong id="d-email"></strong></div>
+            <div><span style="color:#6b7280;">Convocatoria:</span> <strong id="d-convocatoria"></strong></div>
+          </div>
+        </div>
+
+        <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+          <h4 style="color:#1a3a6b; margin:0 0 0.75rem;">📎 Documentación Recibida</h4>
+          <div id="d-documentos">
+            <p style="color:#9ca3af; font-size:0.9rem;">Cargando documentos...</p>
+          </div>
+        </div>
+
+        <div style="text-align:right;">
+          <button class="btn btn-secundario" onclick="cerrarDetalle()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Oficina de Relaciones Internacionales &mdash; Intercambios UPC &mdash; 2026</p>
+  </footer>
+
+  <script src="../../js/main.js"></script>
+  <script>
+    requireUniversidad();
+
+    let idPostulacionSeleccionada = null;
+
+    async function cargarEstudiantes() {
+      const cuerpo = document.getElementById("cuerpo-uni");
+      try {
+        const data = await apiFetch("/api/universidad/mis-estudiantes", { headers: authHeaders() });
+        
+        // Actualizar estadísticas
+        document.getElementById("stat-total").textContent = data.length;
+        document.getElementById("stat-completados").textContent = data.filter(p => p.estado === 'completada').length;
+        document.getElementById("stat-en-proceso").textContent = data.filter(p => p.estado !== 'completada').length;
+
+        if (data.length === 0) {
+          cuerpo.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2rem; color:#6b7280;">No hay estudiantes registrados aún.</td></tr>`;
+          return;
+        }
+
+        cuerpo.innerHTML = data.map(p => `
+          <tr>
+            <td>${p.id}</td>
+            <td><strong>${p.estudiante}</strong></td>
+            <td style="font-size:0.85rem;">${p.programa}</td>
+            <td style="font-size:0.85rem;">${p.convocatoria}</td>
+            <td>${p.semestre || '—'}</td>
+            <td>${p.documentos} doc(s)</td>
+            <td>${getBadge(p.estado)}</td>
+            <td>
+              <button class="btn btn-secundario btn-sm" onclick="verDetalle(${p.id}, '${p.estudiante}', '${p.programa}', '${p.cedula}', '${p.celular}', '${p.convocatoria}', '${p.email}')">
+                Ver Detalle
+              </button>
+            </td>
+          </tr>
+        `).join("");
+
+      } catch (err) {
+        cuerpo.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2rem; color:#dc2626;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    function verDetalle(id, nombre, programa, cedula, celular, conv, email) {
+      idPostulacionSeleccionada = id;
+      document.getElementById("d-nombre").textContent = nombre;
+      document.getElementById("d-programa").textContent = programa;
+      document.getElementById("d-cedula").textContent = cedula;
+      document.getElementById("d-celular").textContent = celular;
+      document.getElementById("d-email").textContent = email;
+      document.getElementById("d-convocatoria").textContent = conv;
+      
+      document.getElementById("modal-detalle").style.display = "flex";
+      cargarDocumentos(id);
+    }
+
+    async function cargarDocumentos(id) {
+      const cont = document.getElementById("d-documentos");
+      cont.innerHTML = '<p style="color:#9ca3af; font-size:0.9rem;">Cargando...</p>';
+      try {
+        const docs = await apiFetch(`/api/universidad/postulaciones/${id}/documentos`, { headers: authHeaders() });
+        if (docs.length === 0) {
+          cont.innerHTML = '<p style="color:#9ca3af; font-size:0.9rem;">No hay documentos disponibles.</p>';
+          return;
+        }
+        cont.innerHTML = docs.map(d => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:0.6rem 0.8rem; border-radius:6px; margin-bottom:0.5rem; border:1px solid #e5e7eb;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <span style="font-size:1.2rem;">📄</span>
+              <div style="line-height:1.2;">
+                <div style="font-weight:600; font-size:0.85rem; color:#1a3a6b;">${d.tipo || 'Documento'}</div>
+                <div style="font-size:0.75rem; color:#6b7280;">${d.nombre_archivo}</div>
+              </div>
+            </div>
+            <a href="${d.s3_key}" target="_blank" class="btn btn-primario btn-sm" style="padding:0.2rem 0.6rem; font-size:0.75rem;">Abrir</a>
+          </div>
+        `).join("");
+      } catch (e) {
+        cont.innerHTML = `<p style="color:#dc2626; font-size:0.9rem;">Error al cargar documentos: ${e.message}</p>`;
+      }
+    }
+
+    function cerrarDetalle() {
+      document.getElementById("modal-detalle").style.display = "none";
+      idPostulacionSeleccionada = null;
+    }
+
+    document.addEventListener("DOMContentLoaded", cargarEstudiantes);
+  </script>
+</body>
+</html>

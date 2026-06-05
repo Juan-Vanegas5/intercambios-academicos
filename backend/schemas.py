@@ -12,6 +12,7 @@ class LoginResponse(BaseModel):
     apellido: str
     email: str
     rol: str
+    universidad_id: Optional[int] = None
 
 class PostulacionRequest(BaseModel):
     convocatoriaId: int

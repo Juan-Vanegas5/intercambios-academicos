@@ -14,7 +14,7 @@ from models import Usuario, ProgramaAcademico
 from schemas import (LoginRequest, LoginResponse, RegistroRequest,
                      TOTPSetupResponse, TOTPVerifyRequest, TOTPConfirmSetupRequest)
 from auth import verificar_contrasena, hashear_contrasena, generar_token
-from routers import convocatorias, postulaciones, admin, notificaciones
+from routers import convocatorias, postulaciones, admin, notificaciones, universidad
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -122,7 +122,8 @@ def confirmar_setup_totp(request: TOTPConfirmSetupRequest, db: Session = Depends
         "nombre": usuario.nombre,
         "apellido": usuario.apellido,
         "email": usuario.email,
-        "rol": usuario.rol
+        "rol": usuario.rol,
+        "universidad_id": usuario.universidad_id
     }
 
 
@@ -148,7 +149,8 @@ def verificar_totp(request: TOTPVerifyRequest, db: Session = Depends(get_db)):
         nombre=usuario.nombre,
         apellido=usuario.apellido,
         email=usuario.email,
-        rol=usuario.rol
+        rol=usuario.rol,
+        universidad_id=usuario.universidad_id
     )
 
 
@@ -199,5 +201,6 @@ app.include_router(convocatorias.router)
 app.include_router(postulaciones.router)
 app.include_router(admin.router)
 app.include_router(notificaciones.router)
+app.include_router(universidad.router)
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

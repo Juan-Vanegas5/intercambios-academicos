@@ -52,3 +52,8 @@ def solo_admin(usuario: Usuario = Depends(obtener_usuario_actual)) -> Usuario:
     if usuario.rol != "administrador":
         raise HTTPException(status_code=403, detail="Acceso solo para administradores")
     return usuario
+
+def solo_universidad(usuario: Usuario = Depends(obtener_usuario_actual)) -> Usuario:
+    if usuario.rol != "universidad":
+        raise HTTPException(status_code=403, detail="Acceso solo para universidades")
+    return usuario

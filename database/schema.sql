@@ -36,11 +36,13 @@ CREATE TABLE usuarios (
     apellido        VARCHAR(100) NOT NULL,
     email           VARCHAR(150) NOT NULL UNIQUE,
     contrasena      VARCHAR(255) NOT NULL,
-    rol             VARCHAR(20)  NOT NULL CHECK (rol IN ('estudiante', 'administrador')),
+    rol             VARCHAR(20)  NOT NULL CHECK (rol IN ('estudiante', 'administrador', 'universidad')),
+    es_superusuario BOOLEAN      NOT NULL DEFAULT FALSE,
     codigo          VARCHAR(20),
     cedula          VARCHAR(20),
     celular         VARCHAR(20),
     programa_id     INT REFERENCES programas_academicos(id),
+    universidad_id  INT REFERENCES universidades(id),
     totp_secret     VARCHAR(32),
     fecha_registro  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

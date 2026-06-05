@@ -129,7 +129,11 @@
     // Si ya hay sesión activa, redirigir
     (function() {
       const u = getUsuario();
-      if (u) window.location.href = u.rol === "administrador" ? "admin/panel.html" : "index.html";
+      if (u) {
+        if (u.rol === "administrador") window.location.href = "admin/panel.html";
+        else if (u.rol === "universidad") window.location.href = "universidad/panel.html";
+        else window.location.href = "index.html";
+      }
     })();
 
     let emailPendiente = "";
@@ -201,9 +205,13 @@
 
         setSession(data.token, {
           nombre: data.nombre, apellido: data.apellido,
-          email: data.email, rol: data.rol
+          email: data.email, rol: data.rol,
+          universidad_id: data.universidad_id
         });
-        window.location.href = data.rol === "administrador" ? "admin/panel.html" : "index.html";
+        
+        if (data.rol === "administrador") window.location.href = "admin/panel.html";
+        else if (data.rol === "universidad") window.location.href = "universidad/panel.html";
+        else window.location.href = "index.html";
 
       } catch (err) {
         alerta.style.display = "block";
@@ -235,9 +243,13 @@
 
         setSession(data.token, {
           nombre: data.nombre, apellido: data.apellido,
-          email: data.email, rol: data.rol
+          email: data.email, rol: data.rol,
+          universidad_id: data.universidad_id
         });
-        window.location.href = data.rol === "administrador" ? "admin/panel.html" : "index.html";
+        
+        if (data.rol === "administrador") window.location.href = "admin/panel.html";
+        else if (data.rol === "universidad") window.location.href = "universidad/panel.html";
+        else window.location.href = "index.html";
 
       } catch (err) {
         alerta.style.display = "block";

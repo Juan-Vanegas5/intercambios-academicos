@@ -16,8 +16,10 @@ function setSession(token, usuario) {
 function cerrarSesion() {
     localStorage.removeItem("token");
     localStorage.removeItem("usuario");
-    const esAdmin = window.location.pathname.includes("/admin/");
-    window.location.href = esAdmin ? "../login.html" : "login.html";
+    const path = window.location.pathname;
+    const esAdmin = path.includes("/admin/");
+    const esUni = path.includes("/universidad/");
+    window.location.href = (esAdmin || esUni) ? "../login.html" : "login.html";
 }
 
 function requireAuth() {
@@ -29,6 +31,13 @@ function requireAuth() {
 function requireAdmin() {
     const u = getUsuario();
     if (!u || u.rol !== "administrador") {
+        window.location.href = "../login.html";
+    }
+}
+
+function requireUniversidad() {
+    const u = getUsuario();
+    if (!u || u.rol !== "universidad") {
         window.location.href = "../login.html";
     }
 }
@@ -119,24 +128,35 @@ function actualizarNav() {
     }
 }
 
-// ---- Botón de acceso al panel de administración (solo admins) ----
-function inyectarBotonAdmin() {
+// ---- Botones de acceso por rol ----
+function inyectarBotonesRol() {
     const u = getUsuario();
-    if (!u || u.rol !== "administrador") return;
-    // No mostrarlo si ya estamos dentro del panel de administración
-    if (window.location.pathname.includes("/admin/")) return;
-
+    if (!u) return;
+    
     const nav = document.querySelector(".nav-links");
-    if (!nav || document.getElementById("nav-admin-link")) return;
+    if (!nav) return;
 
-    const li = document.createElement("li");
-    li.innerHTML = `
-        <a href="admin/panel.html" id="nav-admin-link"
-           style="background:#fbbf24;color:#1a3a6b;font-weight:700;">
-            ⚙️ Panel Admin
-        </a>`;
-    // Insertarlo al inicio del menú para que sea lo primero que vea el admin
-    nav.insertBefore(li, nav.firstChild);
+    if (u.rol === "administrador" && !window.location.pathname.includes("/admin/")) {
+        if (!document.getElementById("nav-admin-link")) {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <a href="admin/panel.html" id="nav-admin-link"
+                   style="background:#fbbf24;color:#1a3a6b;font-weight:700;">
+                    ⚙️ Panel Admin
+                </a>`;
+            nav.insertBefore(li, nav.firstChild);
+        }
+    } else if (u.rol === "universidad" && !window.location.pathname.includes("/universidad/")) {
+        if (!document.getElementById("nav-uni-link")) {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <a href="universidad/panel.html" id="nav-uni-link"
+                   style="background:#10b981;color:white;font-weight:700;">
+                    🏛️ Panel Universidad
+                </a>`;
+            nav.insertBefore(li, nav.firstChild);
+        }
+    }
 }
 
 // ---- Notificaciones (campanita) ----
@@ -236,7 +256,7 @@ document.addEventListener("click", (e) => {
 document.addEventListener("DOMContentLoaded", () => {
     marcarNavActivo();
     actualizarNav();
-    inyectarBotonAdmin();
+    inyectarBotonesRol();
     inyectarCampanita();
     cargarNotificaciones();
 });

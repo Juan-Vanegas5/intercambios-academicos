@@ -11,8 +11,9 @@ from schemas import (EstadoRequest, PostulacionResponse, DocumentoResponse,
                      UniversidadCreate, UniversidadUpdate)
 from auth import solo_admin
 from routers.postulaciones import to_response
-from email_service import enviar_notificacion_estado
+from email_service import enviar_notificacion_estado, enviar_notificacion_universidad_destino
 from pdf_service import generar_certificado_pdf
+from s3_service import descargar_de_s3
 import datetime
 
 router = APIRouter(prefix="/api/admin", tags=["Administración"])
@@ -92,6 +93,7 @@ def actualizar_estado(id: int, request: EstadoRequest,
             uni_nombre = postulacion.convocatoria.universidad.nombre if postulacion.convocatoria and postulacion.convocatoria.universidad else "UPC"
             pais_nombre = postulacion.convocatoria.universidad.pais if postulacion.convocatoria and postulacion.convocatoria.universidad else "Internacional"
             
+            # 1. Generar certificado de intercambio
             pdf_content = generar_certificado_pdf(
                 postulacion.id, 
                 nombre_est, 
@@ -100,6 +102,42 @@ def actualizar_estado(id: int, request: EstadoRequest,
                 pais_nombre
             )
             pdf_filename = f"Certificado_Intercambio_{postulacion.estudiante.apellido}.pdf"
+
+            # 2. Notificar a la UNIVERSIDAD DE DESTINO
+            uni_id = postulacion.convocatoria.universidad_id
+            if uni_id:
+                usuarios_uni = db.query(Usuario).filter(
+                    Usuario.rol == "universidad",
+                    Usuario.universidad_id == uni_id
+                ).all()
+                
+                if usuarios_uni:
+                    # Buscar certificado de notas (tipo_id=1)
+                    doc_notas = db.query(Documento).filter(
+                        Documento.postulacion_id == id,
+                        Documento.tipo_documento_id == 1
+                    ).first()
+                    
+                    attachments_uni = [
+                        {'content': pdf_content, 'filename': pdf_filename}
+                    ]
+                    
+                    if doc_notas:
+                        content_notas = descargar_de_s3(doc_notas.s3_key)
+                        if content_notas:
+                            attachments_uni.append({
+                                'content': content_notas,
+                                'filename': f"Certificado_Notas_{postulacion.estudiante.apellido}.pdf"
+                            })
+                    
+                    for u_uni in usuarios_uni:
+                        enviar_notificacion_universidad_destino(
+                            email_uni=u_uni.email,
+                            nombre_uni=u_uni.universidad_usuario.nombre if u_uni.universidad_usuario else "Universidad de Destino",
+                            nombre_est=nombre_est,
+                            convocatoria=conv_titulo,
+                            attachments=attachments_uni
+                        )
 
         enviar_notificacion_estado(
             email=postulacion.estudiante.email,
@@ -116,6 +154,7 @@ def actualizar_estado(id: int, request: EstadoRequest,
     db.commit()
     db.refresh(postulacion)
     return to_response(postulacion)
+
 
 
 
@@ -404,6 +443,8 @@ def listar_usuarios(db: Session = Depends(get_db), admin: Usuario = Depends(solo
             "rol": u.rol,
             "es_superusuario": u.es_superusuario,
             "programa": u.programa.nombre if u.programa else None,
+            "universidad_id": u.universidad_id,
+            "universidad_nombre": u.universidad_usuario.nombre if u.universidad_usuario else None,
         }
         for u in usuarios
     ]
@@ -451,7 +492,7 @@ def cambiar_superusuario(id: int, body: dict, db: Session = Depends(get_db),
 @router.put("/usuarios/{id}/rol", summary="Cambiar rol de un usuario")
 def cambiar_rol(id: int, body: dict, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
     nuevo_rol = body.get("rol", "").strip()
-    if nuevo_rol not in ("estudiante", "administrador"):
+    if nuevo_rol not in ("estudiante", "administrador", "universidad"):
         raise HTTPException(status_code=400, detail="Rol inválido.")
 
     usuario = db.query(Usuario).filter(Usuario.id == id).first()
@@ -467,6 +508,11 @@ def cambiar_rol(id: int, body: dict, db: Session = Depends(get_db), admin: Usuar
             )
 
     usuario.rol = nuevo_rol
+    if nuevo_rol == "universidad":
+        usuario.universidad_id = body.get("universidad_id")
+    else:
+        usuario.universidad_id = None
+
     db.commit()
     return {"mensaje": f"Rol actualizado a '{nuevo_rol}'", "id": id, "rol": nuevo_rol}
 

@@ -51,6 +51,15 @@ INSERT INTO usuarios (nombre, apellido, email, contrasena, rol, codigo, programa
 ('Laura',  'Hernández',  'laura.hernandez@upc.edu.co', '$2b$12$jWMY94lZT65qFVcVvQgdN.DXcu96JDpgRQy54c7wmivF1AKQ4WqBu', 'estudiante', '201901006',
     (SELECT id FROM programas_academicos WHERE nombre = 'Derecho'));
 
+-- Usuarios de universidades de destino (contraseña: 1234)
+INSERT INTO usuarios (nombre, apellido, email, contrasena, rol, universidad_id) VALUES
+('Coordinador', 'Barcelona',  'coordinador@ub.edu',
+    '$2b$12$jWMY94lZT65qFVcVvQgdN.DXcu96JDpgRQy54c7wmivF1AKQ4WqBu', 'universidad_destino',
+    (SELECT id FROM universidades WHERE nombre = 'Universidad de Barcelona')),
+('Coordinador', 'UNAM',       'coordinador@unam.mx',
+    '$2b$12$jWMY94lZT65qFVcVvQgdN.DXcu96JDpgRQy54c7wmivF1AKQ4WqBu', 'universidad_destino',
+    (SELECT id FROM universidades WHERE nombre = 'Universidad Nacional Autónoma de México'));
+
 
 
 INSERT INTO convocatorias (titulo, universidad_id, descripcion, requisitos, fecha_inicio, fecha_cierre, cupos, estado, creado_por) VALUES

@@ -157,3 +157,55 @@ def enviar_notificacion_estado(email: str, nombre: str, convocatoria: str,
     </body></html>"""
 
     return _send_email(email, f"{asunto} — Intercambios UPC", html, attachment_content, attachment_filename)
+
+
+def enviar_ficha_universidad(email: str, nombre_uni_user: str,
+                             nombre_estudiante: str, convocatoria: str,
+                             attachment_content: bytes = None,
+                             attachment_filename: str = None) -> bool:
+    """Envía la ficha del estudiante a la universidad de destino."""
+    html = f"""
+    <html><body style="font-family:Arial,sans-serif;background:#f9fafb;padding:30px;">
+      <div style="max-width:550px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <div style="background:#1a3a6b;padding:24px;text-align:center;">
+          <h2 style="color:white;margin:0;">Intercambios Academicos UPC</h2>
+        </div>
+        <div style="padding:32px;">
+          <p style="color:#374151;font-size:1.05rem;">Estimado/a <strong>{nombre_uni_user}</strong>,</p>
+          <p style="color:#374151;">
+            Le informamos que un nuevo estudiante ha completado su proceso de intercambio
+            y ha sido asignado a su universidad:
+          </p>
+          <div style="background:#eff6ff;border-left:5px solid #2563eb;padding:18px;margin:20px 0;border-radius:4px;">
+            <p style="margin:0;color:#374151;font-size:0.9rem;">Estudiante:</p>
+            <strong style="font-size:1.2rem;color:#1a3a6b;">{nombre_estudiante}</strong>
+            <p style="margin:8px 0 0;color:#6b7280;font-size:0.9rem;">Convocatoria: {convocatoria}</p>
+          </div>
+          <div style="background:#f0fdf4;border:1px solid #86efac;padding:16px;border-radius:8px;margin:16px 0;">
+            <p style="margin:0;color:#166534;font-weight:600;">Ficha del estudiante adjunta</p>
+            <p style="margin:6px 0 0;color:#15803d;font-size:0.9rem;">
+              Encontrara adjunto un PDF con los datos personales, programa academico,
+              y documentos del estudiante. Tambien puede acceder a su panel en la plataforma
+              para ver toda la informacion.
+            </p>
+          </div>
+          <div style="text-align:center;margin-top:28px;">
+            <a href="https://intercambiosupc.lat/universidad/panel.html"
+               style="background:#1a3a6b;color:white;padding:12px 28px;text-decoration:none;border-radius:8px;font-weight:600;display:inline-block;">
+              Ir a mi panel
+            </a>
+          </div>
+        </div>
+        <div style="background:#1a3a6b;padding:16px;text-align:center;">
+          <p style="color:#93c5fd;font-size:0.8rem;margin:0;">Universidad Piloto de Colombia — Programa de Desarrollo Web — 2026</p>
+        </div>
+      </div>
+    </body></html>"""
+
+    return _send_email(
+        email,
+        f"Nuevo estudiante asignado: {nombre_estudiante} — Intercambios UPC",
+        html,
+        attachment_content,
+        attachment_filename
+    )

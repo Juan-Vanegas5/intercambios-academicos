@@ -129,7 +129,7 @@
     // Si ya hay sesión activa, redirigir
     (function() {
       const u = getUsuario();
-      if (u) window.location.href = u.rol === "administrador" ? "admin/panel.html" : "index.html";
+      if (u) window.location.href = getLoginRedirect(u.rol);
     })();
 
     let emailPendiente = "";
@@ -203,7 +203,7 @@
           nombre: data.nombre, apellido: data.apellido,
           email: data.email, rol: data.rol
         });
-        window.location.href = data.rol === "administrador" ? "admin/panel.html" : "index.html";
+        window.location.href = getLoginRedirect(data.rol);
 
       } catch (err) {
         alerta.style.display = "block";
@@ -237,7 +237,7 @@
           nombre: data.nombre, apellido: data.apellido,
           email: data.email, rol: data.rol
         });
-        window.location.href = data.rol === "administrador" ? "admin/panel.html" : "index.html";
+        window.location.href = getLoginRedirect(data.rol);
 
       } catch (err) {
         alerta.style.display = "block";

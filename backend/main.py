@@ -14,7 +14,7 @@ from models import Usuario, ProgramaAcademico
 from schemas import (LoginRequest, LoginResponse, RegistroRequest,
                      TOTPSetupResponse, TOTPVerifyRequest, TOTPConfirmSetupRequest)
 from auth import verificar_contrasena, hashear_contrasena, generar_token
-from routers import convocatorias, postulaciones, admin, notificaciones
+from routers import convocatorias, postulaciones, admin, notificaciones, universidad
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -170,7 +170,7 @@ def registro(request: RegistroRequest, db: Session = Depends(get_db)):
         apellido=request.apellido,
         email=request.email,
         contrasena=hashear_contrasena(request.contrasena),
-        rol="estudiante",
+        rol="estudiante",  # El registro público siempre crea estudiantes
         codigo=request.codigo,
         cedula=request.cedula,
         celular=request.celular,
@@ -199,5 +199,6 @@ app.include_router(convocatorias.router)
 app.include_router(postulaciones.router)
 app.include_router(admin.router)
 app.include_router(notificaciones.router)
+app.include_router(universidad.router)
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

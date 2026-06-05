@@ -11,8 +11,8 @@ from schemas import (EstadoRequest, PostulacionResponse, DocumentoResponse,
                      UniversidadCreate, UniversidadUpdate)
 from auth import solo_admin
 from routers.postulaciones import to_response
-from email_service import enviar_notificacion_estado
-from pdf_service import generar_certificado_pdf
+from email_service import enviar_notificacion_estado, enviar_ficha_universidad
+from pdf_service import generar_certificado_pdf, generar_ficha_estudiante_pdf
 import datetime
 
 router = APIRouter(prefix="/api/admin", tags=["Administración"])
@@ -111,7 +111,62 @@ def actualizar_estado(id: int, request: EstadoRequest,
             attachment_filename=pdf_filename
         )
     except Exception as e:
-        print(f"[admin] Error enviando email/pdf: {e}")
+        print(f"[admin] Error enviando email/pdf al estudiante: {e}")
+
+    # ── Enviar ficha PDF a la universidad de destino si estado = completada ──
+    if request.estado == "completada":
+        try:
+            uni_id = postulacion.convocatoria.universidad_id if postulacion.convocatoria else None
+            if uni_id:
+                uni_users = db.query(Usuario).filter(
+                    Usuario.rol == "universidad_destino",
+                    Usuario.universidad_id == uni_id
+                ).all()
+
+                if uni_users:
+                    est = postulacion.estudiante
+                    docs = db.query(Documento).filter(Documento.postulacion_id == postulacion.id).all()
+                    docs_lista = [
+                        {"tipo": d.tipo_documento.nombre if d.tipo_documento else "Documento",
+                         "nombre": d.nombre_archivo}
+                        for d in docs
+                    ]
+
+                    ficha_pdf = generar_ficha_estudiante_pdf(
+                        postulacion_id=postulacion.id,
+                        nombre=f"{est.nombre} {est.apellido}",
+                        email=est.email,
+                        cedula=est.cedula or "—",
+                        celular=est.celular or "—",
+                        codigo=est.codigo or "—",
+                        programa=est.programa.nombre if est.programa else "—",
+                        semestre=postulacion.semestre,
+                        convocatoria=postulacion.convocatoria.titulo,
+                        universidad=postulacion.convocatoria.universidad.nombre,
+                        pais=postulacion.convocatoria.universidad.pais,
+                        carta_intencion=postulacion.carta_intencion,
+                        documentos=docs_lista,
+                    )
+                    ficha_filename = f"Ficha_Estudiante_{est.apellido}_{est.nombre}.pdf"
+
+                    for uni_user in uni_users:
+                        enviar_ficha_universidad(
+                            email=uni_user.email,
+                            nombre_uni_user=uni_user.nombre,
+                            nombre_estudiante=f"{est.nombre} {est.apellido}",
+                            convocatoria=postulacion.convocatoria.titulo,
+                            attachment_content=ficha_pdf,
+                            attachment_filename=ficha_filename,
+                        )
+
+                    # Notificación interna para usuarios universidad
+                    for uni_user in uni_users:
+                        db.add(Notificacion(
+                            usuario_id=uni_user.id,
+                            mensaje=f"Nuevo estudiante asignado: {est.nombre} {est.apellido} — {postulacion.convocatoria.titulo}. Revisa tu panel."
+                        ))
+        except Exception as e:
+            print(f"[admin] Error enviando ficha a universidad destino: {e}")
 
     db.commit()
     db.refresh(postulacion)
@@ -404,6 +459,8 @@ def listar_usuarios(db: Session = Depends(get_db), admin: Usuario = Depends(solo
             "rol": u.rol,
             "es_superusuario": u.es_superusuario,
             "programa": u.programa.nombre if u.programa else None,
+            "universidad_id": u.universidad_id,
+            "universidad": u.universidad.nombre if u.universidad else None,
         }
         for u in usuarios
     ]
@@ -451,7 +508,7 @@ def cambiar_superusuario(id: int, body: dict, db: Session = Depends(get_db),
 @router.put("/usuarios/{id}/rol", summary="Cambiar rol de un usuario")
 def cambiar_rol(id: int, body: dict, db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
     nuevo_rol = body.get("rol", "").strip()
-    if nuevo_rol not in ("estudiante", "administrador"):
+    if nuevo_rol not in ("estudiante", "administrador", "universidad_destino"):
         raise HTTPException(status_code=400, detail="Rol inválido.")
 
     usuario = db.query(Usuario).filter(Usuario.id == id).first()
@@ -469,6 +526,25 @@ def cambiar_rol(id: int, body: dict, db: Session = Depends(get_db), admin: Usuar
     usuario.rol = nuevo_rol
     db.commit()
     return {"mensaje": f"Rol actualizado a '{nuevo_rol}'", "id": id, "rol": nuevo_rol}
+
+
+@router.put("/usuarios/{id}/universidad", summary="Asignar universidad a un usuario")
+def asignar_universidad(id: int, body: dict, db: Session = Depends(get_db),
+                        admin: Usuario = Depends(solo_admin)):
+    universidad_id = body.get("universidad_id")
+    usuario = db.query(Usuario).filter(Usuario.id == id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    if universidad_id:
+        uni = db.query(Universidad).filter(Universidad.id == universidad_id).first()
+        if not uni:
+            raise HTTPException(status_code=404, detail="Universidad no encontrada")
+
+    usuario.universidad_id = universidad_id
+    db.commit()
+    return {"mensaje": "Universidad asignada correctamente", "id": id,
+            "universidad_id": universidad_id}
 
 
 @router.delete("/usuarios/{id}", summary="Eliminar un usuario")

@@ -26,16 +26,18 @@ class Usuario(Base):
     apellido        = Column(String(100), nullable=False)
     email           = Column(String(150), nullable=False, unique=True)
     contrasena      = Column(String(255), nullable=False)
-    rol             = Column(String(20), nullable=False)
+    rol             = Column(String(30), nullable=False)
     es_superusuario = Column(Boolean, nullable=False, default=False)
     codigo          = Column(String(20))
     cedula          = Column(String(20))
     celular         = Column(String(20))
     programa_id     = Column(Integer, ForeignKey("programas_academicos.id"))
+    universidad_id  = Column(Integer, ForeignKey("universidades.id"))
     totp_secret     = Column(String(32))
     fecha_registro  = Column(DateTime, default=datetime.datetime.now)
 
-    programa = relationship("ProgramaAcademico", lazy="joined")
+    programa    = relationship("ProgramaAcademico", lazy="joined")
+    universidad = relationship("Universidad", lazy="joined")
 
 class Convocatoria(Base):
     __tablename__ = "convocatorias"

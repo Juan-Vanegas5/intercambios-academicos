@@ -33,6 +33,19 @@ function requireAdmin() {
     }
 }
 
+function requireUniversidad() {
+    const u = getUsuario();
+    if (!u || u.rol !== "universidad_destino") {
+        window.location.href = "../login.html";
+    }
+}
+
+function getLoginRedirect(rol) {
+    if (rol === "administrador") return "admin/panel.html";
+    if (rol === "universidad_destino") return "universidad/panel.html";
+    return "index.html";
+}
+
 // ---- Peticiones a la API ----
 function authHeaders() {
     return {
@@ -119,24 +132,35 @@ function actualizarNav() {
     }
 }
 
-// ---- Botón de acceso al panel de administración (solo admins) ----
+// ---- Botón de acceso al panel según rol ----
 function inyectarBotonAdmin() {
     const u = getUsuario();
-    if (!u || u.rol !== "administrador") return;
-    // No mostrarlo si ya estamos dentro del panel de administración
-    if (window.location.pathname.includes("/admin/")) return;
+    if (!u) return;
 
     const nav = document.querySelector(".nav-links");
-    if (!nav || document.getElementById("nav-admin-link")) return;
+    if (!nav) return;
 
-    const li = document.createElement("li");
-    li.innerHTML = `
-        <a href="admin/panel.html" id="nav-admin-link"
-           style="background:#fbbf24;color:#1a3a6b;font-weight:700;">
-            ⚙️ Panel Admin
-        </a>`;
-    // Insertarlo al inicio del menú para que sea lo primero que vea el admin
-    nav.insertBefore(li, nav.firstChild);
+    if (u.rol === "administrador" && !window.location.pathname.includes("/admin/")) {
+        if (document.getElementById("nav-admin-link")) return;
+        const li = document.createElement("li");
+        li.innerHTML = `
+            <a href="admin/panel.html" id="nav-admin-link"
+               style="background:#fbbf24;color:#1a3a6b;font-weight:700;">
+                Panel Admin
+            </a>`;
+        nav.insertBefore(li, nav.firstChild);
+    }
+
+    if (u.rol === "universidad_destino" && !window.location.pathname.includes("/universidad/")) {
+        if (document.getElementById("nav-uni-link")) return;
+        const li = document.createElement("li");
+        li.innerHTML = `
+            <a href="universidad/panel.html" id="nav-uni-link"
+               style="background:#2563eb;color:white;font-weight:700;">
+                Mi Panel Universidad
+            </a>`;
+        nav.insertBefore(li, nav.firstChild);
+    }
 }
 
 // ---- Notificaciones (campanita) ----

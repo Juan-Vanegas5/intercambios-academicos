@@ -186,7 +186,208 @@ def generar_certificado_pdf(postulacion_id: int, nombre_estudiante: str, convoca
 
     c.showPage()
     c.save()
-    
+
+    pdf_content = buffer.getvalue()
+    buffer.close()
+    return pdf_content
+
+
+def generar_ficha_estudiante_pdf(
+    postulacion_id: int,
+    nombre: str,
+    email: str,
+    cedula: str,
+    celular: str,
+    codigo: str,
+    programa: str,
+    semestre: int,
+    convocatoria: str,
+    universidad: str,
+    pais: str,
+    carta_intencion: str = None,
+    documentos: list = None,
+) -> bytes:
+    """
+    Genera un PDF con la ficha completa del estudiante para la universidad de destino.
+    Incluye: datos personales, programa, semestre, carta de intención y lista de documentos.
+    """
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    W, H = A4
+
+    azul_oscuro = HexColor("#1A3A6B")
+    azul_medio  = HexColor("#2563EB")
+    azul_claro  = HexColor("#EFF6FF")
+    amarillo    = HexColor("#FFC107")
+    verde       = HexColor("#22C55E")
+    gris_texto  = HexColor("#64748B")
+    gris_borde  = HexColor("#DCDCDC")
+    gris_fondo  = HexColor("#F9FAFB")
+
+    # ── Header ──────────────────────────────────────────────────────────────
+    c.setFillColor(azul_oscuro)
+    c.rect(0, H - 22*mm, W, 22*mm, fill=1, stroke=0)
+
+    c.setFillColor(white)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(12*mm, H - 14*mm, "■  Intercambios UPC")
+
+    c.setFillColor(amarillo)
+    badge_w, badge_h = 62*mm, 9*mm
+    c.roundRect(W - badge_w - 13*mm, H - 7*mm - badge_h, badge_w, badge_h, 4*mm, fill=1, stroke=0)
+    c.setFillColor(azul_oscuro)
+    c.setFont("Helvetica-Bold", 7)
+    c.drawCentredString(W - 13*mm - badge_w/2, H - 7*mm - badge_h/2 - 1.5*mm, "FICHA DEL ESTUDIANTE")
+
+    c.setFillColor(verde)
+    c.rect(0, H - 24*mm, W, 2*mm, fill=1, stroke=0)
+
+    # ── Título ──────────────────────────────────────────────────────────────
+    y = H - 42*mm
+    c.setFillColor(gris_texto)
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(W/2, y, "UNIVERSIDAD PILOTO DE COLOMBIA — OFICINA DE RELACIONES INTERNACIONALES")
+
+    y -= 14*mm
+    c.setFillColor(azul_oscuro)
+    c.setFont("Helvetica-Bold", 18)
+    c.drawCentredString(W/2, y, "Ficha de Estudiante Aprobado")
+
+    y -= 10*mm
+    c.setFont("Helvetica", 10)
+    c.setFillColor(azul_medio)
+    c.drawCentredString(W/2, y, f"Para: {universidad} — {pais}")
+
+    # ── Datos personales ────────────────────────────────────────────────────
+    y -= 18*mm
+    c.setFillColor(azul_claro)
+    c.setStrokeColor(HexColor("#93C5FD"))
+    box_h = 62*mm
+    c.roundRect(18*mm, y - box_h, W - 36*mm, box_h, 3*mm, fill=1, stroke=1)
+
+    c.setFillColor(azul_medio)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(24*mm, y - 10*mm, "DATOS PERSONALES")
+
+    c.setFont("Helvetica", 9.5)
+    c.setFillColor(HexColor("#374151"))
+    campos = [
+        ("Nombre completo:", nombre),
+        ("Correo electrónico:", email),
+        ("Cédula / ID:", cedula),
+        ("Teléfono:", celular),
+        ("Código estudiantil:", codigo),
+        ("Programa académico:", programa),
+        ("Semestre cursando:", f"{semestre}°" if semestre else "—"),
+    ]
+    row_y = y - 22*mm
+    col1_x = 26*mm
+    col2_x = 72*mm
+    for label, valor in campos:
+        c.setFont("Helvetica", 8.5)
+        c.setFillColor(gris_texto)
+        c.drawString(col1_x, row_y, label)
+        c.setFont("Helvetica-Bold", 9)
+        c.setFillColor(azul_oscuro)
+        c.drawString(col2_x, row_y, str(valor))
+        row_y -= 7*mm
+
+    # ── Convocatoria ────────────────────────────────────────────────────────
+    y = row_y - 6*mm
+    c.setFillColor(gris_fondo)
+    c.setStrokeColor(gris_borde)
+    conv_h = 22*mm
+    c.roundRect(18*mm, y - conv_h, W - 36*mm, conv_h, 3*mm, fill=1, stroke=1)
+
+    c.setFillColor(azul_medio)
+    c.setFont("Helvetica-Bold", 8)
+    c.drawString(24*mm, y - 8*mm, "CONVOCATORIA ASIGNADA")
+    c.setFillColor(azul_oscuro)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(24*mm, y - 17*mm, convocatoria)
+
+    # ── Documentos adjuntos ─────────────────────────────────────────────────
+    y = y - conv_h - 10*mm
+    c.setFillColor(azul_oscuro)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(18*mm, y, "Documentos Adjuntos")
+
+    y -= 4*mm
+    c.setStrokeColor(gris_borde)
+    c.setLineWidth(0.5)
+    c.line(18*mm, y, W - 18*mm, y)
+
+    if documentos:
+        for i, doc in enumerate(documentos):
+            y -= 9*mm
+            if y < 50*mm:
+                c.showPage()
+                y = H - 30*mm
+            c.setFillColor(HexColor("#374151"))
+            c.setFont("Helvetica", 9)
+            c.drawString(22*mm, y, f"📄  {doc['tipo']}:")
+            c.setFont("Helvetica-Bold", 9)
+            c.setFillColor(azul_oscuro)
+            c.drawString(75*mm, y, doc['nombre'])
+    else:
+        y -= 9*mm
+        c.setFillColor(gris_texto)
+        c.setFont("Helvetica", 9)
+        c.drawString(22*mm, y, "No se adjuntaron documentos.")
+
+    # ── Carta de intención (resumen) ────────────────────────────────────────
+    if carta_intencion:
+        y -= 16*mm
+        c.setFillColor(azul_oscuro)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(18*mm, y, "Carta de Intención (extracto)")
+        y -= 4*mm
+        c.setStrokeColor(gris_borde)
+        c.line(18*mm, y, W - 18*mm, y)
+        y -= 6*mm
+
+        c.setFillColor(HexColor("#374151"))
+        c.setFont("Helvetica", 8.5)
+        # Dividir en líneas de ~90 caracteres
+        texto = carta_intencion[:600]
+        if len(carta_intencion) > 600:
+            texto += "..."
+        palabras = texto.split()
+        linea = ""
+        for palabra in palabras:
+            test = linea + " " + palabra if linea else palabra
+            if c.stringWidth(test, "Helvetica", 8.5) < (W - 40*mm):
+                linea = test
+            else:
+                c.drawString(22*mm, y, linea)
+                y -= 5*mm
+                linea = palabra
+                if y < 45*mm:
+                    break
+        if linea:
+            c.drawString(22*mm, y, linea)
+
+    # ── Footer ──────────────────────────────────────────────────────────────
+    ahora = datetime.datetime.now()
+    c.setFillColor(azul_oscuro)
+    c.rect(0, 0, W, 22*mm, fill=1, stroke=0)
+    c.setFillColor(amarillo)
+    c.setFont("Helvetica", 8)
+    c.drawCentredString(W/2, 10*mm, f"Universidad Piloto de Colombia — Intercambios Académicos — {ahora.year}")
+    c.setFillColor(HexColor("#C8DCFF"))
+    c.setFont("Helvetica", 7)
+    c.drawCentredString(W/2, 4*mm, "Documento generado automáticamente. Confidencial — solo para uso de la universidad de destino.")
+
+    # Código de referencia
+    ref = f"UPC-FICHA-{ahora.year}-{str(postulacion_id).zfill(6)}"
+    c.setFillColor(HexColor("#969696"))
+    c.setFont("Helvetica", 7)
+    c.drawString(17*mm, 26*mm, f"Ref: {ref}")
+    c.drawRightString(W - 17*mm, 26*mm, ahora.strftime("%d/%m/%Y %H:%M"))
+
+    c.showPage()
+    c.save()
+
     pdf_content = buffer.getvalue()
     buffer.close()
     return pdf_content

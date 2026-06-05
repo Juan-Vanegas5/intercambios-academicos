@@ -489,11 +489,11 @@
           <table>
             <thead>
               <tr>
-                <th>#</th><th>Nombre</th><th>Correo</th><th>Programa</th><th>Rol</th><th>Acciones</th>
+                <th>#</th><th>Nombre</th><th>Correo</th><th>Programa</th><th>Rol</th><th>Universidad</th><th>Acciones</th>
               </tr>
             </thead>
             <tbody id="cuerpo-usuarios">
-              <tr><td colspan="6" style="text-align:center;color:#6b7280;padding:2rem;">Cargando...</td></tr>
+              <tr><td colspan="7" style="text-align:center;color:#6b7280;padding:2rem;">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1300,6 +1300,7 @@
 
     async function cargarUsuarios() {
       try {
+        await cargarUniversidadesParaUsuarios();
         todosUsuarios = await apiFetch("/api/admin/usuarios", { headers: authHeaders() });
         renderTablaUsuarios(todosUsuarios);
       } catch (err) {
@@ -1307,23 +1308,55 @@
       }
     }
 
+    let listaUniversidades = [];
+
+    async function cargarUniversidadesParaUsuarios() {
+      try {
+        listaUniversidades = await apiFetch("/api/admin/universidades", { headers: authHeaders() });
+      } catch (e) { listaUniversidades = []; }
+    }
+
     function renderTablaUsuarios(lista) {
       const tbody = document.getElementById("cuerpo-usuarios");
       if (!lista.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#6b7280;padding:2rem;">No hay usuarios.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:2rem;">No hay usuarios.</td></tr>';
         return;
       }
       const totalAdmins = lista.filter(u => u.rol === "administrador").length;
       tbody.innerHTML = lista.map(u => {
         const esUnico = u.rol === "administrador" && totalAdmins <= 1;
-        const rolBadge = u.rol === "administrador"
-          ? '<span class="badge badge-azul">Administrador</span>'
-          : '<span class="badge" style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;">Estudiante</span>';
-        const btnRol = esUnico
-          ? '<button class="btn btn-secundario btn-sm" disabled style="opacity:0.4;">&#x26A0; Único admin</button>'
-          : (u.rol === "administrador"
-              ? `<button class="btn btn-secundario btn-sm" onclick="cambiarRol(${u.id},'estudiante')">&#x2193; Estudiante</button>`
-              : `<button class="btn btn-secundario btn-sm" onclick="cambiarRol(${u.id},'administrador')" style="color:#1a3a6b;border-color:#1a3a6b;">&#x2191; Admin</button>`);
+        let rolBadge;
+        if (u.rol === "administrador") rolBadge = '<span class="badge badge-azul">Administrador</span>';
+        else if (u.rol === "universidad_destino") rolBadge = '<span class="badge" style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;">Universidad Destino</span>';
+        else rolBadge = '<span class="badge" style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;">Estudiante</span>';
+
+        // Botón de cambio de rol con selector
+        let btnRol;
+        if (esUnico) {
+          btnRol = '<button class="btn btn-secundario btn-sm" disabled style="opacity:0.4;">&#x26A0; Único admin</button>';
+        } else {
+          btnRol = `<select onchange="cambiarRol(${u.id}, this.value)" class="btn btn-secundario btn-sm" style="cursor:pointer;padding:0.2rem 0.4rem;font-size:0.78rem;">
+            <option value="" disabled selected>Cambiar rol</option>
+            ${u.rol !== 'estudiante' ? '<option value="estudiante">Estudiante</option>' : ''}
+            ${u.rol !== 'administrador' ? '<option value="administrador">Administrador</option>' : ''}
+            ${u.rol !== 'universidad_destino' ? '<option value="universidad_destino">Univ. Destino</option>' : ''}
+          </select>`;
+        }
+
+        // Columna universidad
+        let uniCol;
+        if (u.rol === "universidad_destino") {
+          const uniNombre = u.universidad || "Sin asignar";
+          const opciones = listaUniversidades.map(uni =>
+            `<option value="${uni.id}" ${uni.id === u.universidad_id ? 'selected' : ''}>${uni.nombre}</option>`
+          ).join("");
+          uniCol = `<select onchange="asignarUniversidad(${u.id}, this.value)" style="font-size:0.8rem;padding:0.2rem;max-width:160px;">
+            <option value="">Sin asignar</option>${opciones}
+          </select>`;
+        } else {
+          uniCol = '<span style="color:#9ca3af;font-size:0.8rem;">—</span>';
+        }
+
         const btnDel = esUnico
           ? '<button class="btn btn-danger btn-sm" disabled style="opacity:0.4;">&#x1F512;</button>'
           : `<button class="btn btn-danger btn-sm" onclick="eliminarUsuario(${u.id})">&#x1F5D1;</button>`;
@@ -1333,19 +1366,38 @@
           <td style="font-size:0.85rem;">${u.email}</td>
           <td style="font-size:0.85rem;">${u.programa || "—"}</td>
           <td>${rolBadge}</td>
+          <td>${uniCol}</td>
           <td style="display:flex;gap:0.4rem;">${btnRol} ${btnDel}</td>
         </tr>`;
       }).join("");
     }
 
     async function cambiarRol(id, nuevoRol) {
+      if (!nuevoRol) return;
       const u = todosUsuarios.find(x => x.id === id);
-      if (!confirm("¿Cambiar rol de " + u.nombre + " a \"" + nuevoRol + "\"?")) return;
+      const rolTexto = nuevoRol === "universidad_destino" ? "Universidad Destino" : nuevoRol;
+      if (!confirm("¿Cambiar rol de " + u.nombre + " a \"" + rolTexto + "\"?")) {
+        await cargarUsuarios(); // reset select
+        return;
+      }
       try {
         await apiFetch("/api/admin/usuarios/" + id + "/rol", {
           method: "PUT", headers: authHeaders(), body: JSON.stringify({ rol: nuevoRol })
         });
-        mostrarAlertaUsuarios("Rol actualizado.", "exito");
+        mostrarAlertaUsuarios("Rol actualizado a " + rolTexto + ".", "exito");
+        await cargarUsuarios();
+      } catch (err) {
+        mostrarAlertaUsuarios("Error: " + err.message, "error");
+      }
+    }
+
+    async function asignarUniversidad(userId, uniId) {
+      try {
+        await apiFetch("/api/admin/usuarios/" + userId + "/universidad", {
+          method: "PUT", headers: authHeaders(),
+          body: JSON.stringify({ universidad_id: uniId ? parseInt(uniId) : null })
+        });
+        mostrarAlertaUsuarios("Universidad asignada correctamente.", "exito");
         await cargarUsuarios();
       } catch (err) {
         mostrarAlertaUsuarios("Error: " + err.message, "error");

@@ -103,11 +103,16 @@ def enviar_notificacion_estado(email: str, nombre: str, convocatoria: str,
         "docs_pendientes":       "Tienes documentos pendientes 📁",
         "docs_viaje_enviados":   "Documentos de viaje recibidos ✅",
         "completada":            "¡Proceso completado! Descarga tu certificado 🏆",
+        "aprobada_universidad":  "¡La universidad de destino aprobó tu postulación! 🎉",
+        "rechazada_universidad": "La universidad de destino rechazó tu postulación 📬",
+        "docs_extra_solicitados": "La universidad solicita documentos adicionales 📁",
     }
     colores = {
-        "aprobada":   "#16a34a",
-        "rechazada":  "#dc2626",
-        "completada": "#16a34a",
+        "aprobada":              "#16a34a",
+        "rechazada":             "#dc2626",
+        "completada":            "#16a34a",
+        "aprobada_universidad":  "#16a34a",
+        "rechazada_universidad": "#dc2626",
     }
     asunto = titulos.get(nuevo_estado, "Cambio de estado en tu postulación")
     color  = colores.get(nuevo_estado, "#1a3a6b")

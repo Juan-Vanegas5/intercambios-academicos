@@ -10,6 +10,7 @@ from schemas import PostulacionResponse, DocumentoResponse
 from auth import solo_universidad
 from routers.postulaciones import to_response
 from pdf_service import generar_ficha_estudiante_pdf
+from email_service import enviar_notificacion_estado
 
 router = APIRouter(prefix="/api/universidad", tags=["Universidad Destino"])
 
@@ -194,6 +195,15 @@ def verificar_estudiante(postulacion_id: int, body: dict,
                 mensaje=f"La universidad de destino APROBÓ a {est.nombre} {est.apellido} para {conv_titulo}. El estudiante debe subir documentos de viaje."
             ))
 
+        # Enviar correo al estudiante
+        enviar_notificacion_estado(
+            email=est.email,
+            nombre=f"{est.nombre} {est.apellido}",
+            convocatoria=conv_titulo,
+            nuevo_estado="aprobada_universidad",
+            comentario=comentario or None,
+        )
+
     else:  # rechazar
         postulacion.verificacion_universidad = "rechazada"
         postulacion.estado = "rechazada_universidad"
@@ -209,6 +219,15 @@ def verificar_estudiante(postulacion_id: int, body: dict,
                 usuario_id=admin.id,
                 mensaje=f"La universidad de destino RECHAZÓ a {est.nombre} {est.apellido} para {conv_titulo}. Motivo: {comentario or 'Sin comentario'}"
             ))
+
+        # Enviar correo al estudiante
+        enviar_notificacion_estado(
+            email=est.email,
+            nombre=f"{est.nombre} {est.apellido}",
+            convocatoria=conv_titulo,
+            nuevo_estado="rechazada_universidad",
+            comentario=comentario or None,
+        )
 
     postulacion.fecha_actualizacion = datetime.datetime.now()
     db.commit()

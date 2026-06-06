@@ -103,43 +103,31 @@
           </div>
         </div>
 
-        <!-- PASO 2: Configurar TOTP después del registro -->
-        <div id="paso-setup" style="display:none;">
+        <!-- PASO 2: Correo de verificación enviado -->
+        <div id="paso-email-enviado" style="display:none;">
           <div class="text-center mb-3">
-            <div style="font-size:2.5rem; margin-bottom:0.5rem;">🔐</div>
-            <h1 style="font-size:1.5rem; color:#1a3a6b; margin-bottom:0.3rem;">Configura la verificación</h1>
+            <div style="font-size:2.5rem; margin-bottom:0.5rem;">📧</div>
+            <h1 style="font-size:1.5rem; color:#1a3a6b; margin-bottom:0.3rem;">Revisa tu correo</h1>
             <p style="color:#6b7280; font-size:0.9rem;">
-              Escanea este código QR con <strong>Google Authenticator</strong> o <strong>Authy</strong>
+              Enviamos un enlace de verificación a<br>
+              <strong id="email-enviado-a" style="color:#1a3a6b;"></strong>
             </p>
           </div>
 
-          <div style="text-align:center; margin-bottom:1.5rem;">
-            <img id="qr-image" src="" alt="Código QR" style="width:200px; height:200px; border:2px solid #e5e7eb; border-radius:10px;" />
-            <p style="font-size:0.8rem; color:#6b7280; margin-top:0.5rem;">
-              ¿No puedes escanear? Ingresa este código manualmente:<br>
-              <code id="manual-secret" style="font-size:0.9rem; color:#1a3a6b; font-weight:700; letter-spacing:2px;"></code>
+          <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:24px; text-align:center; margin:1.5rem 0;">
+            <p style="color:#1e40af; margin:0 0 0.5rem; font-size:0.95rem;">
+              Haz clic en el enlace del correo para activar tu cuenta y configurar Google Authenticator.
             </p>
+            <p style="color:#1e40af; margin:0; font-size:0.9rem;">
+              El enlace expira en:
+            </p>
+            <div id="countdown" style="font-size:2.2rem; font-weight:700; color:#1a3a6b; margin-top:0.5rem; font-variant-numeric: tabular-nums;">5:00</div>
           </div>
 
-          <div id="alerta-setup" style="display:none;"></div>
-          <form id="form-setup" onsubmit="confirmarSetup(event)">
-            <div class="form-group">
-              <label for="codigo-setup">Código de la app</label>
-              <input
-                type="text"
-                id="codigo-setup"
-                placeholder="• • • • • •"
-                maxlength="6"
-                pattern="[0-9]{6}"
-                inputmode="numeric"
-                required
-                style="font-size:1.8rem; letter-spacing:0.5rem; text-align:center; font-weight:700;"
-              />
-            </div>
-            <button type="submit" class="btn btn-primario btn-bloque btn-submit" id="btn-setup">
-              Confirmar y entrar
-            </button>
-          </form>
+          <p style="color:#6b7280; font-size:0.85rem; text-align:center; margin-top:0.5rem;">
+            ¿No llegó? Revisa tu carpeta de spam.<br>
+            Si el tiempo expira, <a href="registro.html">regístrate de nuevo</a>.
+          </p>
         </div>
 
       </div>
@@ -152,8 +140,7 @@
 
   <script src="../js/main.js"></script>
   <script>
-    let emailRegistrado = "";
-    let secretRegistrado = "";
+    let countdownInterval = null;
 
     async function registrar(e) {
       e.preventDefault();
@@ -188,16 +175,10 @@
           })
         });
 
-        if (data.requiere_setup) {
-          // Mostrar QR para configurar TOTP
-          emailRegistrado = data.email;
-          secretRegistrado = data.secret;
-          document.getElementById('qr-image').src = 'data:image/png;base64,' + data.qr_code;
-          document.getElementById('manual-secret').textContent = data.secret;
-          document.getElementById('paso-registro').style.display = 'none';
-          document.getElementById('paso-setup').style.display = 'block';
-          document.getElementById('codigo-setup').focus();
-        }
+        document.getElementById('email-enviado-a').textContent = data.email;
+        document.getElementById('paso-registro').style.display = 'none';
+        document.getElementById('paso-email-enviado').style.display = 'block';
+        iniciarCountdown(5 * 60);
 
       } catch (err) {
         alerta.className = 'alerta alerta-error';
@@ -207,44 +188,23 @@
       }
     }
 
-    async function confirmarSetup(e) {
-      e.preventDefault();
-      const btn    = document.getElementById('btn-setup');
-      const alerta = document.getElementById('alerta-setup');
-      const codigo = document.getElementById('codigo-setup').value.trim();
-
-      btn.disabled    = true;
-      btn.textContent = 'Confirmando...';
-      alerta.style.display = 'none';
-
-      try {
-        const data = await apiFetch('/api/auth/totp/confirmar-setup', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: emailRegistrado, secret: secretRegistrado, codigo: codigo })
-        });
-
-        setSession(data.token, {
-          nombre: data.nombre, apellido: data.apellido,
-          email: data.email, rol: data.rol
-        });
-        window.location.href = 'index.html';
-
-      } catch (err) {
-        alerta.style.display = 'block';
-        alerta.className = 'alerta alerta-error';
-        alerta.textContent = err.message || 'Código incorrecto. Verifica el QR.';
-        btn.disabled    = false;
-        btn.textContent = 'Confirmar y entrar';
-        document.getElementById('codigo-setup').value = '';
-        document.getElementById('codigo-setup').focus();
-      }
+    function iniciarCountdown(segundos) {
+      const el = document.getElementById('countdown');
+      let restante = segundos;
+      if (countdownInterval) clearInterval(countdownInterval);
+      countdownInterval = setInterval(() => {
+        restante--;
+        if (restante <= 0) {
+          clearInterval(countdownInterval);
+          el.textContent = '0:00';
+          el.style.color = '#dc2626';
+          return;
+        }
+        const m = Math.floor(restante / 60);
+        const s = restante % 60;
+        el.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+      }, 1000);
     }
-
-    // Solo permitir números
-    document.getElementById('codigo-setup').addEventListener('input', function() {
-      this.value = this.value.replace(/[^0-9]/g, '');
-    });
   </script>
 </body>
 </html>

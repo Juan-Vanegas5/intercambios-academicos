@@ -81,6 +81,10 @@ function getBadge(estado) {
         "necesita_correcciones_viaje":{ clase: "badge-amarillo",texto: "Corrección viaje" },
         "docs_pendientes":     { clase: "badge-amarillo", texto: "Docs pendientes" },
         "docs_viaje_enviados": { clase: "badge-azul",    texto: "Docs viaje enviados" },
+        "pendiente_verificacion_uni": { clase: "badge-azul", texto: "Pendiente univ." },
+        "aprobada_universidad":       { clase: "badge-verde", texto: "Aprobada por univ." },
+        "rechazada_universidad":      { clase: "badge-rojo",  texto: "Rechazada por univ." },
+        "docs_extra_solicitados":     { clase: "badge-amarillo", texto: "Docs extra solicitados" },
         "completada":          { clase: "badge-verde",   texto: "Completada ✓" }
     };
     const info = mapa[estado] || { clase: "badge-azul", texto: estado };

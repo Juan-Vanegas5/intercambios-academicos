@@ -19,7 +19,9 @@ router = APIRouter(prefix="/api/admin", tags=["Administración"])
 
 ESTADOS_VALIDOS = ["aprobada", "rechazada", "en_revision", "revisando_documentos",
                    "necesita_correcciones", "docs_pendientes", "completada",
-                   "docs_viaje_enviados", "necesita_correcciones_viaje"]
+                   "docs_viaje_enviados", "necesita_correcciones_viaje",
+                   "pendiente_verificacion_uni", "aprobada_universidad",
+                   "rechazada_universidad", "docs_extra_solicitados"]
 
 # ── Postulaciones ─────────────────────────────────────────────────────────────
 
@@ -56,21 +58,30 @@ def actualizar_estado(id: int, request: EstadoRequest,
     if not postulacion:
         raise HTTPException(status_code=404, detail="Postulación no encontrada")
     estado_anterior = postulacion.estado
-    postulacion.estado = request.estado
+    import datetime as dt
+
+    # ── Si admin aprueba → pasa a pendiente_verificacion_uni automáticamente ──
+    estado_final = request.estado
+    if request.estado == "aprobada":
+        estado_final = "pendiente_verificacion_uni"
+        postulacion.verificacion_universidad = "pendiente"
+
+    postulacion.estado = estado_final
     postulacion.comentario_admin = request.comentario
+    postulacion.fecha_actualizacion = dt.datetime.now()
 
     # Generar notificación automática al estudiante
-    if request.estado != estado_anterior:
+    if estado_final != estado_anterior:
         mensajes = {
-            "aprobada": "¡Felicitaciones! Tu postulación a {conv} fue APROBADA.",
+            "pendiente_verificacion_uni": "¡Tu postulación a {conv} fue APROBADA por el administrador! Ahora está pendiente de verificación por la universidad de destino.",
             "rechazada": "Tu postulación a {conv} fue rechazada.",
             "revisando_documentos": "Estamos revisando los documentos de tu postulación a {conv}.",
             "necesita_correcciones": "Tu postulación a {conv} necesita correcciones.",
             "necesita_correcciones_viaje": "Tu postulación a {conv} requiere corrección de documentos de viaje.",
             "docs_pendientes": "Faltan documentos en tu postulación a {conv}.",
-            "completada": "Tu postulación a {conv} ha sido completada.",
+            "completada": "¡Tu proceso de intercambio a {conv} ha sido COMPLETADO! Tanto el administrador como la universidad de destino han aprobado tu postulación.",
         }
-        msg = mensajes.get(request.estado)
+        msg = mensajes.get(estado_final)
         if msg:
             conv_titulo = postulacion.convocatoria.titulo if postulacion.convocatoria else "la convocatoria"
             texto = msg.format(conv=conv_titulo)
@@ -85,19 +96,15 @@ def actualizar_estado(id: int, request: EstadoRequest,
     try:
         pdf_content = None
         pdf_filename = None
-        
-        if request.estado == "completada":
+
+        if estado_final == "completada":
             nombre_est = f"{postulacion.estudiante.nombre} {postulacion.estudiante.apellido}"
             conv_titulo = postulacion.convocatoria.titulo if postulacion.convocatoria else "Intercambio"
             uni_nombre = postulacion.convocatoria.universidad.nombre if postulacion.convocatoria and postulacion.convocatoria.universidad else "UPC"
             pais_nombre = postulacion.convocatoria.universidad.pais if postulacion.convocatoria and postulacion.convocatoria.universidad else "Internacional"
-            
+
             pdf_content = generar_certificado_pdf(
-                postulacion.id, 
-                nombre_est, 
-                conv_titulo, 
-                uni_nombre, 
-                pais_nombre
+                postulacion.id, nombre_est, conv_titulo, uni_nombre, pais_nombre
             )
             pdf_filename = f"Certificado_Intercambio_{postulacion.estudiante.apellido}.pdf"
 
@@ -105,7 +112,7 @@ def actualizar_estado(id: int, request: EstadoRequest,
             email=postulacion.estudiante.email,
             nombre=postulacion.estudiante.nombre,
             convocatoria=postulacion.convocatoria.titulo if postulacion.convocatoria else "la convocatoria",
-            nuevo_estado=request.estado,
+            nuevo_estado=estado_final,
             comentario=request.comentario,
             attachment_content=pdf_content,
             attachment_filename=pdf_filename
@@ -113,8 +120,8 @@ def actualizar_estado(id: int, request: EstadoRequest,
     except Exception as e:
         print(f"[admin] Error enviando email/pdf al estudiante: {e}")
 
-    # ── Enviar ficha PDF a la universidad de destino si estado = completada ──
-    if request.estado == "completada":
+    # ── Notificar a universidad de destino cuando pasa a pendiente_verificacion_uni ──
+    if estado_final == "pendiente_verificacion_uni":
         try:
             uni_id = postulacion.convocatoria.universidad_id if postulacion.convocatoria else None
             if uni_id:
@@ -158,15 +165,12 @@ def actualizar_estado(id: int, request: EstadoRequest,
                             attachment_content=ficha_pdf,
                             attachment_filename=ficha_filename,
                         )
-
-                    # Notificación interna para usuarios universidad
-                    for uni_user in uni_users:
                         db.add(Notificacion(
                             usuario_id=uni_user.id,
-                            mensaje=f"Nuevo estudiante asignado: {est.nombre} {est.apellido} — {postulacion.convocatoria.titulo}. Revisa tu panel."
+                            mensaje=f"Nuevo estudiante pendiente de verificación: {est.nombre} {est.apellido} — {postulacion.convocatoria.titulo}. Revisa tu panel para aprobar o rechazar."
                         ))
         except Exception as e:
-            print(f"[admin] Error enviando ficha a universidad destino: {e}")
+            print(f"[admin] Error notificando a universidad destino: {e}")
 
     db.commit()
     db.refresh(postulacion)
@@ -572,9 +576,16 @@ def eliminar_usuario(id: int, db: Session = Depends(get_db), admin: Usuario = De
                 detail="No puedes eliminar al último superusuario. Asigna otro superusuario primero."
             )
 
+    # Eliminar notificaciones del usuario
+    db.query(Notificacion).filter(Notificacion.usuario_id == id).delete()
+
+    # Eliminar postulaciones y sus documentos
     for postulacion in db.query(Postulacion).filter(Postulacion.estudiante_id == id).all():
         db.query(Documento).filter(Documento.postulacion_id == postulacion.id).delete()
         db.delete(postulacion)
+
+    # Desvincular convocatorias creadas por este usuario (no eliminarlas)
+    db.query(Convocatoria).filter(Convocatoria.creado_por == id).update({"creado_por": None})
 
     db.delete(usuario)
     try:

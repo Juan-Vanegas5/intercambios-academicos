@@ -57,15 +57,18 @@ class Convocatoria(Base):
 
 class Postulacion(Base):
     __tablename__ = "postulaciones"
-    id                  = Column(Integer, primary_key=True)
-    estudiante_id       = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
-    convocatoria_id     = Column(Integer, ForeignKey("convocatorias.id"), nullable=False)
-    semestre            = Column(Integer)
-    carta_intencion     = Column(Text)
-    estado              = Column(String(50), nullable=False, default="en_revision")
-    comentario_admin    = Column(Text)
-    fecha_postulacion   = Column(DateTime, default=datetime.datetime.now)
-    fecha_actualizacion = Column(DateTime, default=datetime.datetime.now)
+    id                              = Column(Integer, primary_key=True)
+    estudiante_id                   = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
+    convocatoria_id                 = Column(Integer, ForeignKey("convocatorias.id"), nullable=False)
+    semestre                        = Column(Integer)
+    carta_intencion                 = Column(Text)
+    estado                          = Column(String(50), nullable=False, default="en_revision")
+    comentario_admin                = Column(Text)
+    verificacion_universidad        = Column(String(30), default="pendiente")
+    comentario_universidad          = Column(Text)
+    fecha_verificacion_universidad  = Column(DateTime)
+    fecha_postulacion               = Column(DateTime, default=datetime.datetime.now)
+    fecha_actualizacion             = Column(DateTime, default=datetime.datetime.now)
 
     estudiante   = relationship("Usuario", lazy="joined")
     convocatoria = relationship("Convocatoria", lazy="joined")

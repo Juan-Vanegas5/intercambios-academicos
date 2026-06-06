@@ -65,19 +65,26 @@ CREATE TABLE convocatorias (
 
 
 CREATE TABLE postulaciones (
-    id                  SERIAL PRIMARY KEY,
-    estudiante_id       INT NOT NULL REFERENCES usuarios(id),
-    convocatoria_id     INT NOT NULL REFERENCES convocatorias(id),
-    semestre            INT,
-    carta_intencion     TEXT,
-    estado              VARCHAR(20) NOT NULL DEFAULT 'en_revision'
-                            CHECK (estado IN ('en_revision', 'aprobada', 'rechazada',
-                                              'revisando_documentos', 'necesita_correcciones',
-                                              'docs_pendientes', 'completada',
-                                              'docs_viaje_enviados')),
-    comentario_admin    TEXT,
-    fecha_postulacion   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id                              SERIAL PRIMARY KEY,
+    estudiante_id                   INT NOT NULL REFERENCES usuarios(id),
+    convocatoria_id                 INT NOT NULL REFERENCES convocatorias(id),
+    semestre                        INT,
+    carta_intencion                 TEXT,
+    estado                          VARCHAR(50) NOT NULL DEFAULT 'en_revision'
+                                        CHECK (estado IN ('en_revision', 'aprobada', 'rechazada',
+                                                          'revisando_documentos', 'necesita_correcciones',
+                                                          'docs_pendientes', 'completada',
+                                                          'docs_viaje_enviados', 'necesita_correcciones_viaje',
+                                                          'pendiente_verificacion_uni',
+                                                          'aprobada_universidad', 'rechazada_universidad',
+                                                          'docs_extra_solicitados')),
+    comentario_admin                TEXT,
+    verificacion_universidad        VARCHAR(30) DEFAULT 'pendiente'
+                                        CHECK (verificacion_universidad IN ('pendiente', 'aprobada', 'rechazada', 'docs_extra')),
+    comentario_universidad          TEXT,
+    fecha_verificacion_universidad  TIMESTAMP,
+    fecha_postulacion               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (estudiante_id, convocatoria_id)
 );
 

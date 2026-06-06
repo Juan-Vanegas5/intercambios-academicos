@@ -27,6 +27,9 @@ class PostulacionResponse(BaseModel):
     semestre: Optional[int] = None
     cartaIntencion: Optional[str] = None
     comentarioAdmin: Optional[str] = None
+    verificacionUniversidad: Optional[str] = None
+    comentarioUniversidad: Optional[str] = None
+    fechaVerificacionUniversidad: Optional[datetime] = None
     fechaPostulacion: Optional[datetime] = None
     fechaActualizacion: Optional[datetime] = None
     estudiante: Optional[str] = None

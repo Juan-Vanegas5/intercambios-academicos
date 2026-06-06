@@ -95,12 +95,25 @@
 
     <div id="alerta-uni" class="alerta mb-3" style="display:none;"></div>
 
+    <!-- Pestañas -->
+    <div style="display:flex;gap:0;margin-bottom:1.5rem;border-bottom:2px solid #e5e7eb;">
+      <button id="tab-uni-verificacion" onclick="mostrarTabUni('verificacion')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#1a3a6b;border-bottom:3px solid #1a3a6b;margin-bottom:-2px;">
+        🔍 Verificación
+      </button>
+      <button id="tab-uni-foraneos" onclick="mostrarTabUni('foraneos')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        ✈️ Estudiantes Foráneos
+      </button>
+    </div>
+
+    <!-- TAB: Verificación -->
+    <div id="seccion-uni-verificacion">
     <!-- Filtros -->
     <div class="card" style="margin-bottom:1rem;">
       <div class="filtros-bar">
         <button class="filtro-btn activo" onclick="filtrar('todas', this)">Todas</button>
         <button class="filtro-btn" onclick="filtrar('pendiente_verificacion_uni', this)">Pendientes</button>
-        <button class="filtro-btn" onclick="filtrar('completada', this)">Completadas</button>
         <button class="filtro-btn" onclick="filtrar('rechazada_universidad', this)">Rechazadas</button>
         <button class="filtro-btn" onclick="filtrar('docs_extra_solicitados', this)">Docs Extra</button>
       </div>
@@ -109,7 +122,7 @@
     <!-- Tabla de estudiantes -->
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-        <h3 style="color:#1a3a6b; margin:0;">Estudiantes Asignados</h3>
+        <h3 style="color:#1a3a6b; margin:0;">Estudiantes Pendientes de Verificación</h3>
         <span id="contador-filtro" style="font-size:0.85rem; color:#6b7280;"></span>
       </div>
       <div class="tabla-container">
@@ -134,6 +147,32 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+    </div><!-- fin seccion-uni-verificacion -->
+
+    <!-- TAB: Estudiantes Foráneos -->
+    <div id="seccion-uni-foraneos" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <div>
+          <h2 style="margin:0;color:#1a3a6b;">Estudiantes Foráneos</h2>
+          <p style="color:#6b7280;font-size:0.88rem;margin-top:0.25rem;">Estudiantes de la Universidad Piloto actualmente en tu institución o en seguimiento académico.</p>
+        </div>
+        <span id="cnt-foraneos" class="badge badge-azul" style="font-size:0.9rem;">0</span>
+      </div>
+      <div class="card">
+        <div class="tabla-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Estudiante</th><th>Programa</th><th>Convocatoria</th><th>Estado</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-foraneos">
+              <tr><td colspan="6" style="text-align:center;color:#6b7280;padding:2rem;">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -212,6 +251,14 @@
           </div>
         </div>
 
+        <!-- Documentos de seguimiento -->
+        <div id="d-seguimiento-uni" style="display:none; background:#f5f3ff; border:1px solid #c4b5fd; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+          <h4 style="color:#6d28d9; margin:0 0 0.75rem;">📚 Documentos de Seguimiento</h4>
+          <div id="d-seguimiento-docs-uni">
+            <p style="color:#9ca3af; font-size:0.9rem;">Sin documentos de seguimiento.</p>
+          </div>
+        </div>
+
         <!-- Acciones universidad -->
         <div id="acciones-verificacion" style="display:none; background:#fefce8; border:1px solid #fde68a; border-radius:10px; padding:1rem; margin-bottom:1rem;">
           <h4 style="color:#92400e; margin:0 0 0.75rem;">Acciones de Verificacion</h4>
@@ -254,6 +301,39 @@
     let todosEstudiantes = [];
     let detalleId = null;
     let filtroActual = "todas";
+    const ESTADOS_FORANEOS = ["completada", "en_seguimiento", "seguimiento_docs_enviados", "seguimiento_completado"];
+    const TIPOS_SEGUIMIENTO_UNI = [7, 8];
+
+    function mostrarTabUni(tab) {
+      ["verificacion", "foraneos"].forEach(t => {
+        const btn = document.getElementById("tab-uni-" + t);
+        const sec = document.getElementById("seccion-uni-" + t);
+        if (btn) { btn.style.color = t === tab ? "#1a3a6b" : "#6b7280"; btn.style.borderBottom = t === tab ? "3px solid #1a3a6b" : "3px solid transparent"; }
+        if (sec) sec.style.display = t === tab ? "block" : "none";
+      });
+      if (tab === "foraneos") renderForaneos();
+    }
+
+    function renderForaneos() {
+      const lista = todosEstudiantes.filter(p => ESTADOS_FORANEOS.includes(p.estado));
+      document.getElementById("cnt-foraneos").textContent = lista.length + " estudiante" + (lista.length !== 1 ? "s" : "");
+      const tbody = document.getElementById("cuerpo-foraneos");
+      if (lista.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#6b7280;padding:2rem;">No hay estudiantes foráneos actualmente.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = lista.map(p => `<tr>
+        <td>${p.id}</td>
+        <td><strong>${p.estudiante}</strong></td>
+        <td style="font-size:0.85rem;">${p.programa || "—"}</td>
+        <td style="font-size:0.85rem;">${p.convocatoria}</td>
+        <td>${getBadge(p.estado)}</td>
+        <td style="display:flex;gap:0.4rem;">
+          <button class="btn btn-secundario btn-sm" onclick="abrirDetalle(${p.id})">Ver</button>
+          <button class="btn btn-primario btn-sm" onclick="descargarFichaDirecto(${p.id})">PDF</button>
+        </td>
+      </tr>`).join("");
+    }
 
     // ── Cargar estadisticas ──────────────────────────────────────────────
     async function cargarEstadisticas() {
@@ -283,9 +363,9 @@
     }
 
     function aplicarFiltro() {
-      let lista = todosEstudiantes;
+      let lista = todosEstudiantes.filter(p => !ESTADOS_FORANEOS.includes(p.estado));
       if (filtroActual !== "todas") {
-        lista = todosEstudiantes.filter(p => p.estado === filtroActual);
+        lista = lista.filter(p => p.estado === filtroActual);
       }
       document.getElementById("contador-filtro").textContent = lista.length + " estudiante" + (lista.length !== 1 ? "s" : "");
       renderTabla(lista);
@@ -423,19 +503,27 @@
 
         // Cargar documentos
         const docs = await apiFetch(`/api/universidad/estudiantes/${id}/documentos`, { headers: authHeaders() });
-        if (!docs || docs.length === 0) {
-          document.getElementById("d-documentos").innerHTML = '<p style="color:#9ca3af;font-size:0.9rem;">No hay documentos adjuntos.</p>';
-        } else {
-          document.getElementById("d-documentos").innerHTML = docs.map(d => `
-            <div style="display:flex; align-items:center; gap:0.75rem; padding:0.6rem 0; border-bottom:1px solid #e5e7eb;">
-              <span style="font-size:1.3rem;">PDF</span>
-              <div style="flex:1;">
-                <div style="font-weight:600; font-size:0.9rem;">${d.tipo || "Documento"}</div>
-                <div style="font-size:0.8rem; color:#6b7280;">${d.nombre_archivo}</div>
-              </div>
-              <a href="${d.s3_key}" target="_blank" class="btn btn-secundario btn-sm">Descargar</a>
+        const renderDocRow = (d) => `
+          <div style="display:flex; align-items:center; gap:0.75rem; padding:0.6rem 0; border-bottom:1px solid #e5e7eb;">
+            <span style="font-size:1.3rem;">📄</span>
+            <div style="flex:1;">
+              <div style="font-weight:600; font-size:0.9rem;">${d.tipo || "Documento"}</div>
+              <div style="font-size:0.8rem; color:#6b7280;">${d.nombre_archivo}</div>
             </div>
-          `).join("");
+            <a href="${d.s3_key}" target="_blank" class="btn btn-secundario btn-sm">Descargar</a>
+          </div>`;
+        const docsNorm = (docs || []).filter(d => !TIPOS_SEGUIMIENTO_UNI.includes(d.tipo_id));
+        const docsSeg  = (docs || []).filter(d => TIPOS_SEGUIMIENTO_UNI.includes(d.tipo_id));
+        document.getElementById("d-documentos").innerHTML = docsNorm.length
+          ? docsNorm.map(renderDocRow).join("")
+          : '<p style="color:#9ca3af;font-size:0.9rem;">No hay documentos adjuntos.</p>';
+        if (ESTADOS_FORANEOS.includes(data.estado)) {
+          document.getElementById("d-seguimiento-uni").style.display = "block";
+          document.getElementById("d-seguimiento-docs-uni").innerHTML = docsSeg.length
+            ? docsSeg.map(renderDocRow).join("")
+            : '<p style="color:#9ca3af;font-size:0.9rem;">El estudiante aún no ha subido documentos de seguimiento.</p>';
+        } else {
+          document.getElementById("d-seguimiento-uni").style.display = "none";
         }
       } catch (e) {
         console.error("Error cargando detalle:", e);

@@ -42,6 +42,7 @@ class DocumentoResponse(BaseModel):
     id: int
     nombre_archivo: str
     tipo: Optional[str] = None
+    tipo_id: Optional[int] = None
     s3_key: str
     fecha_subida: Optional[datetime] = None
 

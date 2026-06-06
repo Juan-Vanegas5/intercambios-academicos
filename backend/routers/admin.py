@@ -43,6 +43,7 @@ def ver_documentos(id: int, db: Session = Depends(get_db), admin: Usuario = Depe
             id=d.id,
             nombre_archivo=d.nombre_archivo,
             tipo=d.tipo_documento.nombre if d.tipo_documento else None,
+            tipo_id=d.tipo_documento_id,
             s3_key=d.s3_key,
             fecha_subida=d.fecha_subida
         ) for d in docs

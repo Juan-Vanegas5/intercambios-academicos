@@ -17,7 +17,8 @@ router = APIRouter(prefix="/api/universidad", tags=["Universidad Destino"])
 ESTADOS_VISIBLES_UNI = [
     "aprobada", "pendiente_verificacion_uni", "aprobada_universidad",
     "rechazada_universidad", "docs_extra_solicitados",
-    "completada", "docs_viaje_enviados"
+    "completada", "docs_viaje_enviados",
+    "en_seguimiento", "seguimiento_docs_enviados", "seguimiento_completado"
 ]
 
 
@@ -96,6 +97,7 @@ def documentos_estudiante(postulacion_id: int,
             id=d.id,
             nombre_archivo=d.nombre_archivo,
             tipo=d.tipo_documento.nombre if d.tipo_documento else None,
+            tipo_id=d.tipo_documento_id,
             s3_key=d.s3_key,
             fecha_subida=d.fecha_subida
         ) for d in docs

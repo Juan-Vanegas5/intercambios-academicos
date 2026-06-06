@@ -84,6 +84,10 @@
         style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
         👥 Usuarios
       </button>
+      <button id="tab-intercambio" onclick="mostrarTab('intercambio')"
+        style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
+        ✈️ En Intercambio
+      </button>
       <button id="tab-mapa" onclick="mostrarTab('mapa')"
         style="padding:0.75rem 1.5rem;background:none;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;">
         🌍 Mapa Global
@@ -516,6 +520,31 @@
       </div>
     </div>
 
+    <!-- ═══ SECCIÓN: ESTUDIANTES EN INTERCAMBIO ═══ -->
+    <div id="seccion-intercambio" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <div>
+          <h2 style="margin:0;color:#1a3a6b;">Estudiantes en Intercambio</h2>
+          <p style="color:#6b7280;font-size:0.88rem;margin-top:0.25rem;">Estudiantes que ya completaron el proceso de selección y están en fase de intercambio o seguimiento.</p>
+        </div>
+        <span id="cnt-intercambio" class="badge badge-azul" style="font-size:0.9rem;">0</span>
+      </div>
+      <div class="card">
+        <div class="tabla-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Estudiante</th><th>Programa</th><th>Convocatoria</th><th>Estado</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-intercambio">
+              <tr><td colspan="6" style="text-align:center;color:#6b7280;padding:2rem;">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- ═══ SECCIÓN: MAPA GLOBAL ═══ -->
     <div id="seccion-mapa" style="display:none;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
@@ -625,10 +654,31 @@
     }
 
     function filtrar(estado) {
-      const lista = estado === "todas"
-        ? todasPostulaciones
-        : todasPostulaciones.filter(p => p.estado === estado);
+      let lista = todasPostulaciones.filter(p => !ESTADOS_INTERCAMBIO.includes(p.estado));
+      if (estado !== "todas") lista = lista.filter(p => p.estado === estado);
       renderTabla(lista);
+    }
+
+    function renderIntercambio() {
+      const lista = todasPostulaciones.filter(p => ESTADOS_INTERCAMBIO.includes(p.estado));
+      document.getElementById("cnt-intercambio").textContent = lista.length + " estudiante" + (lista.length !== 1 ? "s" : "");
+      const tbody = document.getElementById("cuerpo-intercambio");
+      if (lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#6b7280;padding:2rem;">No hay estudiantes en intercambio aún.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = lista.map(p => `
+        <tr id="fila-int-${p.id}">
+          <td>${p.id}</td>
+          <td><strong>${p.estudiante}</strong></td>
+          <td style="font-size:0.85rem;">${p.programa || "—"}</td>
+          <td style="font-size:0.85rem;">${p.convocatoria} — ${p.universidad}</td>
+          <td>${getBadge(p.estado)}</td>
+          <td>
+            <button class="btn btn-secundario btn-sm" onclick="abrirDetalle(${p.id})" title="Ver detalle">🔍 Ver</button>
+          </td>
+        </tr>
+      `).join("");
     }
 
     async function abrirDetalle(id) {
@@ -780,7 +830,8 @@
       try {
         await apiFetch(`/api/admin/postulaciones/${id}`, { method: "DELETE", headers: authHeaders() });
         todasPostulaciones = todasPostulaciones.filter(p => p.id !== id);
-        actualizarStats(todasPostulaciones);
+        const normalesPost = todasPostulaciones.filter(p => !ESTADOS_INTERCAMBIO.includes(p.estado));
+        actualizarStats(normalesPost);
         filtrar("todas");
       } catch (err) {
         const alerta = document.getElementById("alerta-admin");
@@ -823,8 +874,9 @@
     async function cargarPostulaciones() {
       try {
         todasPostulaciones = await apiFetch("/api/admin/postulaciones", { headers: authHeaders() });
-        actualizarStats(todasPostulaciones);
-        renderTabla(todasPostulaciones);
+        const normales = todasPostulaciones.filter(p => !ESTADOS_INTERCAMBIO.includes(p.estado));
+        actualizarStats(normales);
+        renderTabla(normales);
       } catch (err) {
         const alerta = document.getElementById("alerta-admin");
         alerta.className = "alerta alerta-error mb-3";
@@ -844,7 +896,8 @@
 
   <script>
     // ── Sistema de pestañas ────────────────────────────────────────────────────
-    const TABS = ["postulaciones", "graficas", "seleccion", "convocatorias", "universidades", "usuarios", "mapa"];
+    const TABS = ["postulaciones", "graficas", "seleccion", "convocatorias", "universidades", "usuarios", "intercambio", "mapa"];
+    const ESTADOS_INTERCAMBIO = ["completada", "en_seguimiento", "seguimiento_docs_enviados", "seguimiento_completado"];
 
     function mostrarTab(tab) {
       TABS.forEach(t => {
@@ -861,6 +914,7 @@
       if (tab === "convocatorias") cargarConvocatoriasAdmin();
       if (tab === "universidades") cargarUniversidadesAdmin();
       if (tab === "usuarios") cargarUsuarios();
+      if (tab === "intercambio") renderIntercambio();
       if (tab === "mapa") iniciarMapaAdmin();
     }
 

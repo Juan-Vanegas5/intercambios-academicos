@@ -42,8 +42,11 @@ CREATE TABLE usuarios (
     cedula          VARCHAR(20),
     celular         VARCHAR(20),
     programa_id     INT REFERENCES programas_academicos(id),
-    totp_secret     VARCHAR(32),
-    fecha_registro  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    totp_secret                VARCHAR(32),
+    fecha_registro             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    email_verificado           BOOLEAN NOT NULL DEFAULT FALSE,
+    token_verificacion_email   VARCHAR(64),
+    token_verificacion_expira  TIMESTAMP
 );
 
 

@@ -92,6 +92,37 @@ def enviar_codigo(email: str, codigo: str, nombre: str) -> bool:
     </body></html>"""
     return _send_email(email, "Tu código de acceso — Intercambios UPC", html)
 
+def enviar_verificacion_registro(email: str, nombre: str, link: str) -> bool:
+    html = f"""
+    <html><body style="font-family:Arial,sans-serif;background:#f9fafb;padding:30px;">
+      <div style="max-width:520px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+        <div style="background:#1a3a6b;padding:24px;text-align:center;">
+          <h2 style="color:white;margin:0;">🎓 Intercambios Académicos UPC</h2>
+        </div>
+        <div style="padding:32px;">
+          <p style="color:#374151;">Hola <strong>{nombre}</strong>,</p>
+          <p style="color:#374151;">Recibimos tu solicitud de registro. Para activar tu cuenta haz clic en el botón antes de que expire el enlace.</p>
+          <div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:14px 20px;margin:20px 0;">
+            <p style="margin:0;color:#854d0e;font-size:0.9rem;">⏱ Este enlace expira en <strong>5 minutos</strong>. Si no verificas a tiempo, deberás registrarte de nuevo.</p>
+          </div>
+          <div style="text-align:center;margin-top:28px;">
+            <a href="{link}"
+               style="background:#1a3a6b;color:white;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:600;font-size:1.05rem;display:inline-block;">
+              Verificar mi correo →
+            </a>
+          </div>
+          <p style="color:#9ca3af;font-size:0.8rem;margin-top:24px;text-align:center;">
+            Si no solicitaste este registro, ignora este correo.
+          </p>
+        </div>
+        <div style="background:#f3f4f6;padding:16px;text-align:center;">
+          <p style="color:#9ca3af;font-size:0.8rem;margin:0;">Universidad Piloto de Colombia — 2026</p>
+        </div>
+      </div>
+    </body></html>"""
+    return _send_email(email, "Verifica tu correo — Intercambios UPC", html)
+
+
 def enviar_notificacion_estado(email: str, nombre: str, convocatoria: str,
                                nuevo_estado: str, comentario: str = None,
                                attachment_content: bytes = None, attachment_filename: str = None) -> bool:

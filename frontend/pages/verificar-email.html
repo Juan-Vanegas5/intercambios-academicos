@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verificar correo - Intercambios UPC</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">🎓 Intercambios UPC</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Convocatorias</a></li>
+      <li><a href="login.html">Iniciar Sesión</a></li>
+      <li><a href="registro.html">Registrarme</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="form-container" style="max-width:560px;">
+      <div class="card">
+
+        <!-- Verificando... -->
+        <div id="paso-verificando">
+          <div class="text-center mb-3">
+            <div style="font-size:2.5rem; margin-bottom:0.5rem;">⏳</div>
+            <h1 style="font-size:1.5rem; color:#1a3a6b; margin-bottom:0.3rem;">Verificando tu correo...</h1>
+            <p style="color:#6b7280; font-size:0.9rem;">Por favor espera un momento.</p>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <div id="paso-error" style="display:none;">
+          <div class="text-center mb-3">
+            <div style="font-size:2.5rem; margin-bottom:0.5rem;">❌</div>
+            <h1 style="font-size:1.5rem; color:#dc2626; margin-bottom:0.3rem;">Enlace inválido o expirado</h1>
+            <p id="error-mensaje" style="color:#6b7280; font-size:0.9rem; margin-bottom:1.5rem;"></p>
+          </div>
+          <a href="registro.html" class="btn btn-primario btn-bloque">Registrarme de nuevo</a>
+        </div>
+
+        <!-- Éxito: configurar Google Authenticator -->
+        <div id="paso-setup" style="display:none;">
+          <div class="text-center mb-3">
+            <div style="font-size:2.5rem; margin-bottom:0.5rem;">✅</div>
+            <h1 style="font-size:1.5rem; color:#1a3a6b; margin-bottom:0.3rem;">¡Correo verificado!</h1>
+            <p style="color:#6b7280; font-size:0.9rem;">
+              Ahora configura <strong>Google Authenticator</strong> para proteger tu cuenta.
+              Escanea el código QR con la app.
+            </p>
+          </div>
+
+          <div style="text-align:center; margin-bottom:1.5rem;">
+            <img id="qr-image" src="" alt="Código QR" style="width:200px; height:200px; border:2px solid #e5e7eb; border-radius:10px;" />
+            <p style="font-size:0.8rem; color:#6b7280; margin-top:0.5rem;">
+              ¿No puedes escanear? Ingresa este código manualmente en la app:<br>
+              <code id="manual-secret" style="font-size:0.9rem; color:#1a3a6b; font-weight:700; letter-spacing:2px;"></code>
+            </p>
+          </div>
+
+          <div id="alerta-setup" style="display:none;"></div>
+          <form id="form-setup" onsubmit="confirmarSetup(event)">
+            <div class="form-group">
+              <label for="codigo-setup">Código de la app (6 dígitos)</label>
+              <input
+                type="text"
+                id="codigo-setup"
+                placeholder="• • • • • •"
+                maxlength="6"
+                pattern="[0-9]{6}"
+                inputmode="numeric"
+                required
+                autocomplete="one-time-code"
+                style="font-size:1.8rem; letter-spacing:0.5rem; text-align:center; font-weight:700;"
+              />
+            </div>
+            <button type="submit" class="btn btn-primario btn-bloque btn-submit" id="btn-setup">
+              Confirmar y entrar
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Universidad Piloto de Colombia &mdash; Programa de Desarrollo Web &mdash; 2026</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    let emailVerificado = "";
+    let secretVerificado = "";
+
+    function mostrarError(msg) {
+      document.getElementById('error-mensaje').textContent = msg;
+      document.getElementById('paso-verificando').style.display = 'none';
+      document.getElementById('paso-error').style.display = 'block';
+    }
+
+    // Al cargar la página, verificar el token de la URL
+    (async function verificar() {
+      const params = new URLSearchParams(window.location.search);
+      const token  = params.get('token');
+      if (!token) {
+        mostrarError('No se proporcionó un token de verificación.');
+        return;
+      }
+      try {
+        const data = await apiFetch(`/api/auth/verificar-email?token=${encodeURIComponent(token)}`);
+        emailVerificado  = data.email;
+        secretVerificado = data.secret;
+        document.getElementById('qr-image').src        = 'data:image/png;base64,' + data.qr_code;
+        document.getElementById('manual-secret').textContent = data.secret;
+        document.getElementById('paso-verificando').style.display = 'none';
+        document.getElementById('paso-setup').style.display       = 'block';
+        document.getElementById('codigo-setup').focus();
+      } catch (err) {
+        mostrarError(err.message || 'El enlace no es válido o ha expirado.');
+      }
+    })();
+
+    async function confirmarSetup(e) {
+      e.preventDefault();
+      const btn    = document.getElementById('btn-setup');
+      const alerta = document.getElementById('alerta-setup');
+      const codigo = document.getElementById('codigo-setup').value.trim();
+
+      btn.disabled    = true;
+      btn.textContent = 'Confirmando...';
+      alerta.style.display = 'none';
+
+      try {
+        const data = await apiFetch('/api/auth/totp/confirmar-setup', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailVerificado, secret: secretVerificado, codigo: codigo })
+        });
+
+        setSession(data.token, {
+          nombre: data.nombre, apellido: data.apellido,
+          email: data.email, rol: data.rol
+        });
+        window.location.href = 'index.html';
+
+      } catch (err) {
+        alerta.style.display = 'block';
+        alerta.className     = 'alerta alerta-error';
+        alerta.textContent   = err.message || 'Código incorrecto. Verifica que escaneaste el QR correctamente.';
+        btn.disabled    = false;
+        btn.textContent = 'Confirmar y entrar';
+        document.getElementById('codigo-setup').value = '';
+        document.getElementById('codigo-setup').focus();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('codigo-setup');
+      if (input) {
+        input.addEventListener('input', function () {
+          this.value = this.value.replace(/[^0-9]/g, '');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

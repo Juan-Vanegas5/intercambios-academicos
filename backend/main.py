@@ -1,9 +1,11 @@
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import FastAPI, Depends, HTTPException, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import os
+import secrets
+import datetime
 import pyotp
 import qrcode
 import base64
@@ -15,6 +17,7 @@ from schemas import (LoginRequest, LoginResponse, RegistroRequest,
                      TOTPSetupResponse, TOTPVerifyRequest, TOTPConfirmSetupRequest)
 from auth import verificar_contrasena, hashear_contrasena, generar_token
 from routers import convocatorias, postulaciones, admin, notificaciones, universidad
+import email_service
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -81,6 +84,9 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     usuario = db.query(Usuario).filter(Usuario.email == request.email).first()
     if not usuario or not verificar_contrasena(request.contrasena, usuario.contrasena):
         raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos")
+
+    if not usuario.email_verificado:
+        raise HTTPException(status_code=403, detail="Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.")
 
     if usuario.totp_secret:
         # Ya tiene TOTP configurado → pedir código
@@ -156,8 +162,17 @@ def verificar_totp(request: TOTPVerifyRequest, db: Session = Depends(get_db)):
 @app.post("/api/auth/registro", tags=["Autenticación"],
           summary="Crear cuenta de estudiante")
 def registro(request: RegistroRequest, db: Session = Depends(get_db)):
-    if db.query(Usuario).filter(Usuario.email == request.email).first():
-        raise HTTPException(status_code=400, detail="El correo ya está registrado")
+    ahora = datetime.datetime.now()
+    existente = db.query(Usuario).filter(Usuario.email == request.email).first()
+    if existente:
+        if existente.email_verificado:
+            raise HTTPException(status_code=400, detail="El correo ya está registrado")
+        # Registro pendiente: si el token expiró, eliminar y permitir nuevo intento
+        if existente.token_verificacion_expira and ahora > existente.token_verificacion_expira:
+            db.delete(existente)
+            db.commit()
+        else:
+            raise HTTPException(status_code=400, detail="Ya se envió un correo de verificación a esa dirección. Revisa tu bandeja de entrada o espera 5 minutos para intentar de nuevo.")
 
     programa = db.query(ProgramaAcademico).filter(ProgramaAcademico.nombre == request.programa).first()
     if not programa:
@@ -165,30 +180,63 @@ def registro(request: RegistroRequest, db: Session = Depends(get_db)):
         db.add(programa)
         db.flush()
 
+    token_verificacion = secrets.token_urlsafe(32)
+    expira = ahora + datetime.timedelta(minutes=5)
+
     nuevo = Usuario(
         nombre=request.nombre,
         apellido=request.apellido,
         email=request.email,
         contrasena=hashear_contrasena(request.contrasena),
-        rol="estudiante",  # El registro público siempre crea estudiantes
+        rol="estudiante",
         codigo=request.codigo,
         cedula=request.cedula,
         celular=request.celular,
-        programa_id=programa.id
+        programa_id=programa.id,
+        email_verificado=False,
+        token_verificacion_email=token_verificacion,
+        token_verificacion_expira=expira
     )
     db.add(nuevo)
     db.commit()
-    db.refresh(nuevo)
 
-    # Generar QR para que configure TOTP inmediatamente
+    frontend_url = os.getenv("FRONTEND_URL", "https://intercambiosupc.lat")
+    link = f"{frontend_url}/verificar-email.html?token={token_verificacion}"
+    email_service.enviar_verificacion_registro(request.email, request.nombre, link)
+
+    return {
+        "mensaje": "Te enviamos un enlace de verificación. Tienes 5 minutos para confirmar tu correo.",
+        "email": request.email
+    }
+
+
+# ---- VERIFICAR EMAIL ----
+@app.get("/api/auth/verificar-email", tags=["Autenticación"],
+         summary="Verificar correo con el token del enlace enviado por email")
+def verificar_email(token: str = Query(...), db: Session = Depends(get_db)):
+    ahora = datetime.datetime.now()
+    usuario = db.query(Usuario).filter(Usuario.token_verificacion_email == token).first()
+    if not usuario:
+        raise HTTPException(status_code=400, detail="El enlace no es válido o ya fue utilizado.")
+
+    if ahora > usuario.token_verificacion_expira:
+        db.delete(usuario)
+        db.commit()
+        raise HTTPException(status_code=400, detail="El enlace expiró. Tu registro fue anulado. Por favor regístrate de nuevo.")
+
+    usuario.email_verificado = True
+    usuario.token_verificacion_email = None
+    usuario.token_verificacion_expira = None
+    db.commit()
+
     secret = pyotp.random_base32()
-    qr_base64 = generar_qr_base64(nuevo, secret)
+    qr_base64 = generar_qr_base64(usuario, secret)
 
     return {
         "requiere_setup": True,
-        "email": nuevo.email,
-        "nombre": nuevo.nombre,
-        "apellido": nuevo.apellido,
+        "email": usuario.email,
+        "nombre": usuario.nombre,
+        "apellido": usuario.apellido,
         "qr_code": qr_base64,
         "secret": secret
     }

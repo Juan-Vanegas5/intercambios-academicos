@@ -33,8 +33,11 @@ class Usuario(Base):
     celular         = Column(String(20))
     programa_id     = Column(Integer, ForeignKey("programas_academicos.id"))
     universidad_id  = Column(Integer, ForeignKey("universidades.id"))
-    totp_secret     = Column(String(32))
-    fecha_registro  = Column(DateTime, default=datetime.datetime.now)
+    totp_secret                = Column(String(32))
+    fecha_registro             = Column(DateTime, default=datetime.datetime.now)
+    email_verificado           = Column(Boolean, nullable=False, default=False)
+    token_verificacion_email   = Column(String(64), nullable=True)
+    token_verificacion_expira  = Column(DateTime, nullable=True)
 
     programa    = relationship("ProgramaAcademico", lazy="joined")
     universidad = relationship("Universidad", lazy="joined")

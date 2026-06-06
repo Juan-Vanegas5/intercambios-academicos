@@ -154,92 +154,6 @@
         </table>
       </div>
     </div>
-
-    <!-- Modal detalle del estudiante y documentos -->
-    <div id="modal-detalle" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:flex-start; justify-content:center; overflow-y:auto; padding:1rem;">
-      <div class="card" style="max-width:600px; width:100%; margin:0 auto;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
-          <h3 style="color:#1a3a6b; margin:0;">Detalle de postulación</h3>
-          <button onclick="cerrarDetalle()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
-        </div>
-
-        <!-- Datos del estudiante -->
-        <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
-          <h4 style="color:#1a3a6b; margin:0 0 0.75rem;">👤 Datos del estudiante</h4>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.9rem;">
-            <div><span style="color:#6b7280;">Nombre:</span> <strong id="d-nombre"></strong></div>
-            <div><span style="color:#6b7280;">Programa:</span> <strong id="d-programa"></strong></div>
-            <div><span style="color:#6b7280;">Cédula:</span> <strong id="d-cedula"></strong></div>
-            <div><span style="color:#6b7280;">Celular:</span> <strong id="d-celular"></strong></div>
-            <div><span style="color:#6b7280;">Semestre:</span> <strong id="d-semestre"></strong></div>
-            <div><span style="color:#6b7280;">Convocatoria:</span> <strong id="d-convocatoria"></strong></div>
-          </div>
-        </div>
-
-        <!-- Carta de intención -->
-        <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
-          <h4 style="color:#1a3a6b; margin:0 0 0.5rem;">📝 Carta de intención</h4>
-          <p id="d-carta" style="font-size:0.9rem; color:#374151; white-space:pre-wrap; margin:0;">—</p>
-        </div>
-
-        <!-- Documentos -->
-        <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
-          <h4 style="color:#1a3a6b; margin:0 0 0.75rem;">📎 Documentos adjuntos</h4>
-          <div id="d-documentos">
-            <p style="color:#9ca3af; font-size:0.9rem;">Cargando documentos...</p>
-          </div>
-        </div>
-
-        <!-- Documentos de seguimiento (solo cuando aplica) -->
-        <div id="d-seguimiento-section" style="display:none; background:#f5f3ff; border:1px solid #c4b5fd; border-radius:8px; padding:1rem; margin-bottom:1rem;">
-          <h4 style="color:#6d28d9; margin:0 0 0.75rem;">📚 Documentos de Seguimiento Académico</h4>
-          <div id="d-seguimiento-docs">
-            <p style="color:#9ca3af; font-size:0.9rem;">Sin documentos de seguimiento aún.</p>
-          </div>
-        </div>
-
-        <!-- Comentario del admin -->
-        <div class="form-group">
-          <label style="font-weight:600; color:#1a3a6b;">💬 Comentario para el estudiante</label>
-          <textarea id="comentario-detalle" rows="3" placeholder="Ej: Documentos aprobados. Se le notificará por correo..."></textarea>
-        </div>
-
-        <!-- Acciones principales (postulaciones normales) -->
-        <div id="acciones-normales" style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.5rem;">
-          <button class="btn btn-secundario" onclick="cerrarDetalle()">Cerrar</button>
-          <button class="btn btn-exito" onclick="accionDetalle('aprobada')" style="flex:1;">✔ Aprobar</button>
-          <button class="btn btn-danger" onclick="accionDetalle('rechazada')" style="flex:1;">✘ Rechazar</button>
-          <button class="btn btn-primario" onclick="soloComentario()" style="flex:1;">💬 Comentario</button>
-          <button class="btn btn-secundario" onclick="accionDetalle('revisando_documentos')" style="flex:1;background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">📋 Revisando docs</button>
-          <button class="btn btn-secundario" onclick="accionDetalle('necesita_correcciones')" style="flex:1;background:#fef3c7;color:#92400e;border-color:#fbbf24;">⚠ Necesita corrección</button>
-          <button id="btn-corr-viaje" class="btn btn-secundario" onclick="accionDetalle('necesita_correcciones_viaje')" style="flex:1;background:#fff7ed;color:#c2410c;border-color:#fdba74;display:none;">✈️ Corregir Docs Viaje</button>
-          <button class="btn btn-exito" onclick="accionDetalle('completada')" style="flex:1;background:#16a34a;">✅ Completar y enviar certificado</button>
-        </div>
-
-        <!-- Acciones de seguimiento (solo para estudiantes en intercambio) -->
-        <div id="acciones-seguimiento" style="display:none; border-top:1px solid #e5e7eb; padding-top:0.75rem; gap:0.75rem; flex-wrap:wrap;">
-          <button class="btn btn-secundario" onclick="cerrarDetalle()" style="margin-bottom:0.5rem;">Cerrar</button>
-          <button id="btn-iniciar-seguimiento" class="btn btn-primario" onclick="accionDetalle('en_seguimiento')" style="background:#7c3aed;">📚 Iniciar seguimiento</button>
-          <button id="btn-completar-seguimiento" class="btn btn-exito" onclick="accionDetalle('seguimiento_completado')" style="background:#059669;display:none;">🎓 Completar seguimiento</button>
-          <button class="btn btn-secundario" onclick="soloComentarioSeguimiento()" style="background:#ede9fe;color:#6d28d9;border-color:#c4b5fd;">💬 Comentar seguimiento</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal comentario rápido -->
-    <div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:center; justify-content:center;">
-      <div class="card" style="max-width:440px; width:90%; margin:auto;">
-        <h3 style="color:#1a3a6b; margin-bottom:1rem;">Agregar comentario</h3>
-        <div class="form-group">
-          <label>Comentario para el estudiante</label>
-          <textarea id="comentario-modal" rows="4" placeholder="Ej: Documentos aprobados. Se notificará por correo..."></textarea>
-        </div>
-        <div style="display:flex; gap:1rem;">
-          <button class="btn btn-secundario" onclick="cerrarModal()">Cancelar</button>
-          <button class="btn btn-primario" onclick="guardarComentario()" style="flex:1;">Guardar y actualizar</button>
-        </div>
-      </div>
-    </div>
     </div><!-- fin seccion-postulaciones -->
 
     <!-- ═══ SECCIÓN: ESTADÍSTICAS / GRÁFICAS ═══ -->
@@ -896,7 +810,7 @@
     cargarPostulaciones();
 
     document.addEventListener("keydown", e => {
-      if (e.key === "Escape") { cerrarModal(); cerrarDetalle(); }
+      if (e.key === "Escape") { cerrarModal(); cerrarDetalle(); cerrarModalAsignarUni(); }
     });
   </script>
 
@@ -1461,7 +1375,7 @@
             <option value="" disabled selected>Cambiar rol</option>
             ${u.rol !== 'estudiante' ? '<option value="estudiante">Estudiante</option>' : ''}
             ${u.rol !== 'administrador' ? '<option value="administrador">Administrador</option>' : ''}
-            ${u.rol !== 'universidad_destino' ? '<option value="universidad_destino">Univ. Destino</option>' : ''}
+            ${u.rol !== 'universidad_destino' ? '<option value="universidad_destino">Universidad Destino</option>' : ''}
           </select>`;
         }
 
@@ -1494,6 +1408,8 @@
       }).join("");
     }
 
+    let pendienteAsignarUniUserId = null;
+
     async function cambiarRol(id, nuevoRol) {
       if (!nuevoRol) return;
       const u = todosUsuarios.find(x => x.id === id);
@@ -1508,8 +1424,37 @@
         });
         mostrarAlertaUsuarios("Rol actualizado a " + rolTexto + ".", "exito");
         await cargarUsuarios();
+        if (nuevoRol === "universidad_destino") abrirModalAsignarUni(id);
       } catch (err) {
         mostrarAlertaUsuarios("Error: " + err.message, "error");
+        await cargarUsuarios();
+      }
+    }
+
+    function abrirModalAsignarUni(userId) {
+      pendienteAsignarUniUserId = userId;
+      const sel = document.getElementById("select-asignar-uni");
+      sel.innerHTML = '<option value="">-- Sin asignar (asignar después) --</option>';
+      listaUniversidades.forEach(u => {
+        const opt = document.createElement("option");
+        opt.value = u.id;
+        opt.textContent = u.nombre + " (" + u.pais + ")";
+        sel.appendChild(opt);
+      });
+      document.getElementById("modal-asignar-uni").style.display = "flex";
+    }
+
+    function cerrarModalAsignarUni() {
+      document.getElementById("modal-asignar-uni").style.display = "none";
+      pendienteAsignarUniUserId = null;
+    }
+
+    async function confirmarAsignarUni() {
+      const uniId = document.getElementById("select-asignar-uni").value;
+      const userId = pendienteAsignarUniUserId;
+      cerrarModalAsignarUni();
+      if (uniId && userId) {
+        await asignarUniversidad(userId, uniId);
       }
     }
 
@@ -1681,5 +1626,114 @@
       }, 100);
     }
   </script>
+  <!-- Modal detalle del estudiante y documentos -->
+  <div id="modal-detalle" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:flex-start; justify-content:center; overflow-y:auto; padding:1rem;">
+    <div class="card" style="max-width:600px; width:100%; margin:0 auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+        <h3 style="color:#1a3a6b; margin:0;">Detalle de postulación</h3>
+        <button onclick="cerrarDetalle()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+      </div>
+
+      <!-- Datos del estudiante -->
+      <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+        <h4 style="color:#1a3a6b; margin:0 0 0.75rem;">👤 Datos del estudiante</h4>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.9rem;">
+          <div><span style="color:#6b7280;">Nombre:</span> <strong id="d-nombre"></strong></div>
+          <div><span style="color:#6b7280;">Programa:</span> <strong id="d-programa"></strong></div>
+          <div><span style="color:#6b7280;">Cédula:</span> <strong id="d-cedula"></strong></div>
+          <div><span style="color:#6b7280;">Celular:</span> <strong id="d-celular"></strong></div>
+          <div><span style="color:#6b7280;">Semestre:</span> <strong id="d-semestre"></strong></div>
+          <div><span style="color:#6b7280;">Convocatoria:</span> <strong id="d-convocatoria"></strong></div>
+        </div>
+      </div>
+
+      <!-- Carta de intención -->
+      <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+        <h4 style="color:#1a3a6b; margin:0 0 0.5rem;">📝 Carta de intención</h4>
+        <p id="d-carta" style="font-size:0.9rem; color:#374151; white-space:pre-wrap; margin:0;">—</p>
+      </div>
+
+      <!-- Documentos -->
+      <div style="background:#f8faff; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+        <h4 style="color:#1a3a6b; margin:0 0 0.75rem;">📎 Documentos adjuntos</h4>
+        <div id="d-documentos">
+          <p style="color:#9ca3af; font-size:0.9rem;">Cargando documentos...</p>
+        </div>
+      </div>
+
+      <!-- Documentos de seguimiento (solo cuando aplica) -->
+      <div id="d-seguimiento-section" style="display:none; background:#f5f3ff; border:1px solid #c4b5fd; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+        <h4 style="color:#6d28d9; margin:0 0 0.75rem;">📚 Documentos de Seguimiento Académico</h4>
+        <div id="d-seguimiento-docs">
+          <p style="color:#9ca3af; font-size:0.9rem;">Sin documentos de seguimiento aún.</p>
+        </div>
+      </div>
+
+      <!-- Comentario del admin -->
+      <div class="form-group">
+        <label style="font-weight:600; color:#1a3a6b;">💬 Comentario para el estudiante</label>
+        <textarea id="comentario-detalle" rows="3" placeholder="Ej: Documentos aprobados. Se le notificará por correo..."></textarea>
+      </div>
+
+      <!-- Acciones principales (postulaciones normales) -->
+      <div id="acciones-normales" style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.5rem;">
+        <button class="btn btn-secundario" onclick="cerrarDetalle()">Cerrar</button>
+        <button class="btn btn-exito" onclick="accionDetalle('aprobada')" style="flex:1;">✔ Aprobar</button>
+        <button class="btn btn-danger" onclick="accionDetalle('rechazada')" style="flex:1;">✘ Rechazar</button>
+        <button class="btn btn-primario" onclick="soloComentario()" style="flex:1;">💬 Comentario</button>
+        <button class="btn btn-secundario" onclick="accionDetalle('revisando_documentos')" style="flex:1;background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">📋 Revisando docs</button>
+        <button class="btn btn-secundario" onclick="accionDetalle('necesita_correcciones')" style="flex:1;background:#fef3c7;color:#92400e;border-color:#fbbf24;">⚠ Necesita corrección</button>
+        <button id="btn-corr-viaje" class="btn btn-secundario" onclick="accionDetalle('necesita_correcciones_viaje')" style="flex:1;background:#fff7ed;color:#c2410c;border-color:#fdba74;display:none;">✈️ Corregir Docs Viaje</button>
+        <button class="btn btn-exito" onclick="accionDetalle('completada')" style="flex:1;background:#16a34a;">✅ Completar y enviar certificado</button>
+      </div>
+
+      <!-- Acciones de seguimiento (solo para estudiantes en intercambio) -->
+      <div id="acciones-seguimiento" style="display:none; border-top:1px solid #e5e7eb; padding-top:0.75rem; gap:0.75rem; flex-wrap:wrap;">
+        <button class="btn btn-secundario" onclick="cerrarDetalle()" style="margin-bottom:0.5rem;">Cerrar</button>
+        <button id="btn-iniciar-seguimiento" class="btn btn-primario" onclick="accionDetalle('en_seguimiento')" style="background:#7c3aed;">📚 Iniciar seguimiento</button>
+        <button id="btn-completar-seguimiento" class="btn btn-exito" onclick="accionDetalle('seguimiento_completado')" style="background:#059669;display:none;">🎓 Completar seguimiento</button>
+        <button class="btn btn-secundario" onclick="soloComentarioSeguimiento()" style="background:#ede9fe;color:#6d28d9;border-color:#c4b5fd;">💬 Comentar seguimiento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal comentario rápido -->
+  <div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999; align-items:center; justify-content:center;">
+    <div class="card" style="max-width:440px; width:90%; margin:auto;">
+      <h3 style="color:#1a3a6b; margin-bottom:1rem;">Agregar comentario</h3>
+      <div class="form-group">
+        <label>Comentario para el estudiante</label>
+        <textarea id="comentario-modal" rows="4" placeholder="Ej: Documentos aprobados. Se notificará por correo..."></textarea>
+      </div>
+      <div style="display:flex; gap:1rem;">
+        <button class="btn btn-secundario" onclick="cerrarModal()">Cancelar</button>
+        <button class="btn btn-primario" onclick="guardarComentario()" style="flex:1;">Guardar y actualizar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal asignar universidad (aparece al cambiar rol a Universidad Destino) -->
+  <div id="modal-asignar-uni" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div class="card" style="max-width:420px; width:90%; margin:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h3 style="color:#1a3a6b; margin:0;">Asignar Universidad</h3>
+        <button onclick="cerrarModalAsignarUni()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+      </div>
+      <p style="font-size:0.9rem; color:#6b7280; margin-bottom:1rem;">
+        El rol fue actualizado a <strong>Universidad Destino</strong>. Asigna la universidad que representará este usuario:
+      </p>
+      <div class="form-group">
+        <label style="font-weight:600; color:#1a3a6b;">Universidad</label>
+        <select id="select-asignar-uni" style="width:100%;padding:0.6rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.95rem;">
+          <option value="">-- Sin asignar (asignar después) --</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:1rem; margin-top:1rem;">
+        <button class="btn btn-secundario" onclick="cerrarModalAsignarUni()" style="flex:1;">Omitir por ahora</button>
+        <button class="btn btn-primario" onclick="confirmarAsignarUni()" style="flex:2;">Asignar universidad</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

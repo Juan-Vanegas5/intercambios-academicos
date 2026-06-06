@@ -44,21 +44,23 @@ def subir_a_s3(file: UploadFile, folder: str) -> str:
         raise HTTPException(status_code=500, detail="Error al subir archivo a la nube")
 
 def to_response(p: Postulacion) -> PostulacionResponse:
-    programa = p.estudiante.programa.nombre if p.estudiante.programa else ""
+    programa = p.estudiante.programa.nombre if p.estudiante and p.estudiante.programa else ""
+    conv = p.convocatoria
+    uni = conv.universidad if conv else None
     return PostulacionResponse(
         id=p.id,
-        convocatoria=p.convocatoria.titulo,
-        universidad=p.convocatoria.universidad.nombre,
-        pais=p.convocatoria.universidad.pais,
+        convocatoria=conv.titulo if conv else "—",
+        universidad=uni.nombre if uni else "—",
+        pais=uni.pais if uni else "—",
         estado=p.estado,
         semestre=p.semestre,
         cartaIntencion=p.carta_intencion,
         comentarioAdmin=p.comentario_admin,
         fechaPostulacion=p.fecha_postulacion,
         fechaActualizacion=p.fecha_actualizacion,
-        estudiante=f"{p.estudiante.nombre} {p.estudiante.apellido}",
-        cedula=p.estudiante.cedula,
-        celular=p.estudiante.celular,
+        estudiante=f"{p.estudiante.nombre} {p.estudiante.apellido}" if p.estudiante else "—",
+        cedula=p.estudiante.cedula if p.estudiante else None,
+        celular=p.estudiante.celular if p.estudiante else None,
         programa=programa,
         documentos=len(p.documentos) if p.documentos else 0
     )

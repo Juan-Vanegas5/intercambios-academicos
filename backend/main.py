@@ -201,7 +201,7 @@ def registro(request: RegistroRequest, db: Session = Depends(get_db)):
     db.commit()
 
     frontend_url = os.getenv("FRONTEND_URL", "https://intercambiosupc.lat")
-    link = f"{frontend_url}/pages/verificar-email.html?token={token_verificacion}"
+    link = f"{frontend_url}/verificar-email.html?token={token_verificacion}"
     email_service.enviar_verificacion_registro(request.email, request.nombre, link)
 
     return {

@@ -186,13 +186,22 @@
           </div>
         </div>
 
+        <!-- Documentos de seguimiento (solo cuando aplica) -->
+        <div id="d-seguimiento-section" style="display:none; background:#f5f3ff; border:1px solid #c4b5fd; border-radius:8px; padding:1rem; margin-bottom:1rem;">
+          <h4 style="color:#6d28d9; margin:0 0 0.75rem;">📚 Documentos de Seguimiento Académico</h4>
+          <div id="d-seguimiento-docs">
+            <p style="color:#9ca3af; font-size:0.9rem;">Sin documentos de seguimiento aún.</p>
+          </div>
+        </div>
+
         <!-- Comentario del admin -->
         <div class="form-group">
           <label style="font-weight:600; color:#1a3a6b;">💬 Comentario para el estudiante</label>
           <textarea id="comentario-detalle" rows="3" placeholder="Ej: Documentos aprobados. Se le notificará por correo..."></textarea>
         </div>
 
-        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+        <!-- Acciones principales -->
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.5rem;">
           <button class="btn btn-secundario" onclick="cerrarDetalle()">Cerrar</button>
           <button class="btn btn-exito" onclick="accionDetalle('aprobada')" style="flex:1;">✔ Aprobar</button>
           <button class="btn btn-danger" onclick="accionDetalle('rechazada')" style="flex:1;">✘ Rechazar</button>
@@ -201,6 +210,13 @@
           <button class="btn btn-secundario" onclick="accionDetalle('necesita_correcciones')" style="flex:1;background:#fef3c7;color:#92400e;border-color:#fbbf24;">⚠ Necesita corrección</button>
           <button id="btn-corr-viaje" class="btn btn-secundario" onclick="accionDetalle('necesita_correcciones_viaje')" style="flex:1;background:#fff7ed;color:#c2410c;border-color:#fdba74;display:none;">✈️ Corregir Docs Viaje</button>
           <button class="btn btn-exito" onclick="accionDetalle('completada')" style="flex:1;background:#16a34a;">✅ Completar y enviar certificado</button>
+        </div>
+
+        <!-- Acciones de seguimiento (solo visible cuando aplica) -->
+        <div id="acciones-seguimiento" style="display:none; border-top:1px solid #e5e7eb; padding-top:0.75rem; display:flex; gap:0.75rem; flex-wrap:wrap;">
+          <button class="btn btn-primario" onclick="accionDetalle('en_seguimiento')" style="background:#7c3aed;">📚 Iniciar seguimiento</button>
+          <button id="btn-completar-seguimiento" class="btn btn-exito" onclick="accionDetalle('seguimiento_completado')" style="background:#059669;display:none;">🎓 Completar seguimiento</button>
+          <button class="btn btn-secundario" onclick="soloComentarioSeguimiento()" style="background:#ede9fe;color:#6d28d9;border-color:#c4b5fd;">💬 Comentar seguimiento</button>
         </div>
       </div>
     </div>
@@ -632,31 +648,58 @@
 
       // Mostrar botón de corrección de viaje solo si está en etapa de viaje
       const btnViaje = document.getElementById("btn-corr-viaje");
-      if (["aprobada", "docs_viaje_enviados", "necesita_correcciones_viaje"].includes(p.estado)) {
+      if (["aprobada", "aprobada_universidad", "docs_viaje_enviados", "necesita_correcciones_viaje"].includes(p.estado)) {
         btnViaje.style.display = "block";
       } else {
         btnViaje.style.display = "none";
       }
 
+      // Sección y acciones de seguimiento
+      const estadosSeguimiento = ["en_seguimiento", "seguimiento_docs_enviados", "seguimiento_completado"];
+      const accionesSeg = document.getElementById("acciones-seguimiento");
+      const secSeg = document.getElementById("d-seguimiento-section");
+      const btnCompletarSeg = document.getElementById("btn-completar-seguimiento");
+
+      if (p.estado === "completada" || estadosSeguimiento.includes(p.estado)) {
+        accionesSeg.style.display = "flex";
+        btnCompletarSeg.style.display = p.estado === "seguimiento_docs_enviados" ? "block" : "none";
+      } else {
+        accionesSeg.style.display = "none";
+        btnCompletarSeg.style.display = "none";
+      }
+
+      if (estadosSeguimiento.includes(p.estado)) {
+        secSeg.style.display = "block";
+        document.getElementById("d-seguimiento-docs").innerHTML = '<p style="color:#9ca3af;font-size:0.9rem;">Cargando...</p>';
+      } else {
+        secSeg.style.display = "none";
+      }
+
       document.getElementById("modal-detalle").style.display = "flex";
 
-      // Cargar documentos
+      // Cargar todos los documentos
       try {
         const docs = await apiFetch(`/api/admin/postulaciones/${id}/documentos`, { headers: authHeaders() });
-        if (!docs || docs.length === 0) {
-          document.getElementById("d-documentos").innerHTML = '<p style="color:#9ca3af;font-size:0.9rem;">No hay documentos adjuntos.</p>';
-        } else {
-          document.getElementById("d-documentos").innerHTML = docs.map(d => `
+        const TIPOS_SEGUIMIENTO = [7, 8];
+
+        const docsNormales = (docs || []).filter(d => !TIPOS_SEGUIMIENTO.includes(d.tipo_id));
+        const docsSeg = (docs || []).filter(d => TIPOS_SEGUIMIENTO.includes(d.tipo_id));
+
+        const renderDocs = (lista) => lista.length === 0
+          ? '<p style="color:#9ca3af;font-size:0.9rem;">No hay documentos.</p>'
+          : lista.map(d => `
             <div style="display:flex; align-items:center; gap:0.75rem; padding:0.6rem 0; border-bottom:1px solid #e5e7eb;">
               <span style="font-size:1.3rem;">📄</span>
               <div style="flex:1;">
                 <div style="font-weight:600; font-size:0.9rem;">${d.tipo || "Documento"}</div>
                 <div style="font-size:0.8rem; color:#6b7280;">${d.nombre_archivo}</div>
               </div>
-              <a href="${d.s3_key}" target="_blank"
-                 class="btn btn-secundario btn-sm">⬇ Descargar</a>
-            </div>
-          `).join("");
+              <a href="${d.s3_key}" target="_blank" class="btn btn-secundario btn-sm">⬇ Descargar</a>
+            </div>`).join("");
+
+        document.getElementById("d-documentos").innerHTML = renderDocs(docsNormales.length ? docsNormales : (docs || []));
+        if (estadosSeguimiento.includes(p.estado)) {
+          document.getElementById("d-seguimiento-docs").innerHTML = renderDocs(docsSeg);
         }
       } catch (e) {
         document.getElementById("d-documentos").innerHTML = '<p style="color:#dc2626;font-size:0.9rem;">Error al cargar documentos.</p>';
@@ -686,6 +729,25 @@
           body: JSON.stringify({ estado: p ? p.estado : "en_revision", comentario })
         });
         if (p) p.comentarioAdmin = comentario;
+        filtrar("todas");
+      } catch (err) {
+        const alerta = document.getElementById("alerta-admin");
+        alerta.className = "alerta alerta-error mb-3";
+        alerta.style.display = "block";
+        alerta.textContent = "Error: " + err.message;
+      }
+    }
+
+    async function soloComentarioSeguimiento() {
+      const comentario = document.getElementById("comentario-detalle").value.trim();
+      if (!comentario) { alert("Escribe un comentario primero."); return; }
+      const id = detalleId;
+      cerrarDetalle();
+      try {
+        await apiFetch(`/api/admin/postulaciones/${id}/comentario-seguimiento`, {
+          method: "PUT", headers: authHeaders(),
+          body: JSON.stringify({ comentario })
+        });
         filtrar("todas");
       } catch (err) {
         const alerta = document.getElementById("alerta-admin");

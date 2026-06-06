@@ -21,7 +21,8 @@ ESTADOS_VALIDOS = ["aprobada", "rechazada", "en_revision", "revisando_documentos
                    "necesita_correcciones", "docs_pendientes", "completada",
                    "docs_viaje_enviados", "necesita_correcciones_viaje",
                    "pendiente_verificacion_uni", "aprobada_universidad",
-                   "rechazada_universidad", "docs_extra_solicitados"]
+                   "rechazada_universidad", "docs_extra_solicitados",
+                   "en_seguimiento", "seguimiento_docs_enviados", "seguimiento_completado"]
 
 # ── Postulaciones ─────────────────────────────────────────────────────────────
 
@@ -79,7 +80,10 @@ def actualizar_estado(id: int, request: EstadoRequest,
             "necesita_correcciones": "Tu postulación a {conv} necesita correcciones.",
             "necesita_correcciones_viaje": "Tu postulación a {conv} requiere corrección de documentos de viaje.",
             "docs_pendientes": "Faltan documentos en tu postulación a {conv}.",
-            "completada": "¡Tu proceso de intercambio a {conv} ha sido COMPLETADO! Tanto el administrador como la universidad de destino han aprobado tu postulación.",
+            "completada": "¡Tu proceso de intercambio a {conv} ha sido COMPLETADO! Puedes descargar tu certificado de participación.",
+            "en_seguimiento": "Tu intercambio en {conv} ha finalizado. Ahora debes subir tus documentos de seguimiento académico: certificado de notas de la universidad de destino y constancia académica.",
+            "seguimiento_docs_enviados": "Tus documentos de seguimiento para {conv} están siendo revisados por el administrador.",
+            "seguimiento_completado": "¡Tu proceso de intercambio académico en {conv} ha sido COMPLETADO exitosamente! Todos los documentos de seguimiento han sido revisados.",
         }
         msg = mensajes.get(estado_final)
         if msg:
@@ -176,6 +180,27 @@ def actualizar_estado(id: int, request: EstadoRequest,
     db.refresh(postulacion)
     return to_response(postulacion)
 
+
+
+@router.put("/postulaciones/{id}/comentario-seguimiento",
+            summary="Agregar comentario de seguimiento sin cambiar estado")
+def comentario_seguimiento(id: int, body: dict,
+                           db: Session = Depends(get_db), admin: Usuario = Depends(solo_admin)):
+    postulacion = db.query(Postulacion).filter(Postulacion.id == id).first()
+    if not postulacion:
+        raise HTTPException(status_code=404, detail="Postulación no encontrada")
+    comentario = body.get("comentario", "").strip()
+    if not comentario:
+        raise HTTPException(status_code=400, detail="El comentario no puede estar vacío")
+    postulacion.comentario_admin = comentario
+    postulacion.fecha_actualizacion = datetime.datetime.now()
+    db.add(Notificacion(
+        usuario_id=postulacion.estudiante_id,
+        mensaje=f"El administrador tiene un comentario sobre tu seguimiento de {postulacion.convocatoria.titulo if postulacion.convocatoria else 'la convocatoria'}: {comentario}"
+    ))
+    db.commit()
+    db.refresh(postulacion)
+    return to_response(postulacion)
 
 
 @router.delete("/postulaciones/{id}", summary="Eliminar una postulación")

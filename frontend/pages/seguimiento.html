@@ -125,6 +125,66 @@
       </form>
     </div>
   </div>
+  <!-- Modal documentos extra solicitados por universidad -->
+  <div id="modal-docs-extra" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; padding:1rem;">
+    <div class="card" style="max-width:500px; width:100%; margin:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+        <h3 style="color:#1a3a6b; margin:0;">📤 Documentos Extra Solicitados</h3>
+        <button onclick="cerrarDocsExtra()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+      </div>
+      <p style="color:#6b7280; font-size:0.9rem; margin-bottom:1rem;">
+        La universidad de destino solicitó documentos adicionales. Súbelos aquí (solo PDF, hasta 3 archivos).
+      </p>
+      <div id="alerta-docs-extra" class="alerta mb-3" style="display:none;"></div>
+      <form id="form-docs-extra" onsubmit="subirDocsExtra(event)">
+        <div class="form-group">
+          <label>Documento 1 (PDF)</label>
+          <input type="file" id="extra-doc1" accept=".pdf">
+        </div>
+        <div class="form-group">
+          <label>Documento 2 (PDF) — opcional</label>
+          <input type="file" id="extra-doc2" accept=".pdf">
+        </div>
+        <div class="form-group">
+          <label>Documento 3 (PDF) — opcional</label>
+          <input type="file" id="extra-doc3" accept=".pdf">
+        </div>
+        <div style="display:flex; gap:1rem; margin-top:1rem;">
+          <button type="button" class="btn btn-secundario" onclick="cerrarDocsExtra()" style="flex:1;">Cancelar</button>
+          <button type="submit" class="btn btn-primario" style="flex:2;background:#d97706;">Enviar documentos</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal seguimiento académico -->
+  <div id="modal-seguimiento" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; padding:1rem;">
+    <div class="card" style="max-width:500px; width:100%; margin:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+        <h3 style="color:#1a3a6b; margin:0;">📚 Seguimiento Académico</h3>
+        <button onclick="cerrarSeguimiento()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6b7280;">✕</button>
+      </div>
+      <p style="color:#6b7280; font-size:0.9rem; margin-bottom:1rem;">
+        Sube los documentos de tu estadía en la universidad de destino. Solo archivos PDF.
+      </p>
+      <div id="alerta-seguimiento" class="alerta mb-3" style="display:none;"></div>
+      <form id="form-seguimiento" onsubmit="subirDocsSeguimiento(event)">
+        <div class="form-group">
+          <label>📄 Certificado de notas (universidad destino)</label>
+          <input type="file" id="seg-certificado" accept=".pdf">
+        </div>
+        <div class="form-group">
+          <label>📋 Constancia académica</label>
+          <input type="file" id="seg-constancia" accept=".pdf">
+        </div>
+        <div style="display:flex; gap:1rem; margin-top:1rem;">
+          <button type="button" class="btn btn-secundario" onclick="cerrarSeguimiento()" style="flex:1;">Cancelar</button>
+          <button type="submit" class="btn btn-primario" style="flex:2;background:#7c3aed;">Enviar documentos</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal corrección de documentos -->
   <div id="modal-correccion" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; padding:1rem;">
     <div class="card" style="max-width:480px; width:100%; margin:auto;">
@@ -204,13 +264,19 @@
               ${p.comentarioAdmin || "—"}
             </td>
             <td>
-              ${p.estado === "completada"
+              ${p.estado === "seguimiento_completado"
                 ? `<button class="btn btn-exito btn-sm" onclick="descargarCertificado(${p.id})" style="white-space:nowrap;background:#16a34a;">📜 Certificado</button>`
-                : (p.estado === "aprobada" || p.estado === "docs_viaje_enviados" || p.estado === "necesita_correcciones_viaje")
+                : p.estado === "completada"
+                  ? `<button class="btn btn-exito btn-sm" onclick="descargarCertificado(${p.id})" style="white-space:nowrap;background:#16a34a;">📜 Certificado</button>`
+                : (p.estado === "aprobada_universidad" || p.estado === "necesita_correcciones_viaje")
                   ? `<button class="btn btn-exito btn-sm" onclick="abrirViaje(${p.id})" style="white-space:nowrap;">✈️ ${p.estado === 'necesita_correcciones_viaje' ? 'Corregir viaje' : 'Docs viaje'}</button>`
-                  : (p.estado === "necesita_correcciones" || p.estado === "docs_pendientes")
-                      ? `<button class="btn btn-primario btn-sm" onclick="abrirCorreccion(${p.id})">📎 Corregir docs</button>`
-                      : "—"}
+                : p.estado === "docs_extra_solicitados"
+                  ? `<button class="btn btn-primario btn-sm" onclick="abrirDocsExtra(${p.id})" style="background:#d97706;">📤 Docs extra</button>`
+                : p.estado === "en_seguimiento"
+                  ? `<button class="btn btn-primario btn-sm" onclick="abrirSeguimiento(${p.id})" style="background:#7c3aed;">📚 Subir seguimiento</button>`
+                : (p.estado === "necesita_correcciones" || p.estado === "docs_pendientes")
+                  ? `<button class="btn btn-primario btn-sm" onclick="abrirCorreccion(${p.id})">📎 Corregir docs</button>`
+                : "—"}
             </td>
           </tr>
         `).join("");
@@ -226,11 +292,26 @@
 
     // ── Barra de progreso ──
     const ETAPAS = [
-      { estados: ["en_revision"],              label: "En revisión",        icono: "🔍" },
-      { estados: ["revisando_documentos"],      label: "Revisando docs",     icono: "📋" },
-      { estados: ["necesita_correcciones","docs_pendientes"], label: "Corrección", icono: "⚠️" },
-      { estados: ["aprobada","docs_viaje_enviados","necesita_correcciones_viaje"], label: "Aprobada ✓", icono: "🎉" },
-      { estados: ["completada"],               label: "Completada",         icono: "✅" },
+      {
+        estados: ["en_revision", "revisando_documentos", "necesita_correcciones", "docs_pendientes"],
+        label: "Documentos",  icono: "📎"
+      },
+      {
+        estados: ["pendiente_verificacion_uni", "docs_extra_solicitados", "aprobada_universidad", "rechazada_universidad"],
+        label: "Verificación", icono: "🔍"
+      },
+      {
+        estados: ["docs_viaje_enviados", "necesita_correcciones_viaje", "completada"],
+        label: "Docs Viaje",  icono: "✈️"
+      },
+      {
+        estados: ["en_seguimiento", "seguimiento_docs_enviados"],
+        label: "Seguimiento", icono: "📚"
+      },
+      {
+        estados: ["seguimiento_completado"],
+        label: "Completado",  icono: "🎓"
+      },
     ];
 
     function renderProgreso(postulaciones) {
@@ -515,6 +596,94 @@
     function cerrarViaje() {
       document.getElementById("modal-viaje").style.display = "none";
       viajeId = null;
+    }
+
+    let docsExtraId = null;
+
+    function abrirDocsExtra(id) {
+      docsExtraId = id;
+      ["extra-doc1","extra-doc2","extra-doc3"].forEach(i => document.getElementById(i).value = "");
+      document.getElementById("alerta-docs-extra").style.display = "none";
+      document.getElementById("modal-docs-extra").style.display = "flex";
+    }
+
+    function cerrarDocsExtra() {
+      document.getElementById("modal-docs-extra").style.display = "none";
+      docsExtraId = null;
+    }
+
+    async function subirDocsExtra(e) {
+      e.preventDefault();
+      const alerta = document.getElementById("alerta-docs-extra");
+      const files = ["extra-doc1","extra-doc2","extra-doc3"].map(i => document.getElementById(i).files[0]);
+
+      if (files.every(f => !f)) {
+        alerta.className = "alerta alerta-error"; alerta.style.display = "block";
+        alerta.textContent = "Debes adjuntar al menos un documento."; return;
+      }
+
+      const form = new FormData();
+      if (files[0]) form.append("documento1", files[0]);
+      if (files[1]) form.append("documento2", files[1]);
+      if (files[2]) form.append("documento3", files[2]);
+
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${BASE_URL}/api/postulaciones/${docsExtraId}/documentos-extra`, {
+          method: "POST", headers: { "Authorization": "Bearer " + token }, body: form
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
+        alerta.className = "alerta alerta-exito"; alerta.style.display = "block";
+        alerta.textContent = "✅ Documentos extra enviados. La universidad revisará tu postulación.";
+        setTimeout(() => { cerrarDocsExtra(); cargarMisPostulaciones(); }, 1800);
+      } catch (err) {
+        alerta.className = "alerta alerta-error"; alerta.style.display = "block";
+        alerta.textContent = "Error: " + err.message;
+      }
+    }
+
+    let seguimientoId = null;
+
+    function abrirSeguimiento(id) {
+      seguimientoId = id;
+      ["seg-certificado","seg-constancia"].forEach(i => document.getElementById(i).value = "");
+      document.getElementById("alerta-seguimiento").style.display = "none";
+      document.getElementById("modal-seguimiento").style.display = "flex";
+    }
+
+    function cerrarSeguimiento() {
+      document.getElementById("modal-seguimiento").style.display = "none";
+      seguimientoId = null;
+    }
+
+    async function subirDocsSeguimiento(e) {
+      e.preventDefault();
+      const alerta = document.getElementById("alerta-seguimiento");
+      const cert = document.getElementById("seg-certificado").files[0];
+      const const_ = document.getElementById("seg-constancia").files[0];
+
+      if (!cert && !const_) {
+        alerta.className = "alerta alerta-error"; alerta.style.display = "block";
+        alerta.textContent = "Debes adjuntar al menos un documento."; return;
+      }
+
+      const form = new FormData();
+      if (cert) form.append("certificado_notas", cert);
+      if (const_) form.append("constancia_academica", const_);
+
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${BASE_URL}/api/postulaciones/${seguimientoId}/documentos-seguimiento`, {
+          method: "POST", headers: { "Authorization": "Bearer " + token }, body: form
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
+        alerta.className = "alerta alerta-exito"; alerta.style.display = "block";
+        alerta.textContent = "✅ Documentos de seguimiento enviados. El administrador los revisará.";
+        setTimeout(() => { cerrarSeguimiento(); cargarMisPostulaciones(); }, 1800);
+      } catch (err) {
+        alerta.className = "alerta alerta-error"; alerta.style.display = "block";
+        alerta.textContent = "Error: " + err.message;
+      }
     }
 
     async function subirDocsViaje(e) {

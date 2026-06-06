@@ -191,8 +191,8 @@ async def subir_documentos_viaje(
     ).first()
     if not postulacion:
         raise HTTPException(status_code=404, detail="Postulación no encontrada")
-    if postulacion.estado not in ["aprobada", "necesita_correcciones_viaje"]:
-        raise HTTPException(status_code=400, detail="Solo puedes subir documentos de viaje cuando tu postulación está aprobada o requiere correcciones de viaje")
+    if postulacion.estado not in ["aprobada", "aprobada_universidad", "necesita_correcciones_viaje"]:
+        raise HTTPException(status_code=400, detail="Solo puedes subir documentos de viaje cuando tu postulación está aprobada por la universidad o requiere correcciones de viaje")
 
     archivos = [vuelos, seguro, visa, pasaporte]
     subidos = []
@@ -232,3 +232,106 @@ async def subir_documentos_viaje(
         postulacion.estado = "docs_viaje_enviados"
     db.commit()
     return {"mensaje": f"{len(subidos)} documento(s) de viaje subido(s) a S3", "archivos": subidos}
+
+
+@router.post("/{id}/documentos-extra", summary="Subir documentos extra solicitados por la universidad")
+async def subir_documentos_extra(
+    id: int,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    documento1: UploadFile = File(None),
+    documento2: UploadFile = File(None),
+    documento3: UploadFile = File(None),
+):
+    postulacion = db.query(Postulacion).filter(
+        Postulacion.id == id,
+        Postulacion.estudiante_id == usuario.id
+    ).first()
+    if not postulacion:
+        raise HTTPException(status_code=404, detail="Postulación no encontrada")
+    if postulacion.estado != "docs_extra_solicitados":
+        raise HTTPException(status_code=400, detail="Esta postulación no tiene documentos extra pendientes")
+
+    subidos = []
+    for archivo in [documento1, documento2, documento3]:
+        if archivo and archivo.filename:
+            if not archivo.filename.lower().endswith(".pdf"):
+                raise HTTPException(status_code=400, detail=f"'{archivo.filename}' debe ser PDF")
+            url_s3 = subir_a_s3(archivo, str(id))
+            db.add(Documento(
+                postulacion_id=id,
+                nombre_archivo=archivo.filename,
+                tipo_documento_id=None,
+                s3_key=url_s3,
+                fecha_subida=datetime.datetime.now()
+            ))
+            subidos.append(archivo.filename)
+
+    if not subidos:
+        raise HTTPException(status_code=400, detail="Debes subir al menos un documento")
+
+    postulacion.estado = "pendiente_verificacion_uni"
+    postulacion.verificacion_universidad = "pendiente"
+    postulacion.fecha_actualizacion = datetime.datetime.now()
+    db.commit()
+    return {"mensaje": f"{len(subidos)} documento(s) extra enviado(s)", "archivos": subidos}
+
+
+DOCS_SEGUIMIENTO = [
+    ("certificado_notas", "Certificado de notas destino", 7),
+    ("constancia_academica", "Constancia académica", 8),
+]
+
+@router.post("/{id}/documentos-seguimiento", summary="Subir documentos de seguimiento académico")
+async def subir_documentos_seguimiento(
+    id: int,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    certificado_notas: UploadFile = File(None),
+    constancia_academica: UploadFile = File(None),
+):
+    postulacion = db.query(Postulacion).filter(
+        Postulacion.id == id,
+        Postulacion.estudiante_id == usuario.id
+    ).first()
+    if not postulacion:
+        raise HTTPException(status_code=404, detail="Postulación no encontrada")
+    if postulacion.estado != "en_seguimiento":
+        raise HTTPException(status_code=400, detail="Esta postulación no está en fase de seguimiento")
+
+    archivos = [certificado_notas, constancia_academica]
+    subidos = []
+
+    for archivo, (campo, nombre_tipo, tipo_id) in zip(archivos, DOCS_SEGUIMIENTO):
+        if archivo and archivo.filename:
+            if not archivo.filename.lower().endswith(".pdf"):
+                raise HTTPException(status_code=400, detail=f"'{archivo.filename}' debe ser PDF")
+
+            tipo = db.query(TipoDocumento).filter(TipoDocumento.id == tipo_id).first()
+            if not tipo:
+                tipo = TipoDocumento(id=tipo_id, nombre=nombre_tipo)
+                db.add(tipo)
+                db.flush()
+
+            db.query(Documento).filter(
+                Documento.postulacion_id == id,
+                Documento.tipo_documento_id == tipo_id
+            ).delete()
+
+            url_s3 = subir_a_s3(archivo, str(id))
+            db.add(Documento(
+                postulacion_id=id,
+                nombre_archivo=archivo.filename,
+                tipo_documento_id=tipo_id,
+                s3_key=url_s3,
+                fecha_subida=datetime.datetime.now()
+            ))
+            subidos.append(archivo.filename)
+
+    if not subidos:
+        raise HTTPException(status_code=400, detail="Debes subir al menos un documento")
+
+    postulacion.estado = "seguimiento_docs_enviados"
+    postulacion.fecha_actualizacion = datetime.datetime.now()
+    db.commit()
+    return {"mensaje": f"{len(subidos)} documento(s) de seguimiento enviado(s)", "archivos": subidos}

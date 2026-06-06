@@ -176,12 +176,12 @@ def verificar_estudiante(postulacion_id: int, body: dict,
 
     if accion == "aprobar":
         postulacion.verificacion_universidad = "aprobada"
-        postulacion.estado = "completada"
+        postulacion.estado = "aprobada_universidad"
 
         # Notificar al estudiante
-        msg = f"¡Tu proceso de intercambio a {conv_titulo} ha sido COMPLETADO! La universidad de destino aprobó tu postulación."
+        msg = f"¡La universidad de destino APROBÓ tu postulación para {conv_titulo}! Ya puedes subir tus documentos de viaje."
         if comentario:
-            msg += f" Comentario de la universidad: {comentario}"
+            msg += f" Comentario: {comentario}"
         db.add(Notificacion(usuario_id=est.id, mensaje=msg))
 
         # Notificar a los admins
@@ -189,7 +189,7 @@ def verificar_estudiante(postulacion_id: int, body: dict,
         for admin in admins:
             db.add(Notificacion(
                 usuario_id=admin.id,
-                mensaje=f"La universidad de destino APROBÓ a {est.nombre} {est.apellido} para {conv_titulo}. Proceso completado."
+                mensaje=f"La universidad de destino APROBÓ a {est.nombre} {est.apellido} para {conv_titulo}. El estudiante debe subir documentos de viaje."
             ))
 
     else:  # rechazar

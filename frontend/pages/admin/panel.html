@@ -204,8 +204,8 @@
           <textarea id="comentario-detalle" rows="3" placeholder="Ej: Documentos aprobados. Se le notificará por correo..."></textarea>
         </div>
 
-        <!-- Acciones principales -->
-        <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.5rem;">
+        <!-- Acciones principales (postulaciones normales) -->
+        <div id="acciones-normales" style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.5rem;">
           <button class="btn btn-secundario" onclick="cerrarDetalle()">Cerrar</button>
           <button class="btn btn-exito" onclick="accionDetalle('aprobada')" style="flex:1;">✔ Aprobar</button>
           <button class="btn btn-danger" onclick="accionDetalle('rechazada')" style="flex:1;">✘ Rechazar</button>
@@ -216,9 +216,10 @@
           <button class="btn btn-exito" onclick="accionDetalle('completada')" style="flex:1;background:#16a34a;">✅ Completar y enviar certificado</button>
         </div>
 
-        <!-- Acciones de seguimiento (solo visible cuando aplica) -->
-        <div id="acciones-seguimiento" style="display:none; border-top:1px solid #e5e7eb; padding-top:0.75rem; display:flex; gap:0.75rem; flex-wrap:wrap;">
-          <button class="btn btn-primario" onclick="accionDetalle('en_seguimiento')" style="background:#7c3aed;">📚 Iniciar seguimiento</button>
+        <!-- Acciones de seguimiento (solo para estudiantes en intercambio) -->
+        <div id="acciones-seguimiento" style="display:none; border-top:1px solid #e5e7eb; padding-top:0.75rem; gap:0.75rem; flex-wrap:wrap;">
+          <button class="btn btn-secundario" onclick="cerrarDetalle()" style="margin-bottom:0.5rem;">Cerrar</button>
+          <button id="btn-iniciar-seguimiento" class="btn btn-primario" onclick="accionDetalle('en_seguimiento')" style="background:#7c3aed;">📚 Iniciar seguimiento</button>
           <button id="btn-completar-seguimiento" class="btn btn-exito" onclick="accionDetalle('seguimiento_completado')" style="background:#059669;display:none;">🎓 Completar seguimiento</button>
           <button class="btn btn-secundario" onclick="soloComentarioSeguimiento()" style="background:#ede9fe;color:#6d28d9;border-color:#c4b5fd;">💬 Comentar seguimiento</button>
         </div>
@@ -696,28 +697,33 @@
       document.getElementById("comentario-detalle").value   = p.comentarioAdmin || "";
       document.getElementById("d-documentos").innerHTML     = '<p style="color:#9ca3af;font-size:0.9rem;">Cargando...</p>';
 
-      // Mostrar botón de corrección de viaje solo si está en etapa de viaje
-      const btnViaje = document.getElementById("btn-corr-viaje");
-      if (["aprobada", "aprobada_universidad", "docs_viaje_enviados", "necesita_correcciones_viaje"].includes(p.estado)) {
-        btnViaje.style.display = "block";
-      } else {
-        btnViaje.style.display = "none";
-      }
-
-      // Sección y acciones de seguimiento
       const estadosSeguimiento = ["en_seguimiento", "seguimiento_docs_enviados", "seguimiento_completado"];
+      const esIntercambio = p.estado === "completada" || estadosSeguimiento.includes(p.estado);
+
+      // Mostrar/ocultar bloque de acciones según si es intercambio o postulación normal
+      const accionesNormales = document.getElementById("acciones-normales");
       const accionesSeg = document.getElementById("acciones-seguimiento");
       const secSeg = document.getElementById("d-seguimiento-section");
       const btnCompletarSeg = document.getElementById("btn-completar-seguimiento");
+      const btnIniciarSeg = document.getElementById("btn-iniciar-seguimiento");
 
-      if (p.estado === "completada" || estadosSeguimiento.includes(p.estado)) {
+      if (esIntercambio) {
+        accionesNormales.style.display = "none";
         accionesSeg.style.display = "flex";
-        btnCompletarSeg.style.display = p.estado === "seguimiento_docs_enviados" ? "block" : "none";
+        // "Iniciar seguimiento" solo cuando aún no ha comenzado
+        btnIniciarSeg.style.display = p.estado === "completada" ? "inline-block" : "none";
+        // "Completar seguimiento" solo cuando el estudiante ya envió los docs
+        btnCompletarSeg.style.display = p.estado === "seguimiento_docs_enviados" ? "inline-block" : "none";
       } else {
+        accionesNormales.style.display = "flex";
         accionesSeg.style.display = "none";
         btnCompletarSeg.style.display = "none";
+        // Botón de corrección de viaje solo en etapa de viaje
+        const btnViaje = document.getElementById("btn-corr-viaje");
+        btnViaje.style.display = ["aprobada", "aprobada_universidad", "docs_viaje_enviados", "necesita_correcciones_viaje"].includes(p.estado) ? "block" : "none";
       }
 
+      // Sección de documentos de seguimiento
       if (estadosSeguimiento.includes(p.estado)) {
         secSeg.style.display = "block";
         document.getElementById("d-seguimiento-docs").innerHTML = '<p style="color:#9ca3af;font-size:0.9rem;">Cargando...</p>';
